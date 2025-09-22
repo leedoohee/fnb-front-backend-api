@@ -3,6 +3,8 @@ package com.fnb.backend.controller.dto;
 import lombok.Builder;
 import lombok.Data;
 
+import java.math.BigDecimal;
+
 @Data
 @Builder
 public class ApprovePaymentDto {
@@ -12,5 +14,5 @@ public class ApprovePaymentDto {
     private String memberName;
     private String orderId;
     private String pgToken;
-    private long amount;
+    private BigDecimal amount;
 }

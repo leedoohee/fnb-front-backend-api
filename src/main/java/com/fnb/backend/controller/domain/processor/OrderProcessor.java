@@ -29,7 +29,7 @@ public class OrderProcessor {
             return null;
         }
 
-        if(!this.validatePoint(this.order.getPoint(), this.member.getOwnedPointAmount())) {
+        if(!this.validatePoint(this.order.getUsePoint(), this.member.getOwnedPointAmount())) {
             return null;
         }
 
@@ -45,11 +45,20 @@ public class OrderProcessor {
             return null;
         }
 
+        List<CreateOrderProductDto> createOrderProductDtos = this.buildOrderProducts(this.member, this.products, this.coupons, this.order.getUsePoint());
+
+        int totalCouponPrice        = this.calculateTotalCouponPrice(createOrderProductDtos);
+        int totalMemberShipPrice    = this.calculateTotalMemberShipPrice(createOrderProductDtos);
+        int totalOriginPrice        = this.calculateTotalOriginPrice(createOrderProductDtos);
+
         return CreateOrderDto.builder()
-                .orderId(this.generateOrderId(this.order.getMerchantId()))
+                .orderId(this.order.generateOrderId())
                 .orderDate(this.order.getOrderDate())
                 .merchantId(this.order.getMerchantId())
-                .orderProducts(this.buildOrderProducts(this.member, this.products, this.coupons, this.order.getPoint()))
+                .discountAmount(BigDecimal.valueOf(totalCouponPrice + totalMemberShipPrice).add(this.order.getUsePoint()))
+                .couponAmount(BigDecimal.valueOf(totalCouponPrice))
+                .orderAmount(BigDecimal.valueOf(totalOriginPrice))
+                .orderProducts(createOrderProductDtos)
                 .build();
     }
 
@@ -110,8 +119,6 @@ public class OrderProcessor {
     private List<CreateOrderProductDto> buildOrderProducts(Member member, List<Product> products, List<Coupon> coupons, BigDecimal usePoint) {
         List<CreateOrderProductDto> createOrderProductDtos = new ArrayList<>();
 
-        int dividedPoint = Math.round(usePoint.floatValue() / products.size());
-
         for (Product product : products) {
             int memberShipPrice = 0;
 
@@ -126,18 +133,15 @@ public class OrderProcessor {
             int couponPrice = this.calculateCouponToProduct(product, coupons);
 
             CreateOrderProductDto orderProduct = CreateOrderProductDto.builder()
-                    .orderId(this.generateOrderId(this.order.getMerchantId()))
+                    .orderId(this.order.generateOrderId())
                     .orderProductId(this.generateOrderProductId(product.getMerchantId(), String.valueOf(product.getId())))
                     .productId(product.getId())
                     .name(product.getName())
                     .couponId(this.applyCouponToProduct(product, coupons))
                     .quantity(product.getPurchaseQuantity())
                     .originPrice(product.getTotalPrice())
-                    .purchasePrice(product.getTotalPrice() - couponPrice - memberShipPrice - dividedPoint)
                     .couponPrice(couponPrice)
-                    .memberShipPrice(memberShipPrice)
-                    .point(dividedPoint)
-                    .discountPrice(couponPrice + memberShipPrice + dividedPoint)
+                    .discountPrice(couponPrice + memberShipPrice)
                     .build();
 
             createOrderProductDtos.add(orderProduct);
@@ -181,8 +185,22 @@ public class OrderProcessor {
         return Objects.requireNonNull(memberShipCalculator).calculatePrice().intValue();
     }
 
-    private String generateOrderId(String merchantId) {
-        return "ORDER_" + merchantId + "_" + new Date().getTime();
+    private int calculateTotalCouponPrice(List<CreateOrderProductDto> createOrderProductDtos) {
+        return createOrderProductDtos.stream()
+                .map(CreateOrderProductDto::getCouponPrice)
+                .mapToInt(Integer::intValue).sum();
+    }
+
+    private int calculateTotalMemberShipPrice(List<CreateOrderProductDto> createOrderProductDtos) {
+        return createOrderProductDtos.stream()
+                .map(CreateOrderProductDto::getMemberShipPrice)
+                .mapToInt(Integer::intValue).sum();
+    }
+
+    private int calculateTotalOriginPrice(List<CreateOrderProductDto> createOrderProductDtos) {
+        return createOrderProductDtos.stream()
+                .map(CreateOrderProductDto::getOriginPrice)
+                .mapToInt(Integer::intValue).sum();
     }
 
     private String generateOrderProductId(String merchantId, String productId) {

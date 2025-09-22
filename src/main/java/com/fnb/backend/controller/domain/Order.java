@@ -25,9 +25,18 @@ public class Order {
     private String orderStatus;
     private String orderType;
     private String merchantId;
-    private BigDecimal point;
+    private BigDecimal usePoint;
+    private BigDecimal useCouponAmount;
+    private BigDecimal discountAmount;
+    private BigDecimal memberShipAmount;
+    private BigDecimal paymentAmount;
+    private int quantity;
 
     public Order() {
 
+    }
+
+    public String generateOrderId() {
+        return "ORDER_" + this.merchantId + "_" + new Date().getTime();
     }
 }

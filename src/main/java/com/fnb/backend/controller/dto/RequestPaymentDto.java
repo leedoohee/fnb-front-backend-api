@@ -10,7 +10,7 @@ import java.math.BigDecimal;
 @Setter
 @Builder
 public class RequestPaymentDto {
-
+    private String payType;
     private String paymentKey;
     private String orderId;
     private String memberName;

@@ -1,7 +1,7 @@
 package com.fnb.backend.controller;
 
 import com.fnb.backend.Service.OrderService;
-import com.fnb.backend.controller.request.Order.OrderRequest;
+import com.fnb.backend.controller.request.order.OrderRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;

@@ -12,13 +12,14 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.web.client.RestTemplate;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Objects;
 
 public class KakaoPay implements IPay {
 
-    private static String SECRET_KEY = "YOUR_SECRET_KEY"; // Replace with your actual key
-    private static String REQUEST_API_URL = "https://open-api.kakaopay.com/online/v1/payment/ready";
+    private final String SECRET_KEY = "YOUR_SECRET_KEY"; // Replace with your actual key
+    private final String REQUEST_API_URL = "https://open-api.kakaopay.com/online/v1/payment/ready";
     private final String APPROVE_API_URL = "https://open-api.kakaopay.com/online/v1/payment/approve";
 
     @Override
@@ -85,10 +86,8 @@ public class KakaoPay implements IPay {
         headers.set("Authorization", "SECRET_KEY " + SECRET_KEY);
         headers.setContentType(MediaType.APPLICATION_JSON);
 
-        // 3. Create the HttpEntity which combines the body and headers
         HttpEntity<KakaoPayApproveDto> httpEntity = new HttpEntity<>(requestBody, headers);
 
-        // 4. Send the POST request and get the response DTO
         try {
             KakaoPayApproveResponse response = restTemplate.postForObject(APPROVE_API_URL, httpEntity, KakaoPayApproveResponse.class);
 

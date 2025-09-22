@@ -1,8 +1,13 @@
 package com.fnb.backend.controller.domain.pay;
 
 import com.fnb.backend.controller.domain.implement.IPay;
-import com.fnb.backend.controller.domain.orderEvent.EnrollPaymentEvent;
-import com.fnb.backend.controller.domain.response.CustomResponse;
+import com.fnb.backend.controller.domain.response.ApprovePaymentResponse;
+import com.fnb.backend.controller.domain.response.RequestPaymentResponse;
+import com.fnb.backend.controller.dto.ApprovePaymentDto;
+import com.fnb.backend.controller.dto.CancelPaymentDto;
+import com.fnb.backend.controller.dto.RequestPaymentDto;
+
+import java.math.BigDecimal;
 
 public class NaverPay implements IPay {
 
@@ -11,22 +16,22 @@ public class NaverPay implements IPay {
     }
 
     @Override
-    public CustomResponse enroll(EnrollPaymentEvent enrollPaymentEvent) {
+    public RequestPaymentResponse request(RequestPaymentDto requestPaymentDto) {
         return null;
     }
 
     @Override
-    public void pay(CustomResponse response) {
+    public void pay() {
 
     }
 
     @Override
-    public void approve() {
-
+    public ApprovePaymentResponse approve(ApprovePaymentDto approvePaymentDto) {
+        return null;
     }
 
     @Override
-    public void cancel() {
+    public void cancel(CancelPaymentDto cancelPaymentDto) {
 
     }
 }

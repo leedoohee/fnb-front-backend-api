@@ -1,5 +1,6 @@
 package com.fnb.backend.controller.domain;
 
+import com.fnb.backend.controller.domain.pay.KakaoPay;
 import com.fnb.backend.controller.domain.pay.NaverPay;
 import com.fnb.backend.controller.domain.pay.TossPay;
 import com.fnb.backend.controller.domain.implement.IPay;
@@ -7,7 +8,7 @@ import com.fnb.backend.controller.domain.implement.IPay;
 public class PayFactory {
     public static IPay getPay(String payType) {
         if ("K".equals(payType)) {
-            //return new KakaoPay();
+            return new KakaoPay();
         } else if ("N".equals(payType)) {
             return new NaverPay();
         } else if ("T".equals(payType)) {

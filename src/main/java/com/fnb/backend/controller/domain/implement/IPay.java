@@ -7,6 +7,8 @@ import com.fnb.backend.controller.dto.ApprovePaymentDto;
 import com.fnb.backend.controller.dto.CancelPaymentDto;
 import com.fnb.backend.controller.dto.RequestPaymentDto;
 
+import java.math.BigDecimal;
+
 public interface IPay {
     RequestPaymentResponse request(RequestPaymentDto requestPaymentDto);
     void pay();
