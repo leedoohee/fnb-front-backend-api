@@ -8,14 +8,13 @@ import com.fnb.backend.controller.domain.response.ApprovePaymentResponse;
 import com.fnb.backend.controller.domain.response.PaymentResultResponse;
 import com.fnb.backend.controller.domain.response.RequestPaymentResponse;
 import com.fnb.backend.controller.dto.ApprovePaymentDto;
-import com.fnb.backend.controller.dto.RequestPaymentDto;
+import com.fnb.backend.controller.domain.request.Payment.RequestPayment;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigDecimal;
 import java.util.List;
 
 @Component
@@ -31,19 +30,19 @@ public class PaymentService {
         this.orderService = orderService;
     }
 
-    public RequestPaymentResponse request(RequestPaymentDto requestPaymentDto) {
-        PaymentProcessor paymentProcessor = new PaymentProcessor(eventPublisher);
-        paymentProcessor.setPay(PayFactory.getPay(requestPaymentDto.getPayType()));
-        return paymentProcessor.request(requestPaymentDto);
+    public RequestPaymentResponse request(RequestPayment requestPayment) {
+        PaymentProcessor paymentProcessor = new PaymentProcessor(PayFactory.getPay(requestPayment.getPayType()));
+        return paymentProcessor.request(requestPayment);
     }
 
     @Transactional
     public PaymentResultResponse approveKakaoResult(ApprovePaymentDto approvePaymentDto) {
-        PaymentProcessor paymentProcessor = new PaymentProcessor(eventPublisher);
-        paymentProcessor.setPay(PayFactory.getPay("K"));
-        ApprovePaymentResponse response = paymentProcessor.approve(approvePaymentDto);
+        PaymentProcessor paymentProcessor   = new PaymentProcessor(PayFactory.getPay("K"));
+        ApprovePaymentResponse response     = paymentProcessor.approve(approvePaymentDto);
 
         boolean result = this.insertPayments(response.getOrderId(), response);
+
+        //이벤트 패턴으로 재고 차감, 알림톡,
 
         return new PaymentResultResponse();
     }
@@ -55,6 +54,8 @@ public class PaymentService {
 
         int couponAmount = orderProducts.stream().map(OrderProduct::getCouponPrice).mapToInt(Integer::intValue).sum();
         int pointAmount  = order.getUsePoint().intValue();
+
+        //금액 비교 로직
 
         //payment master 추가
         // 포인트, 쿠폰 사용 디테일 추가

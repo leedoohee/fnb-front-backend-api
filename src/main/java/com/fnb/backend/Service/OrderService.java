@@ -9,9 +9,9 @@ import com.fnb.backend.repository.ProductRepository;
 import com.fnb.backend.controller.domain.processor.OrderProcessor;
 import com.fnb.backend.controller.dto.CreateOrderDto;
 import com.fnb.backend.controller.dto.CreateOrderProductDto;
-import com.fnb.backend.controller.request.order.OrderCouponRequest;
-import com.fnb.backend.controller.request.order.OrderProductRequest;
-import com.fnb.backend.controller.request.order.OrderRequest;
+import com.fnb.backend.controller.domain.request.order.OrderCouponRequest;
+import com.fnb.backend.controller.domain.request.order.OrderProductRequest;
+import com.fnb.backend.controller.domain.request.order.OrderRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -44,11 +44,11 @@ public class OrderService {
     }
 
     @Transactional
-    public OrderResponse process(OrderRequest orderRequest) {
-        Order order                 = this.createOrder(orderRequest);
-        List<Product> orderProducts = this.createOrderProduct(orderRequest);
-        List<Coupon> orderCoupons   = this.createOrderCoupon(orderRequest);
-        Member member               = this.createMember(orderRequest);
+    public OrderResponse create(OrderRequest orderRequest) {
+        Order order                         = this.createOrder(orderRequest);
+        List<Product> orderProducts         = this.createOrderProduct(orderRequest);
+        List<Coupon> orderCoupons           = this.createOrderCoupon(orderRequest);
+        Member member                       = this.createMember(orderRequest);
         List<OrderProduct> newOrderProducts = new ArrayList<>();
         OrderProcessor orderProcessor       = new OrderProcessor(member, order, orderProducts, orderCoupons);
         CreateOrderDto createOrderDto       = orderProcessor.buildOrder();
@@ -60,7 +60,8 @@ public class OrderService {
                 .orderType("1")
                 .discountAmount(createOrderDto.getDiscountAmount())
                 .useCouponAmount(createOrderDto.getCouponAmount())
-                .paymentAmount(createOrderDto.getOrderAmount()).build();
+                .paymentAmount(createOrderDto.getOrderAmount())
+                .build();
 
         this.insertOrder(newOrder);
 
@@ -81,11 +82,18 @@ public class OrderService {
 
         if(this.isNonExecutePaymentGateWay(createOrderDto.getOrderProducts())) {
             this.paymentService.insertPayments(createOrderDto.getOrderId(), null);
-        } else {
-
         }
 
-        return null;
+        return OrderResponse.builder()
+                .orderId(createOrderDto.getOrderId())
+                .memberName(member.getName())
+                .productName("PRD_"+createOrderDto.getOrderId())
+                .quantity(1)
+                .purchasePrice(createOrderDto.getOrderAmount())
+                .vatAmount(createOrderDto.getOrderAmount().multiply(BigDecimal.valueOf(1.1)))
+                .taxAmount(BigDecimal.valueOf(0))
+                .isNonPayment(this.isNonExecutePaymentGateWay(createOrderDto.getOrderProducts()))
+                .build();
     }
 
     public List<OrderProduct> getOrderProducts(String orderId) {
@@ -115,9 +123,9 @@ public class OrderService {
         List<Product> orderProducts = new ArrayList<>();
 
         for (OrderProductRequest orderProductRequest : orderRequest.getOrderProductRequests()) {
-            Product product = productRepository.find(orderProductRequest.getProductId());
+            Product product = this.productRepository.find(orderProductRequest.getProductId());
 
-            product.setProductOptions(productRepository.findOptionsById(product.getId(), orderProductRequest.getProductOptionId()));
+            product.setProductOptions(this.productRepository.findOptionsById(product.getId(), orderProductRequest.getProductOptionId()));
             product.setPurchaseQuantity(orderProductRequest.getQuantity());
             orderProducts.add(product);
         }
@@ -130,7 +138,7 @@ public class OrderService {
                             .map(OrderCouponRequest::getCouponId)
                             .toList();
 
-        List<Coupon> coupons  = couponRepository.findInIds(couponIds.toString());
+        List<Coupon> coupons  = this.couponRepository.findInIds(couponIds.toString());
 
         for (Coupon coupon : coupons) {
             orderRequest.getOrderCouponRequests().stream()
@@ -143,9 +151,9 @@ public class OrderService {
     }
 
     private Member createMember(OrderRequest orderRequest) {
-        Member member                       = memberRepository.find(orderRequest.getMemberId());
-        List<MemberCoupon> memberCoupons    = memberRepository.findMemberCouponsById(member.getId());
-        List<Point> points                  = memberRepository.findPointsById(member.getId());
+        Member member                       = this.memberRepository.find(orderRequest.getMemberId());
+        List<MemberCoupon> memberCoupons    = this.memberRepository.findMemberCouponsById(member.getId());
+        List<Point> points                  = this.memberRepository.findPointsById(member.getId());
 
         member.setPoints(points);
         member.setOwnedCoupon(memberCoupons);

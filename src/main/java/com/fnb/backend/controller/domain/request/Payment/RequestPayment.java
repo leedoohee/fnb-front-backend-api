@@ -1,4 +1,4 @@
-package com.fnb.backend.controller.dto;
+package com.fnb.backend.controller.domain.request.Payment;
 
 import lombok.Builder;
 import lombok.Getter;
@@ -9,7 +9,7 @@ import java.math.BigDecimal;
 @Getter
 @Setter
 @Builder
-public class RequestPaymentDto {
+public class RequestPayment {
     private String payType;
     private String paymentKey;
     private String orderId;

@@ -1,6 +1,5 @@
 package com.fnb.backend.controller.domain;
 
-import com.fnb.backend.controller.dto.CreateOrderProductDto;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;

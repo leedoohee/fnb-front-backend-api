@@ -62,6 +62,7 @@ public class Product {
     }
 
     public int getTotalPrice() {
+        // 옵션별 재고가 되어야 하고 계산식 다시 짜기
         int optionPrice = this.productOptions.stream().map(ProductOption::getOptionPrice).mapToInt(BigDecimal::intValue).sum();
         return (this.price + optionPrice) * this.purchaseQuantity;
     }

@@ -7,12 +7,12 @@ import com.fnb.backend.controller.domain.response.KakaoPayApproveResponse;
 import com.fnb.backend.controller.domain.response.KakaoPayRequestResponse;
 import com.fnb.backend.controller.domain.response.RequestPaymentResponse;
 import com.fnb.backend.controller.dto.*;
+import com.fnb.backend.controller.domain.request.Payment.RequestPayment;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.web.client.RestTemplate;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Objects;
 
@@ -23,7 +23,7 @@ public class KakaoPay implements IPay {
     private final String APPROVE_API_URL = "https://open-api.kakaopay.com/online/v1/payment/approve";
 
     @Override
-    public RequestPaymentResponse request(RequestPaymentDto requestPaymentDto) {
+    public RequestPaymentResponse request(RequestPayment requestPayment) {
 
         HttpHeaders headers = new HttpHeaders();
         RequestPaymentResponse requestPaymentResponse = null;
@@ -32,14 +32,14 @@ public class KakaoPay implements IPay {
         headers.set("Content-Type", MediaType.APPLICATION_JSON_VALUE);
 
         KakaoPayRequestDto requestBody = KakaoPayRequestDto.builder()
-                .cid(requestPaymentDto.getPaymentKey())
-                .partnerOrderId(requestPaymentDto.getOrderId())
-                .partnerUserId(requestPaymentDto.getMemberName())
-                .itemName(requestPaymentDto.getProductName())
-                .quantity(requestPaymentDto.getQuantity())
-                .totalAmount(requestPaymentDto.getPurchasePrice())
-                .vatAmount(requestPaymentDto.getVatAmount())
-                .taxFreeAmount(requestPaymentDto.getTaxAmount())
+                .cid(requestPayment.getPaymentKey())
+                .partnerOrderId(requestPayment.getOrderId())
+                .partnerUserId(requestPayment.getMemberName())
+                .itemName(requestPayment.getProductName())
+                .quantity(requestPayment.getQuantity())
+                .totalAmount(requestPayment.getPurchasePrice())
+                .vatAmount(requestPayment.getVatAmount())
+                .taxFreeAmount(requestPayment.getTaxAmount())
                 .approvalUrl("https://developers.kakao.com/success")
                 .failUrl("https://developers.kakao.com/fail")
                 .cancelUrl("https://developers.kakao.com/cancel")

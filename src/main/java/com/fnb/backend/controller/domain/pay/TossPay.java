@@ -5,7 +5,7 @@ import com.fnb.backend.controller.domain.response.ApprovePaymentResponse;
 import com.fnb.backend.controller.domain.response.RequestPaymentResponse;
 import com.fnb.backend.controller.dto.ApprovePaymentDto;
 import com.fnb.backend.controller.dto.CancelPaymentDto;
-import com.fnb.backend.controller.dto.RequestPaymentDto;
+import com.fnb.backend.controller.domain.request.Payment.RequestPayment;
 
 public class TossPay implements IPay {
 
@@ -14,7 +14,7 @@ public class TossPay implements IPay {
     }
 
     @Override
-    public RequestPaymentResponse request(RequestPaymentDto requestPaymentDto) {
+    public RequestPaymentResponse request(RequestPayment requestPayment) {
         return null;
     }
 

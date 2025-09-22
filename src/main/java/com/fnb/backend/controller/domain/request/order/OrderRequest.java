@@ -1,4 +1,4 @@
-package com.fnb.backend.controller.request.order;
+package com.fnb.backend.controller.domain.request.order;
 
 import lombok.Getter;
 import lombok.Setter;

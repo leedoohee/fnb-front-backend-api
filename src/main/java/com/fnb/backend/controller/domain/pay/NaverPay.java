@@ -5,9 +5,7 @@ import com.fnb.backend.controller.domain.response.ApprovePaymentResponse;
 import com.fnb.backend.controller.domain.response.RequestPaymentResponse;
 import com.fnb.backend.controller.dto.ApprovePaymentDto;
 import com.fnb.backend.controller.dto.CancelPaymentDto;
-import com.fnb.backend.controller.dto.RequestPaymentDto;
-
-import java.math.BigDecimal;
+import com.fnb.backend.controller.domain.request.Payment.RequestPayment;
 
 public class NaverPay implements IPay {
 
@@ -16,7 +14,7 @@ public class NaverPay implements IPay {
     }
 
     @Override
-    public RequestPaymentResponse request(RequestPaymentDto requestPaymentDto) {
+    public RequestPaymentResponse request(RequestPayment requestPayment) {
         return null;
     }
 

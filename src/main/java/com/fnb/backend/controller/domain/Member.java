@@ -17,6 +17,7 @@ public class Member {
     private String name;
     private String grade;
 
+
     @Transient
     private List<MemberCoupon> ownedCoupon;
 

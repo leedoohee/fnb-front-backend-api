@@ -26,15 +26,15 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         return http
                 .csrf(CsrfConfigurer<HttpSecurity>::disable)
-                .headers(headers -> headers.frameOptions(HeadersConfigurer.FrameOptionsConfig::sameOrigin))	// H2 콘솔 사용을 위한 설정
+                .headers(headers -> headers.frameOptions(HeadersConfigurer.FrameOptionsConfig::sameOrigin))
                 .authorizeHttpRequests(requests ->
-                        requests.requestMatchers(allowedUrls).permitAll()	// requestMatchers의 인자로 전달된 url은 모두에게 허용
-                                .requestMatchers(PathRequest.toH2Console()).permitAll()	// H2 콘솔 접속은 모두에게 허용
-                                .anyRequest().authenticated()	// 그 외의 모든 요청은 인증 필요
+                        requests.requestMatchers(this.allowedUrls).permitAll()
+                                .requestMatchers(PathRequest.toH2Console()).permitAll()
+                                .anyRequest().authenticated()
                 )
                 .sessionManagement(sessionManagement ->
                         sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                )	// 세션을 사용하지 않으므로 STATELESS 설정
+                )
                 .build();
     }
 }
