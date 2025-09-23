@@ -2,7 +2,7 @@ package com.fnb.backend.controller.domain.processor;
 
 import com.fnb.backend.controller.domain.*;
 import com.fnb.backend.controller.domain.implement.DiscountPolicy;
-import com.fnb.backend.controller.domain.implement.PriceCalculator;
+import com.fnb.backend.controller.domain.implement.Calculator;
 import com.fnb.backend.controller.dto.CreateOrderDto;
 import com.fnb.backend.controller.dto.CreateOrderProductDto;
 
@@ -167,10 +167,10 @@ public class OrderProcessor {
             .map(coupon -> {
 
                 DiscountPolicy couponPolicy = DiscountFactory.getPolicy(coupon.getDiscountType());
-                CouponPriceCalculator couponPriceCalculator = null;
+                CouponCalculator couponPriceCalculator = null;
 
                 if (couponPolicy != null) {
-                    couponPriceCalculator = new CouponPriceCalculator(coupon, product, couponPolicy);
+                    couponPriceCalculator = new CouponCalculator(coupon, product, couponPolicy);
                 }
 
                 return Objects.requireNonNull(couponPriceCalculator).calculatePrice();
@@ -178,7 +178,7 @@ public class OrderProcessor {
     }
 
     private int calculateMemberShipToProduct(Product product, Member member) {
-        PriceCalculator memberShipCalculator = null;
+        Calculator memberShipCalculator = null;
 
         DiscountPolicy memberShipPolicy = DiscountFactory.getPolicy(product.getApplyMemberGradeDisType());
 

@@ -1,10 +1,10 @@
 package com.fnb.backend.controller.domain;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Transient;
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+
+import java.util.Date;
 import java.util.List;
 
 @Getter
@@ -16,7 +16,12 @@ public class Member {
     private int id;
     private String name;
     private String grade;
+    private Date firstApplyGradeDate;
+    private Date updateGradeDate;
 
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "grade")
+    MemberGrade memberGrade;
 
     @Transient
     private List<MemberCoupon> ownedCoupon;

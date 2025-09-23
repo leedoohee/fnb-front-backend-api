@@ -1,11 +1,11 @@
 package com.fnb.backend.controller.domain;
 
 import com.fnb.backend.controller.domain.implement.DiscountPolicy;
-import com.fnb.backend.controller.domain.implement.PriceCalculator;
+import com.fnb.backend.controller.domain.implement.Calculator;
 
 import java.math.BigDecimal;
 
-public class MemberShipCalculator implements PriceCalculator {
+public class MemberShipCalculator implements Calculator {
     private final Member member;
     private final Product product;
     private final DiscountPolicy discount;
@@ -18,6 +18,6 @@ public class MemberShipCalculator implements PriceCalculator {
 
     @Override
     public BigDecimal calculatePrice() {
-        return this.discount.calculate(BigDecimal.valueOf(this.product.getTotalPrice()), this.product.getApplyMemberGradeDisAmt());
+        return this.discount.calculate(BigDecimal.valueOf(this.product.calculatePriceWithQuantity()), this.product.getApplyMemberGradeDisAmt());
     }
 }

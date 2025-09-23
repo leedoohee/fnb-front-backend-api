@@ -2,6 +2,6 @@ package com.fnb.backend.controller.domain.implement;
 
 import java.math.BigDecimal;
 
-public interface PriceCalculator {
+public interface Calculator {
     BigDecimal calculatePrice();
 }
