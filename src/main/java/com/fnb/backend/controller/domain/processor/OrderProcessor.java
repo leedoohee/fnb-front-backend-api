@@ -45,7 +45,7 @@ public class OrderProcessor {
             return null;
         }
 
-        List<CreateOrderProductDto> createOrderProductDtos = this.buildOrderProducts(this.member, this.products, this.coupons, this.order.getUsePoint());
+        List<CreateOrderProductDto> createOrderProductDtos = this.buildOrderProducts(this.member, this.products, this.coupons);
 
         int totalCouponPrice        = this.calculateTotalCouponPrice(createOrderProductDtos);
         int totalMemberShipPrice    = this.calculateTotalMemberShipPrice(createOrderProductDtos);
@@ -63,7 +63,7 @@ public class OrderProcessor {
     }
 
     private boolean validatePoint(BigDecimal point, int ownedPoint) {
-        return point.intValue() - ownedPoint <= 0;
+        return point.intValue() - ownedPoint < 0;
     }
 
     private boolean validateCoupons(List<Coupon> coupons, Member member) {
@@ -99,6 +99,10 @@ public class OrderProcessor {
 
     private boolean validateOrderProduct(List<Product> products) {
 
+        if(products.isEmpty()) {
+            return false;
+        }
+
         for (Product product : products) {
             if(!product.isAvailablePurchase()) {
                 return false;
@@ -116,7 +120,7 @@ public class OrderProcessor {
         return true;
     }
 
-    private List<CreateOrderProductDto> buildOrderProducts(Member member, List<Product> products, List<Coupon> coupons, BigDecimal usePoint) {
+    private List<CreateOrderProductDto> buildOrderProducts(Member member, List<Product> products, List<Coupon> coupons) {
         List<CreateOrderProductDto> createOrderProductDtos = new ArrayList<>();
 
         for (Product product : products) {
