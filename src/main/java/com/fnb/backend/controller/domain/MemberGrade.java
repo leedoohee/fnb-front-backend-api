@@ -20,9 +20,9 @@ public class MemberGrade {
     private int beingMonth;
     private int isExceptVat;
 
-    @OneToMany(fetch = FetchType.LAZY)
+    @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "grade")
-    private List<MemberPointRule> memberPointRules;
+    private MemberPointRule memberPointRule;
 
     @OneToMany(fetch = FetchType.LAZY)
     @JoinColumn(name = "grade")

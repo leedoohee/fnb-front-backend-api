@@ -12,6 +12,7 @@ public class MemberGradeProduct {
     private int id;
     private String grade;
     private int productId;
+    private String addingPointType;
     private int addingPoint;
 
     @OneToOne(fetch = FetchType.LAZY)

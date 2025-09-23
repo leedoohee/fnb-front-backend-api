@@ -7,15 +7,17 @@ import java.math.BigDecimal;
 public class PointCalculator implements Calculator {
 
     private final PointPolicy pointPolicy;
-    private final Member member;
+    private final BigDecimal price;
+    private final BigDecimal applyAmount;
 
-    public PointCalculator(Member member, PointPolicy pointPolicy) {
-        this.member = member;
+    public PointCalculator(BigDecimal price, BigDecimal amount, PointPolicy pointPolicy) {
+        this.price = price;
+        this.applyAmount = amount;
         this.pointPolicy = pointPolicy;
     }
 
     @Override
-    public BigDecimal calculatePrice() {
-        return null;
+    public BigDecimal calculate() {
+        return this.pointPolicy.calculate(this.price, this.applyAmount);
     }
 }

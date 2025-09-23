@@ -17,7 +17,7 @@ public class MemberShipCalculator implements Calculator {
     }
 
     @Override
-    public BigDecimal calculatePrice() {
+    public BigDecimal calculate() {
         return this.discount.calculate(BigDecimal.valueOf(this.product.calculatePriceWithQuantity()), this.product.getApplyMemberGradeDisAmt());
     }
 }

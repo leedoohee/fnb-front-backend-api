@@ -18,7 +18,7 @@ public class CouponCalculator implements Calculator {
     }
 
     @Override
-    public BigDecimal calculatePrice() {
+    public BigDecimal calculate() {
         return this.discount.calculate(BigDecimal.valueOf(this.product.calculatePriceWithQuantity()), this.coupon.getAmount());
     }
 }
