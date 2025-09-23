@@ -143,7 +143,7 @@ public class OrderProcessor {
                     .name(product.getName())
                     .couponId(this.applyCouponToProduct(product, coupons))
                     .quantity(product.getPurchaseQuantity())
-                    .originPrice(product.getTotalPrice())
+                    .originPrice(product.calculatePriceWithQuantity())
                     .couponPrice(couponPrice)
                     .discountPrice(couponPrice + memberShipPrice)
                     .build();

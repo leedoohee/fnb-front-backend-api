@@ -61,9 +61,9 @@ public class Product {
         return this.isApplyMemberShip == 1 && grades.contains(member.getGrade());
     }
 
-    public int getTotalPrice() {
-        // 옵션별 재고가 되어야 하고 계산식 다시 짜기
-        int optionPrice = this.productOptions.stream().map(ProductOption::getOptionPrice).mapToInt(BigDecimal::intValue).sum();
+    public int calculatePriceWithQuantity() {
+        // 주문생성시 , 1대1 구조라 무조건 하나일 수 밖에 없다.
+        int optionPrice = this.productOptions.stream().map(ProductOption::getOptionPrice).mapToInt(BigDecimal::intValue).findFirst().orElse(0);
         return (this.price + optionPrice) * this.purchaseQuantity;
     }
 }

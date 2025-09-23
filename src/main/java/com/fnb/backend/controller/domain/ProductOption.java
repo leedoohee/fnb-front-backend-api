@@ -12,7 +12,7 @@ import java.math.BigDecimal;
 @Entity
 public class ProductOption {
     @Id
-    private String id;
+    private int id;
     private String productId;
     private String name;
     private String description;
