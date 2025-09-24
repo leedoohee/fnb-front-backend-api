@@ -3,6 +3,7 @@ package com.fnb.backend.Service;
 import com.fnb.backend.controller.domain.Order;
 import com.fnb.backend.controller.domain.OrderProduct;
 import com.fnb.backend.controller.domain.PayFactory;
+import com.fnb.backend.controller.domain.event.OrderResultEvent;
 import com.fnb.backend.controller.domain.processor.PaymentProcessor;
 import com.fnb.backend.controller.domain.response.ApprovePaymentResponse;
 import com.fnb.backend.controller.domain.response.PaymentResultResponse;
@@ -42,8 +43,6 @@ public class PaymentService {
 
         boolean result = this.insertPayments(response.getOrderId(), response);
 
-        //이벤트 패턴으로 재고 차감, 알림톡,
-
         return new PaymentResultResponse();
     }
 
@@ -66,6 +65,19 @@ public class PaymentService {
             String paymentMethod    = approvePaymentResponse.getPaymentMethod();
         }
 
+        OrderResultEvent event = OrderResultEvent.builder()
+                .member(this.orderService.getMember(order.getMemberId()))
+                .order(order)
+                .orderProducts(orderProducts)
+                .build();
+
+        this.generateEvent(event);
+
         return true;
+    }
+
+    private void generateEvent(OrderResultEvent event) {
+        //이벤트 패턴으로 재고 차감, 알림톡,
+        eventPublisher.publishEvent(event);
     }
 }

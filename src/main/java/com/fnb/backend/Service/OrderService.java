@@ -2,10 +2,7 @@ package com.fnb.backend.Service;
 
 import com.fnb.backend.controller.domain.*;
 import com.fnb.backend.controller.domain.response.OrderResponse;
-import com.fnb.backend.repository.CouponRepository;
-import com.fnb.backend.repository.MemberRepository;
-import com.fnb.backend.repository.OrderRepository;
-import com.fnb.backend.repository.ProductRepository;
+import com.fnb.backend.repository.*;
 import com.fnb.backend.controller.domain.processor.OrderProcessor;
 import com.fnb.backend.controller.dto.CreateOrderDto;
 import com.fnb.backend.controller.dto.CreateOrderProductDto;
@@ -37,6 +34,9 @@ public class OrderService {
     private OrderRepository orderRepository;
 
     @Autowired
+    private MerchantRepository merchantRepository;
+
+    @Autowired
     private PaymentService paymentService;
 
     public OrderService(PaymentService paymentService) {
@@ -44,13 +44,14 @@ public class OrderService {
     }
 
     @Transactional
-    public OrderResponse create(OrderRequest orderRequest) {
+    public OrderResponse create(OrderRequest orderRequest) throws Exception {
+        Merchant merchant                   = this.createMerchant(orderRequest);
         Order order                         = this.createOrder(orderRequest);
         List<Product> orderProducts         = this.createOrderProduct(orderRequest);
         List<Coupon> orderCoupons           = this.createOrderCoupon(orderRequest);
         Member member                       = this.createMember(orderRequest);
         List<OrderProduct> newOrderProducts = new ArrayList<>();
-        OrderProcessor orderProcessor       = new OrderProcessor(member, order, orderProducts, orderCoupons);
+        OrderProcessor orderProcessor       = new OrderProcessor(merchant, member, order, orderProducts, orderCoupons);
         CreateOrderDto createOrderDto       = orderProcessor.buildOrder();
 
         Order newOrder = Order.builder()
@@ -104,6 +105,10 @@ public class OrderService {
         return this.orderRepository.getOrder(orderId);
     }
 
+    public Member getMember(int memberId) {
+        return this.memberRepository.find(memberId);
+    }
+
     private boolean isNonExecutePaymentGateWay(List<CreateOrderProductDto> orderProductRequests) {
         return orderProductRequests.stream()
                 .map(CreateOrderProductDto::getPurchasePrice)
@@ -117,6 +122,10 @@ public class OrderService {
                 .orderDate(new Date())
                 .merchantId(orderRequest.getMerchantId())
                 .build();
+    }
+
+    private Merchant createMerchant(OrderRequest orderRequest) {
+        return this.merchantRepository.getMerchant(orderRequest.getMerchantId());
     }
 
     private List<Product> createOrderProduct(OrderRequest orderRequest) {

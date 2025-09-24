@@ -36,6 +36,9 @@ public class Product {
     @Transient
     private List<ProductOption> productOptions;
 
+    @Transient
+    private List<AdditionalOption> additionalOptions;
+
     public Product() {
 
     }
@@ -59,11 +62,5 @@ public class Product {
     public boolean inMemberShipDiscount(Member member) {
         List<String> grades = Arrays.stream(this.applyMemberGrades.split(",")).toList();
         return this.isApplyMemberShip == 1 && grades.contains(member.getGrade());
-    }
-
-    public int calculatePriceWithQuantity() {
-        // 주문생성시 , 1대1 구조라 무조건 하나일 수 밖에 없다.
-        int optionPrice = this.productOptions.stream().map(ProductOption::getOptionPrice).mapToInt(BigDecimal::intValue).findFirst().orElse(0);
-        return (this.price + optionPrice) * this.purchaseQuantity;
     }
 }

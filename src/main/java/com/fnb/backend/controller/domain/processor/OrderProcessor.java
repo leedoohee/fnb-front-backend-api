@@ -11,19 +11,24 @@ import java.util.*;
 
 public class OrderProcessor {
     private final Member member;
-
+    private final Merchant merchant;
     private final Order order;
     private final List<Product> products;
     private final List<Coupon> coupons;
 
-    public OrderProcessor(Member member, Order order, List<Product> products, List<Coupon> coupons) {
+    public OrderProcessor(Merchant merchant, Member member, Order order, List<Product> products, List<Coupon> coupons) {
+        this.merchant = merchant;
         this.member = member;
         this.order = order;
         this.products = products;
         this.coupons = coupons;
     }
 
-    public CreateOrderDto buildOrder() {
+    public CreateOrderDto buildOrder() throws Exception {
+
+        if(!this.merchant.isLive()) {
+            return null;
+        }
 
         if(!this.member.isCanPurchase()) {
             return null;
@@ -143,7 +148,7 @@ public class OrderProcessor {
                     .name(product.getName())
                     .couponId(this.applyCouponToProduct(product, coupons))
                     .quantity(product.getPurchaseQuantity())
-                    .originPrice(product.calculatePriceWithQuantity())
+                    .originPrice(this.calcPriceWithAdditionalOptions(this.calculatePriceWithQuantity(product), product.getAdditionalOptions()))
                     .couponPrice(couponPrice)
                     .discountPrice(couponPrice + memberShipPrice)
                     .build();
@@ -170,10 +175,10 @@ public class OrderProcessor {
                 CouponCalculator couponPriceCalculator = null;
 
                 if (couponPolicy != null) {
-                    couponPriceCalculator = new CouponCalculator(coupon, product, couponPolicy);
+                    couponPriceCalculator = new CouponCalculator(coupon, this.calculatePriceWithQuantity(product), couponPolicy);
                 }
 
-                return Objects.requireNonNull(couponPriceCalculator).calculatePrice();
+                return Objects.requireNonNull(couponPriceCalculator).calculate();
             }).mapToInt(BigDecimal::intValue).findFirst().orElse(0);
     }
 
@@ -183,10 +188,11 @@ public class OrderProcessor {
         DiscountPolicy memberShipPolicy = DiscountFactory.getPolicy(product.getApplyMemberGradeDisType());
 
         if (memberShipPolicy != null) {
-            memberShipCalculator = new MemberShipCalculator(member, product, memberShipPolicy);
+            memberShipCalculator = new MemberShipCalculator(member,
+                                        this.calculatePriceWithQuantity(product), product.getApplyMemberGradeDisAmt().intValue(), memberShipPolicy);
         }
 
-        return Objects.requireNonNull(memberShipCalculator).calculatePrice().intValue();
+        return Objects.requireNonNull(memberShipCalculator).calculate().intValue();
     }
 
     private int calculateTotalCouponPrice(List<CreateOrderProductDto> createOrderProductDtos) {
@@ -205,6 +211,19 @@ public class OrderProcessor {
         return createOrderProductDtos.stream()
                 .map(CreateOrderProductDto::getOriginPrice)
                 .mapToInt(Integer::intValue).sum();
+    }
+
+    private int calculatePriceWithQuantity(Product product) {
+        // 주문생성시 , 1대1 구조라 무조건 하나일 수 밖에 없다.
+        List<ProductOption> productOptions = product.getProductOptions();
+        int optionPrice = productOptions.stream().map(ProductOption::getOptionPrice).mapToInt(BigDecimal::intValue).findFirst().orElse(0);
+
+        return (product.getPrice() + optionPrice) * product.getPurchaseQuantity();
+    }
+
+    private int calcPriceWithAdditionalOptions(int optionPrice, List<AdditionalOption> additionalOptions) {
+        int sumPrice = additionalOptions.stream().map(AdditionalOption::getPrice).mapToInt(BigDecimal::intValue).sum();
+        return optionPrice + sumPrice;
     }
 
     private String generateOrderProductId(String merchantId, String productId) {

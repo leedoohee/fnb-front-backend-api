@@ -9,16 +9,16 @@ public class CouponCalculator implements Calculator {
 
     private final Coupon coupon;
     private final DiscountPolicy discount;
-    private final Product product;
+    private final int price;
 
-    public CouponCalculator(Coupon coupon, Product product, DiscountPolicy discount) {
+    public CouponCalculator(Coupon coupon, int price, DiscountPolicy discount) {
         this.coupon = coupon;
-        this.product = product;
+        this.price = price;
         this.discount = discount;
     }
 
     @Override
     public BigDecimal calculate() {
-        return this.discount.calculate(BigDecimal.valueOf(this.product.calculatePriceWithQuantity()), this.coupon.getAmount());
+        return this.discount.calculate(BigDecimal.valueOf(this.price), this.coupon.getAmount());
     }
 }

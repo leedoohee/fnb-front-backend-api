@@ -7,17 +7,19 @@ import java.math.BigDecimal;
 
 public class MemberShipCalculator implements Calculator {
     private final Member member;
-    private final Product product;
+    private final int price;
+    private final int discountAmount;
     private final DiscountPolicy discount;
 
-    public MemberShipCalculator(Member member, Product product, DiscountPolicy discount) {
+    public MemberShipCalculator(Member member, int price, int discountAmount, DiscountPolicy discount) {
         this.member = member;
-        this.product = product;
+        this.price = price;
+        this.discountAmount = discountAmount;
         this.discount = discount;
     }
 
     @Override
     public BigDecimal calculate() {
-        return this.discount.calculate(BigDecimal.valueOf(this.product.calculatePriceWithQuantity()), this.product.getApplyMemberGradeDisAmt());
+        return this.discount.calculate(BigDecimal.valueOf(this.price), BigDecimal.valueOf(this.discountAmount));
     }
 }

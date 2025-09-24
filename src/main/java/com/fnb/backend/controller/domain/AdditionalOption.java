@@ -2,20 +2,28 @@ package com.fnb.backend.controller.domain;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
 import java.math.BigDecimal;
 
-// 맛, 사이즈만
 @Getter
 @Setter
+@Builder
 @Entity
-public class ProductOption {
+@AllArgsConstructor
+public class AdditionalOption {
+
     @Id
     private int id;
-    private String productId;
     private String name;
     private String description;
-    private BigDecimal optionPrice;
+    private BigDecimal price;
+    private int productId;
+
+    public AdditionalOption() {
+
+    }
 }

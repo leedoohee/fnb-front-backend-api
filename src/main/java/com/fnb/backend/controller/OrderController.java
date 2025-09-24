@@ -16,7 +16,7 @@ public class OrderController {
     private OrderService orderService;
 
     @PostMapping("/order")
-    public ResponseEntity<OrderResponse> create(@RequestBody OrderRequest orderRequest) {
+    public ResponseEntity<OrderResponse> create(@RequestBody OrderRequest orderRequest) throws Exception {
         return ResponseEntity.ok(this.orderService.create(orderRequest));
     }
 }
