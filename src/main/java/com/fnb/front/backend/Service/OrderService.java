@@ -1,9 +1,9 @@
 package com.fnb.front.backend.Service;
 
-import com.fnb.backend.controller.domain.*;
+import com.fnb.front.backend.controller.domain.*;
 import com.fnb.front.backend.controller.domain.*;
 import com.fnb.front.backend.controller.domain.response.OrderResponse;
-import com.fnb.backend.repository.*;
+import com.fnb.front.backend.repository.*;
 import com.fnb.front.backend.controller.domain.processor.OrderProcessor;
 import com.fnb.front.backend.controller.dto.CreateOrderDto;
 import com.fnb.front.backend.controller.dto.CreateOrderProductDto;

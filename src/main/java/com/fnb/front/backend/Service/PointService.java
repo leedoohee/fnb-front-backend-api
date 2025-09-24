@@ -1,6 +1,6 @@
 package com.fnb.front.backend.Service;
 
-import com.fnb.backend.controller.domain.*;
+import com.fnb.front.backend.controller.domain.*;
 import com.fnb.front.backend.controller.domain.Member;
 import com.fnb.front.backend.controller.domain.MemberPointRule;
 import com.fnb.front.backend.controller.domain.PointCalculator;

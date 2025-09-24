@@ -6,7 +6,6 @@ import com.fnb.front.backend.controller.domain.response.ApprovePaymentResponse;
 import com.fnb.front.backend.controller.domain.response.KakaoPayApproveResponse;
 import com.fnb.front.backend.controller.domain.response.KakaoPayRequestResponse;
 import com.fnb.front.backend.controller.domain.response.RequestPaymentResponse;
-import com.fnb.backend.controller.dto.*;
 import com.fnb.front.backend.controller.domain.request.Payment.RequestPayment;
 import com.fnb.front.backend.controller.dto.ApprovePaymentDto;
 import com.fnb.front.backend.controller.dto.CancelPaymentDto;
