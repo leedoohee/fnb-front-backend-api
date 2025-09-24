@@ -57,7 +57,7 @@ public class OrderProcessor {
         int totalOriginPrice        = this.calculateTotalOriginPrice(createOrderProductDtos);
 
         return CreateOrderDto.builder()
-                .orderId(this.order.generateOrderId())
+                .orderId(this.generateOrderId(this.order.getMerchantId()))
                 .orderDate(this.order.getOrderDate())
                 .merchantId(this.order.getMerchantId())
                 .discountAmount(BigDecimal.valueOf(totalCouponPrice + totalMemberShipPrice).add(this.order.getUsePoint()))
@@ -142,7 +142,7 @@ public class OrderProcessor {
             int couponPrice = this.calculateCouponToProduct(product, coupons);
 
             CreateOrderProductDto orderProduct = CreateOrderProductDto.builder()
-                    .orderId(this.order.generateOrderId())
+                    .orderId(this.generateOrderId(product.getMerchantId()))
                     .orderProductId(this.generateOrderProductId(product.getMerchantId(), String.valueOf(product.getId())))
                     .productId(product.getId())
                     .name(product.getName())
@@ -228,5 +228,9 @@ public class OrderProcessor {
 
     private String generateOrderProductId(String merchantId, String productId) {
         return "ORDER_" + merchantId + "_" + productId + "_"  + new Date().getTime();
+    }
+
+    public String generateOrderId(String merchantId) {
+        return "ORDER_" + merchantId + "_" + new Date().getTime();
     }
 }

@@ -34,7 +34,7 @@ public class Product {
     private BigDecimal applyMemberGradeDisAmt;
 
     @Transient
-    private List<ProductOption> productOptions;
+    private ProductOption productOption;
 
     @Transient
     private List<AdditionalOption> additionalOptions;

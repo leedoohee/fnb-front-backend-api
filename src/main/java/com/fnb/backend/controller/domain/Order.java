@@ -35,8 +35,4 @@ public class Order {
     public Order() {
 
     }
-
-    public String generateOrderId() {
-        return "ORDER_" + this.merchantId + "_" + new Date().getTime();
-    }
 }

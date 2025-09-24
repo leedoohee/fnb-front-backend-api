@@ -8,5 +8,6 @@ import lombok.Setter;
 public class OrderProductRequest {
     private int productId;
     private int productOptionId;
+    private int[] additionalOptionIds;
     private int quantity;
 }

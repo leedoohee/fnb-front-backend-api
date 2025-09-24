@@ -134,7 +134,8 @@ public class OrderService {
         for (OrderProductRequest orderProductRequest : orderRequest.getOrderProductRequests()) {
             Product product = this.productRepository.find(orderProductRequest.getProductId());
 
-            product.setProductOptions(this.productRepository.findOptionsById(product.getId(), orderProductRequest.getProductOptionId()));
+            product.setProductOption(this.productRepository.findOptionById(orderProductRequest.getProductOptionId()));
+            product.setAdditionalOptions(this.productRepository.findAdditionalOptById(Arrays.stream(orderProductRequest.getAdditionalOptionIds()).toString()));
             product.setPurchaseQuantity(orderProductRequest.getQuantity());
             orderProducts.add(product);
         }

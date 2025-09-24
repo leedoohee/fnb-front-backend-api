@@ -1,5 +1,6 @@
 package com.fnb.backend.repository;
 
+import com.fnb.backend.controller.domain.AdditionalOption;
 import com.fnb.backend.controller.domain.Product;
 import com.fnb.backend.controller.domain.ProductOption;
 import jakarta.persistence.EntityManager;
@@ -30,9 +31,15 @@ public class ProductRepository {
                 .getResultList();
     }
 
-    public List<ProductOption> findOptionsById(int productId, int optionId) {
-        return em.createQuery("SELECT p FROM ProductOption p WHERE p.id in ( :productId )", ProductOption.class)
-                .setParameter("productId", productId)
+    public ProductOption findOptionById(int optionId) {
+        return em.createQuery("SELECT p FROM ProductOption p WHERE p.id = :optionId", ProductOption.class)
+                .setParameter("optionId", optionId)
+                .getSingleResult();
+    }
+
+    public List<AdditionalOption> findAdditionalOptById(String additionalOptionIds) {
+        return em.createQuery("SELECT ao FROM AdditionalOption ao WHERE ao.id in ( :additionalOptionId )", AdditionalOption.class)
+                .setParameter("additionalOptionIds", additionalOptionIds)
                 .getResultList();
     }
 }
