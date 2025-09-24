@@ -1,0 +1,21 @@
+package com.fnb.front.backend.controller.domain;
+
+import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
+
+@Getter
+@Setter
+@Entity
+public class MemberGradeProduct {
+    @Id
+    private int id;
+    private String grade;
+    private int productId;
+    private String addingPointType;
+    private int addingPoint;
+
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "productId")
+    private Product product;
+}
