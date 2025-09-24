@@ -215,10 +215,10 @@ public class OrderProcessor {
 
     private int calculatePriceWithQuantity(Product product) {
         // 주문생성시 , 1대1 구조라 무조건 하나일 수 밖에 없다.
-        List<ProductOption> productOptions = product.getProductOptions();
-        int optionPrice = productOptions.stream().map(ProductOption::getOptionPrice).mapToInt(BigDecimal::intValue).findFirst().orElse(0);
+        ProductOption productOptions = product.getProductOption();
+        BigDecimal optionPrice = productOptions.getOptionPrice();
 
-        return (product.getPrice() + optionPrice) * product.getPurchaseQuantity();
+        return (product.getPrice() + optionPrice.intValue()) * product.getPurchaseQuantity();
     }
 
     private int calcPriceWithAdditionalOptions(int optionPrice, List<AdditionalOption> additionalOptions) {
