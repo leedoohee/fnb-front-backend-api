@@ -32,6 +32,7 @@ public class ProductResponse {
     private String applyMemberGrades;
     private String applyMemberGradeDisType;
     private BigDecimal applyMemberGradeDisAmt;
+    private int reviewCount;
 
     List<ProductOptionResponse> productOptions;
     List<AdditionalOptionResponse> additionalOptions;

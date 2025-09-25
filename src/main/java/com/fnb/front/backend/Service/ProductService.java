@@ -9,6 +9,7 @@ import com.fnb.front.backend.controller.domain.response.AdditionalOptionResponse
 import com.fnb.front.backend.controller.domain.response.ProductOptionResponse;
 import com.fnb.front.backend.controller.domain.response.ProductResponse;
 import com.fnb.front.backend.repository.ProductRepository;
+import com.fnb.front.backend.repository.ReviewRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.event.TransactionalEventListener;
@@ -21,6 +22,9 @@ public class ProductService {
 
     @Autowired
     private ProductRepository productRepository;
+
+    @Autowired
+    private ReviewRepository reviewRepository;
 
     @TransactionalEventListener()
     public void handleQuantityToOrder(OrderResultEvent event) {
@@ -53,12 +57,13 @@ public class ProductService {
     }
 
     public ProductResponse getInfo(int productId) {
-        Product product                             = this.productRepository.find(productId);
-        List<ProductOption> options                 = this.productRepository.findOptionsById(productId);
-        List<AdditionalOption> additionalOptions    = this.productRepository.findAdditionalOptsById(productId);
+        Product product                                          = this.productRepository.find(productId);
+        List<ProductOption> options                              = this.productRepository.findOptionsById(productId);
+        List<AdditionalOption> additionalOptions                 = this.productRepository.findAdditionalOptsById(productId);
+        int reviewCount                                          = this.reviewRepository.findReviews(productId).size();
+
         List<ProductOptionResponse>  productOptionResponses      = new ArrayList<>();
         List<AdditionalOptionResponse> additionalOptionResponses = new ArrayList<>();
-        //리뷰추가
 
         for (ProductOption productOption : options) {
             productOptionResponses.add(ProductOptionResponse.builder()
@@ -89,6 +94,7 @@ public class ProductService {
                 .merchantId(product.getMerchantId())
                 .maxPurchaseQuantity(product.getMaxPurchaseQuantity())
                 .minPurchaseQuantity(product.getMinPurchaseQuantity())
+                .reviewCount(reviewCount)
                 .productOptions(productOptionResponses)
                 .additionalOptions(additionalOptionResponses)
                 .build();
