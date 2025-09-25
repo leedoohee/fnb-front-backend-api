@@ -6,6 +6,7 @@ import jakarta.persistence.EntityManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.Date;
 import java.util.List;
 
 @Component
@@ -32,5 +33,19 @@ public class OrderRepository {
         return em.createQuery("SELECT o FROM Order o WHERE o.id = : orderId", Order.class)
                 .setParameter("orderId", orderId)
                 .getSingleResult();
+    }
+
+    public List<Order> getOrders(int memberId, String startDate, String endDate,  int page, int pageLimit) {
+        return  em.createQuery("SELECT o FROM Order o WHERE o.memberId = :memberId and o.orderDate BETWEEN :startDate and :endDate ORDER BY o.id DESC", Order.class)
+                .setParameter("memberId", memberId)
+                .setParameter("startDate", startDate)
+                .setParameter("endDate", endDate)
+                .setFirstResult(this.calculateOffset(page, pageLimit))
+                .setMaxResults(pageLimit)
+                .getResultList();
+    }
+
+    private int calculateOffset(int page, int limit) {
+        return ((limit * page) - limit);
     }
 }
