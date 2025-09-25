@@ -29,7 +29,7 @@ public class OrderRepository {
     }
 
     public Order getOrder(String orderId) {
-        return em.createQuery("SELECT o FROM Order o WHERE op.id = : orderId", Order.class)
+        return em.createQuery("SELECT o FROM Order o WHERE o.id = : orderId", Order.class)
                 .setParameter("orderId", orderId)
                 .getSingleResult();
     }

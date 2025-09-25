@@ -25,6 +25,12 @@ public class ProductRepository {
                 .getSingleResult();
     }
 
+    public List<Product> findByMerchantId(int merchantId) {
+        return em.createQuery("SELECT p FROM Product p WHERE p.merchantId = :merchantId", Product.class)
+                .setParameter("merchantId", merchantId)
+                .getResultList();
+    }
+
     public List<Product> findInIds(String ids) {
         return em.createQuery("SELECT p FROM Product p WHERE p.id in ( :ids )", Product.class)
                 .setParameter("ids", ids)
@@ -38,8 +44,20 @@ public class ProductRepository {
     }
 
     public List<AdditionalOption> findAdditionalOptById(String additionalOptionIds) {
-        return em.createQuery("SELECT ao FROM AdditionalOption ao WHERE ao.id in ( :additionalOptionId )", AdditionalOption.class)
+        return em.createQuery("SELECT ao FROM AdditionalOption ao WHERE ao.id in ( :additionalOptionIds )", AdditionalOption.class)
                 .setParameter("additionalOptionIds", additionalOptionIds)
+                .getResultList();
+    }
+
+    public List<ProductOption> findOptionsById(int productId) {
+        return em.createQuery("SELECT ao FROM AdditionalOption ao WHERE ao.id in ( :productId )", ProductOption.class)
+                .setParameter("productId", productId)
+                .getResultList();
+    }
+
+    public List<AdditionalOption> findAdditionalOptsById(int productId) {
+        return em.createQuery("SELECT ao FROM AdditionalOption ao WHERE ao.id in ( :productId )", AdditionalOption.class)
+                .setParameter("productId", productId)
                 .getResultList();
     }
 }

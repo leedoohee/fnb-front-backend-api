@@ -16,7 +16,7 @@ import java.math.BigDecimal;
 public class PointService {
 
     @TransactionalEventListener()
-    public void handlePointToOrderMember(OrderResultEvent event) {
+    public void handlePointToOrder(OrderResultEvent event) {
         Member member = event.getMember();
         //TODO 페이에 따른 추가적립
         int applyPoint        = this.applyPointForOrder(event.getPayType(), member, event.getTotalProductAmount(), event.getPaymentAmount());
@@ -38,7 +38,7 @@ public class PointService {
             }
         }
 
-        if(CommonUtil.isProductAmountPolicyType(rule.getApplyUnit())) {
+        if(CommonUtil.isPaymentAmountPolicyType(rule.getApplyUnit())) {
             if(CommonUtil.isMinAndMaxBetween(rule.getMinApplyAmount().intValue(), rule.getMaxApplyAmount().intValue(), paymentAmount.intValue())) {
                 PointCalculator pointCalculator = new PointCalculator(paymentAmount,
                         rule.getAddingPointAmount(), PointFactory.getPolicy(rule.getAddingPointType()));

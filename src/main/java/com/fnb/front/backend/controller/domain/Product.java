@@ -25,6 +25,7 @@ public class Product {
     private String type;
     private String category;
     private int isAvailableCoupon;
+    private int quantity;
     private int purchaseQuantity;
     private int minPurchaseQuantity;
     private int maxPurchaseQuantity;
