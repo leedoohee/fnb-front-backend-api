@@ -16,6 +16,8 @@ public class Member {
     private int id;
     private String name;
     private String grade;
+    private int ownedPoint;
+    private int ownedCouponCount;
     private Date firstApplyGradeDate;
     private Date updateGradeDate;
 

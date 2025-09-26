@@ -135,9 +135,9 @@ public class OrderService {
 
         for (OrderProductRequest orderProductRequest : orderRequest.getOrderProductRequests()) {
             Product product = this.productRepository.find(orderProductRequest.getProductId());
-
+            //n+1 어떻게 해결할 것인가
             product.setProductOption(this.productRepository.findOptionById(orderProductRequest.getProductOptionId()));
-            product.setAdditionalOptions(this.productRepository.findAdditionalOptById(Arrays.stream(orderProductRequest.getAdditionalOptionIds()).toString()));
+            product.setAdditionalOptions(this.productRepository.findAdditionalOptByIds(Arrays.stream(orderProductRequest.getAdditionalOptionIds()).toString()));
             product.setPurchaseQuantity(orderProductRequest.getQuantity());
             orderProducts.add(product);
         }

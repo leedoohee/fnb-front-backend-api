@@ -43,7 +43,19 @@ public class ProductRepository {
                 .getSingleResult();
     }
 
-    public List<AdditionalOption> findAdditionalOptById(String additionalOptionIds) {
+    public AdditionalOption findAdditionalOptById(String additionalOptionId) {
+        return em.createQuery("SELECT ao FROM AdditionalOption ao WHERE ao.id = :additionalOptionId", AdditionalOption.class)
+                .setParameter("additionalOptionId", additionalOptionId)
+                .getSingleResult();
+    }
+
+    public List<ProductOption> findOptionByIds(String optionIds) {
+        return em.createQuery("SELECT p FROM ProductOption p WHERE p.id in (:optionIds)", ProductOption.class)
+                .setParameter("optionIds", optionIds)
+                .getResultList();
+    }
+
+    public List<AdditionalOption> findAdditionalOptByIds(String additionalOptionIds) {
         return em.createQuery("SELECT ao FROM AdditionalOption ao WHERE ao.id in ( :additionalOptionIds )", AdditionalOption.class)
                 .setParameter("additionalOptionIds", additionalOptionIds)
                 .getResultList();
