@@ -14,8 +14,11 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class PaymentController {
 
-    @Autowired
-    private PaymentService paymentService;
+    private final PaymentService paymentService;
+
+    public PaymentController(PaymentService paymentService) {
+        this.paymentService = paymentService;
+    }
 
     //카카오 페이 및 pg 전용
     @PostMapping("/payment/request")

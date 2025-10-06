@@ -11,7 +11,7 @@ import java.math.BigDecimal;
 @Builder
 public class ProductOptionResponse {
     private int id;
-    private String productId;
+    private int productId;
     private String name;
     private String description;
     private BigDecimal optionPrice;

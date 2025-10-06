@@ -15,9 +15,9 @@ public class MemberRepository {
     @Autowired
     private EntityManager em;
 
-    public Member find(int id) {
-        return em.createQuery("SELECT m FROM Member m WHERE m.id = :id", Member.class)
-                .setParameter("id", id)
+    public Member find(String id) {
+        return em.createQuery("SELECT m FROM Member m WHERE m.memberId = :id", Member.class)
+                .setParameter("memberId", id)
                 .getSingleResult();
     }
 

@@ -1,24 +1,22 @@
 package com.fnb.front.backend.controller.domain.processor;
 
 import com.fnb.front.backend.controller.domain.*;
-import com.fnb.front.backend.controller.domain.*;
 import com.fnb.front.backend.controller.domain.implement.DiscountPolicy;
 import com.fnb.front.backend.controller.domain.implement.Calculator;
 import com.fnb.front.backend.controller.dto.CreateOrderDto;
 import com.fnb.front.backend.controller.dto.CreateOrderProductDto;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.*;
 
 public class OrderProcessor {
     private final Member member;
-    private final Merchant merchant;
     private final Order order;
     private final List<Product> products;
     private final List<Coupon> coupons;
 
-    public OrderProcessor(Merchant merchant, Member member, Order order, List<Product> products, List<Coupon> coupons) {
-        this.merchant = merchant;
+    public OrderProcessor(Member member, Order order, List<Product> products, List<Coupon> coupons) {
         this.member = member;
         this.order = order;
         this.products = products;
@@ -27,15 +25,11 @@ public class OrderProcessor {
 
     public CreateOrderDto buildOrder() throws Exception {
 
-        if(!this.merchant.isLive()) {
-            return null;
-        }
-
         if(!this.member.isCanPurchase()) {
             return null;
         }
 
-        if(!this.validatePoint(this.order.getUsePoint(), this.member.getOwnedPointAmount())) {
+        if(!this.validatePoint(this.order.getUsePoint(), this.member.getPoints())) {
             return null;
         }
 
@@ -58,11 +52,10 @@ public class OrderProcessor {
         int totalOriginPrice        = this.calculateTotalOriginPrice(createOrderProductDtos);
 
         return CreateOrderDto.builder()
-                .orderId(this.generateOrderId(this.order.getMerchantId()))
-                .orderDate(this.order.getOrderDate())
-                .merchantId(this.order.getMerchantId())
+                .orderId(this.generateOrderId())
+                .orderDate(LocalDateTime.now())
                 .discountAmount(BigDecimal.valueOf(totalCouponPrice + totalMemberShipPrice).add(this.order.getUsePoint()))
-                .couponAmount(BigDecimal.valueOf(totalCouponPrice))
+                .couponAmount(totalCouponPrice)
                 .orderAmount(BigDecimal.valueOf(totalOriginPrice))
                 .orderProducts(createOrderProductDtos)
                 .build();
@@ -143,13 +136,13 @@ public class OrderProcessor {
             int couponPrice = this.calculateCouponToProduct(product, coupons);
 
             CreateOrderProductDto orderProduct = CreateOrderProductDto.builder()
-                    .orderId(this.generateOrderId(product.getMerchantId()))
-                    .orderProductId(this.generateOrderProductId(product.getMerchantId(), String.valueOf(product.getId())))
+                    .orderId(this.generateOrderId())
+                    .orderProductId(this.generateOrderProductId())
                     .productId(product.getId())
                     .name(product.getName())
                     .couponId(this.applyCouponToProduct(product, coupons))
-                    .quantity(product.getPurchaseQuantity())
-                    .originPrice(this.calcPriceWithAdditionalOptions(this.calculatePriceWithQuantity(product), product.getAdditionalOptions()))
+                    .quantity(product.getQuantity())
+                    .originPrice(this.calcPriceWithAdditionalOptions(this.calculatePriceWithQuantity(product), product))
                     .couponPrice(couponPrice)
                     .discountPrice(couponPrice + memberShipPrice)
                     .build();
@@ -215,23 +208,28 @@ public class OrderProcessor {
     }
 
     private int calculatePriceWithQuantity(Product product) {
-        // 주문생성시 , 1대1 구조라 무조건 하나일 수 밖에 없다.
-        ProductOption productOptions = product.getProductOption();
-        BigDecimal optionPrice = productOptions.getOptionPrice();
+        List<ProductOption> productOptions  = product.getProductOption();
+        ProductOption singleOption          = productOptions.stream()
+                                                .filter(productOption -> productOption.getOptionType().equals("single"))
+                                                .findFirst().orElse(null);
 
-        return (product.getPrice() + optionPrice.intValue()) * product.getPurchaseQuantity();
+        return (product.getPrice().intValue() + Objects.requireNonNull(singleOption).getPrice()) * product.getQuantity();
     }
 
-    private int calcPriceWithAdditionalOptions(int optionPrice, List<AdditionalOption> additionalOptions) {
-        int sumPrice = additionalOptions.stream().map(AdditionalOption::getPrice).mapToInt(BigDecimal::intValue).sum();
+    private int calcPriceWithAdditionalOptions(int optionPrice, Product product) {
+        int sumPrice = product.getProductOption().stream()
+                            .filter(productOption -> productOption.getOptionType().equals("multi"))
+                            .map(ProductOption::getPrice)
+                            .mapToInt(Integer::intValue).sum();
+
         return optionPrice + sumPrice;
     }
 
-    private String generateOrderProductId(String merchantId, String productId) {
-        return "ORDER_" + merchantId + "_" + productId + "_"  + new Date().getTime();
+    public String generateOrderId() {
+        return "ORDER_" + new Date().getTime();
     }
 
-    public String generateOrderId(String merchantId) {
-        return "ORDER_" + merchantId + "_" + new Date().getTime();
+    public String generateOrderProductId() {
+        return "ORDER_PRODUCT" + new Date().getTime();
     }
 }

@@ -20,8 +20,8 @@ public class ProductResponse {
     private String img;
     private String description;
     private String merchantId;
-    private int price;
-    private int status;
+    private BigDecimal price;
+    private String status;
     private String type;
     private String category;
     private int isAvailableCoupon;

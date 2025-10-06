@@ -12,8 +12,11 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class OrderController {
 
-    @Autowired
-    private OrderService orderService;
+    private final OrderService orderService;
+
+    public OrderController(OrderService orderService) {
+        this.orderService = orderService;
+    }
 
     @PostMapping("/order")
     public ResponseEntity<OrderResponse> create(@RequestBody OrderRequest orderRequest) throws Exception {

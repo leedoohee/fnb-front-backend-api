@@ -1,7 +1,6 @@
 package com.fnb.front.backend.Service;
 
 import com.fnb.front.backend.controller.domain.*;
-import com.fnb.front.backend.controller.domain.*;
 import com.fnb.front.backend.controller.domain.response.OrderResponse;
 import com.fnb.front.backend.repository.*;
 import com.fnb.front.backend.controller.domain.processor.OrderProcessor;
@@ -10,73 +9,68 @@ import com.fnb.front.backend.controller.dto.CreateOrderProductDto;
 import com.fnb.front.backend.controller.domain.request.order.OrderCouponRequest;
 import com.fnb.front.backend.controller.domain.request.order.OrderProductRequest;
 import com.fnb.front.backend.controller.domain.request.order.OrderRequest;
-import com.fnb.front.backend.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
-@RequiredArgsConstructor
 public class OrderService {
 
-    @Autowired
-    private ProductRepository productRepository;
+    private final ProductRepository productRepository;
 
-    @Autowired
-    private CouponRepository couponRepository;
+    private final CouponRepository couponRepository;
 
-    @Autowired
-    private MemberRepository memberRepository;
+    private final MemberRepository memberRepository;
 
-    @Autowired
-    private OrderRepository orderRepository;
+    private final OrderRepository orderRepository;
 
-    @Autowired
-    private MerchantRepository merchantRepository;
+    private final PaymentService paymentService;
 
-    @Autowired
-    private PaymentService paymentService;
-
-    public OrderService(PaymentService paymentService) {
+    public OrderService(ProductRepository productRepository, CouponRepository couponRepository, MemberRepository memberRepository, OrderRepository orderRepository, PaymentService paymentService) {
+        this.productRepository = productRepository;
+        this.couponRepository = couponRepository;
+        this.memberRepository = memberRepository;
+        this.orderRepository = orderRepository;
         this.paymentService = paymentService;
     }
 
     @Transactional
     public OrderResponse create(OrderRequest orderRequest) throws Exception {
-        Merchant merchant                   = this.createMerchant(orderRequest);
         Order order                         = this.createOrder(orderRequest);
         List<Product> orderProducts         = this.createOrderProduct(orderRequest);
         List<Coupon> orderCoupons           = this.createOrderCoupon(orderRequest);
         Member member                       = this.createMember(orderRequest);
         List<OrderProduct> newOrderProducts = new ArrayList<>();
-        OrderProcessor orderProcessor       = new OrderProcessor(merchant, member, order, orderProducts, orderCoupons);
+        OrderProcessor orderProcessor       = new OrderProcessor(member, order, orderProducts, orderCoupons);
         CreateOrderDto createOrderDto       = orderProcessor.buildOrder();
 
         Order newOrder = Order.builder()
                 .orderId(createOrderDto.getOrderId())
                 .orderDate(createOrderDto.getOrderDate())
                 .orderStatus("0")
-                .orderType("1")
+                .orderType(1)
                 .discountAmount(createOrderDto.getDiscountAmount())
-                .useCouponAmount(createOrderDto.getCouponAmount())
-                .paymentAmount(createOrderDto.getOrderAmount())
+                .couponAmount(createOrderDto.getCouponAmount())
+                .totalAmount(createOrderDto.getOrderAmount())
                 .build();
 
         this.insertOrder(newOrder);
 
         for(CreateOrderProductDto element : createOrderDto.getOrderProducts()) {
             newOrderProducts.add(OrderProduct.builder()
-                    .orderProductId(element.getOrderProductId())
+                    .orderProductId(Integer.parseInt(element.getOrderProductId()))
                     .productId(element.getProductId())
                     .quantity(element.getQuantity())
-                    .couponPrice(element.getCouponPrice())
+                    .couponAmount(BigDecimal.valueOf(element.getCouponPrice()))
                     .couponId(element.getCouponId())
-                    .originPrice(element.getOriginPrice())
-                    .discountPrice(element.getDiscountPrice())
+                    .paymentAmount(BigDecimal.valueOf(element.getOriginPrice()))
+                    .discountAmount(BigDecimal.valueOf(element.getDiscountPrice()))
                     .orderId(element.getOrderId())
                     .build());
         }
@@ -107,7 +101,7 @@ public class OrderService {
         return this.orderRepository.getOrder(orderId);
     }
 
-    public Member getMember(int memberId) {
+    public Member getMember(String memberId) {
         return this.memberRepository.find(memberId);
     }
 
@@ -121,24 +115,25 @@ public class OrderService {
         return Order.builder()
                 .orderType(orderRequest.getOrderType())
                 .usePoint(orderRequest.getPoint())
-                .orderDate(new Date())
-                .merchantId(orderRequest.getMerchantId())
+                .orderDate(LocalDateTime.now())
                 .build();
     }
 
-    private Merchant createMerchant(OrderRequest orderRequest) {
-        return this.merchantRepository.getMerchant(orderRequest.getMerchantId());
-    }
 
     private List<Product> createOrderProduct(OrderRequest orderRequest) {
-        List<Product> orderProducts = new ArrayList<>();
+        List<Product> orderProducts         = new ArrayList<>();
+        List<Integer> productIdList         = orderRequest.getOrderProductRequests().stream().map(OrderProductRequest::getProductId).toList();
+        List<List<Integer>> optionIdsArray  = orderRequest.getOrderProductRequests().stream().map(OrderProductRequest::getProductOptionId).toList();
+        List<Integer> optionIdList          = optionIdsArray.stream().flatMap(List::stream).toList();
+        List<Product> products              = this.productRepository.findProducts(productIdList);
+        List<ProductOption> options         = this.productRepository.findOptions(optionIdList);
 
-        for (OrderProductRequest orderProductRequest : orderRequest.getOrderProductRequests()) {
-            Product product = this.productRepository.find(orderProductRequest.getProductId());
+        for (Product product : products) {
+            product.setProductOption(options.stream().filter(productOption -> productOption.getProductId() == product.getId()).toList());
+            product.setQuantity(Objects.requireNonNull(orderRequest.getOrderProductRequests().stream()
+                    .filter(orderProductRequest -> orderProductRequest.getProductId() == product.getId())
+                    .findFirst().orElse(null)).getQuantity());
 
-            product.setProductOption(this.productRepository.findOptionById(orderProductRequest.getProductOptionId()));
-            product.setAdditionalOptions(this.productRepository.findAdditionalOptById(Arrays.stream(orderProductRequest.getAdditionalOptionIds()).toString()));
-            product.setPurchaseQuantity(orderProductRequest.getQuantity());
             orderProducts.add(product);
         }
 
@@ -165,9 +160,6 @@ public class OrderService {
     private Member createMember(OrderRequest orderRequest) {
         Member member                       = this.memberRepository.find(orderRequest.getMemberId());
         List<MemberCoupon> memberCoupons    = this.memberRepository.findMemberCouponsById(member.getId());
-        List<Point> points                  = this.memberRepository.findPointsById(member.getId());
-
-        member.setPoints(points);
         member.setOwnedCoupon(memberCoupons);
 
         return member;

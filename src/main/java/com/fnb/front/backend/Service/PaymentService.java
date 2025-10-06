@@ -13,24 +13,26 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
 
-@Component
-@RequiredArgsConstructor
+@Service
 public class PaymentService {
 
-    @Autowired
-    private ApplicationEventPublisher eventPublisher;
+    private final ApplicationEventPublisher eventPublisher;
 
-    @Autowired
-    private PaymentRepository paymentRepository;
+    private final PaymentRepository paymentRepository;
 
-    private OrderService orderService;
+    private final OrderService orderService;
 
-    public PaymentService(OrderService orderService) {
+    public PaymentService(ApplicationEventPublisher eventPublisher, PaymentRepository paymentRepository, OrderService orderService) {
+        this.eventPublisher = eventPublisher;
+        this.paymentRepository = paymentRepository;
         this.orderService = orderService;
     }
 
@@ -54,29 +56,29 @@ public class PaymentService {
         List<OrderProduct> orderProducts    = this.orderService.getOrderProducts(orderId);
         Order order                         = this.orderService.getOrder(orderId);
 
-        int couponAmount = orderProducts.stream().map(OrderProduct::getCouponPrice).mapToInt(Integer::intValue).sum();
+        int couponAmount = orderProducts.stream().map(OrderProduct::getCouponAmount).mapToInt(BigDecimal::intValue).sum();
         int pointAmount  = order.getUsePoint().intValue();
 
         //금액 비교 로직
 
         //payment master 추가
         this.paymentRepository.insertPayment(Payment.builder()
-                .paymentDate(new Date())
-                .amount(order.getPaymentAmount())
+                .paymentAt(LocalDateTime.now())
+                .totalAmount(order.getTotalAmount())
                 .orderId(order.getOrderId())
                 .build());
 
         if (couponAmount > 0) {
             this.paymentRepository.insertPaymentElement(PaymentElement.builder()
                     .paymentMethod("COUPON")
-                    .amount(couponAmount)
+                    .amount(BigDecimal.valueOf(couponAmount))
                     .build());
         }
 
         if (pointAmount > 0) {
            this.paymentRepository.insertPaymentElement(PaymentElement.builder()
                    .paymentMethod("POINT")
-                   .amount(pointAmount)
+                   .amount(BigDecimal.valueOf(pointAmount))
                    .build());
         }
 
@@ -89,7 +91,7 @@ public class PaymentService {
 
             this.paymentRepository.insertPaymentElement(PaymentElement.builder()
                     .paymentMethod(paymentMethod)
-                    .amount(paymentAmount)
+                    .amount(BigDecimal.valueOf(paymentAmount))
                     .build());
         }
 

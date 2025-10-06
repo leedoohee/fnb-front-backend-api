@@ -9,8 +9,8 @@ import java.util.List;
 @Getter
 @Setter
 public class OrderRequest {
-    private int memberId;
-    private String orderType;
+    private String memberId;
+    private int orderType;
     private String merchantId;
     private BigDecimal point;
     private List<OrderProductRequest> orderProductRequests;

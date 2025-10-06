@@ -13,8 +13,11 @@ import java.util.List;
 @RestController
 public class ReviewController {
 
-    @Autowired
-    private ReviewService reviewService;
+    private final ReviewService reviewService;
+
+    public ReviewController(ReviewService reviewService) {
+        this.reviewService = reviewService;
+    }
 
     @GetMapping("/review/{productId}")
     public ResponseEntity<List<ReviewResponse>> getProductReviews(@PathVariable int productId) {
