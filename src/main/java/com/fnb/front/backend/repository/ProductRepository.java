@@ -1,6 +1,6 @@
 package com.fnb.front.backend.repository;
 
-import com.fnb.front.backend.controller.domain.OrderAdditionalOption;
+import com.fnb.front.backend.controller.domain.AdditionalOption;
 import com.fnb.front.backend.controller.domain.Product;
 import com.fnb.front.backend.controller.domain.ProductOption;
 import jakarta.persistence.EntityManager;
@@ -92,20 +92,20 @@ public class ProductRepository {
         return typedQuery.getResultList();
     }
 
-    public List<OrderAdditionalOption> findAdditionalOptById(String additionalOptionIds) {
-        return em.createQuery("SELECT ao FROM OrderAdditionalOption ao WHERE ao.id in ( :additionalOptionIds )", OrderAdditionalOption.class)
+    public List<AdditionalOption> findAdditionalOptById(String additionalOptionIds) {
+        return em.createQuery("SELECT ao FROM AdditionalOption ao WHERE ao.id in ( :additionalOptionIds )", AdditionalOption.class)
                 .setParameter("additionalOptionIds", additionalOptionIds)
                 .getResultList();
     }
 
     public List<ProductOption> findOptionsById(int productId) {
-        return em.createQuery("SELECT ao FROM OrderAdditionalOption ao WHERE ao.id in ( :productId )", ProductOption.class)
+        return em.createQuery("SELECT ao FROM AdditionalOption ao WHERE ao.id in ( :productId )", ProductOption.class)
                 .setParameter("productId", productId)
                 .getResultList();
     }
 
-    public List<OrderAdditionalOption> findAdditionalOptsById(int productId) {
-        return em.createQuery("SELECT ao FROM OrderAdditionalOption ao WHERE ao.id in ( :productId )", OrderAdditionalOption.class)
+    public List<AdditionalOption> findAdditionalOptsById(int productId) {
+        return em.createQuery("SELECT ao FROM AdditionalOption ao WHERE ao.id in ( :productId )", AdditionalOption.class)
                 .setParameter("productId", productId)
                 .getResultList();
     }
