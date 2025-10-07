@@ -9,15 +9,12 @@ import com.fnb.front.backend.controller.dto.CreateOrderProductDto;
 import com.fnb.front.backend.controller.domain.request.order.OrderCouponRequest;
 import com.fnb.front.backend.controller.domain.request.order.OrderProductRequest;
 import com.fnb.front.backend.controller.domain.request.order.OrderRequest;
-import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Service
 public class OrderService {
@@ -32,7 +29,11 @@ public class OrderService {
 
     private final PaymentService paymentService;
 
-    public OrderService(ProductRepository productRepository, CouponRepository couponRepository, MemberRepository memberRepository, OrderRepository orderRepository, PaymentService paymentService) {
+    public OrderService(ProductRepository productRepository,
+                        CouponRepository couponRepository,
+                        MemberRepository memberRepository,
+                        OrderRepository orderRepository, PaymentService paymentService) {
+
         this.productRepository = productRepository;
         this.couponRepository = couponRepository;
         this.memberRepository = memberRepository;
@@ -94,15 +95,15 @@ public class OrderService {
     }
 
     public List<OrderProduct> getOrderProducts(String orderId) {
-        return this.orderRepository.getOrderProducts(orderId);
+        return this.orderRepository.findOrderProducts(orderId);
     }
 
     public Order getOrder(String orderId) {
-        return this.orderRepository.getOrder(orderId);
+        return this.orderRepository.findOrder(orderId);
     }
 
     public Member getMember(String memberId) {
-        return this.memberRepository.find(memberId);
+        return this.memberRepository.findMember(memberId);
     }
 
     private boolean isNonExecutePaymentGateWay(List<CreateOrderProductDto> orderProductRequests) {
@@ -145,7 +146,7 @@ public class OrderService {
                             .map(OrderCouponRequest::getCouponId)
                             .toList();
 
-        List<Coupon> coupons  = this.couponRepository.findInIds(couponIds.toString());
+        List<Coupon> coupons  = this.couponRepository.findCoupons(couponIds);
 
         for (Coupon coupon : coupons) {
             orderRequest.getOrderCouponRequests().stream()
@@ -158,8 +159,8 @@ public class OrderService {
     }
 
     private Member createMember(OrderRequest orderRequest) {
-        Member member                       = this.memberRepository.find(orderRequest.getMemberId());
-        List<MemberCoupon> memberCoupons    = this.memberRepository.findMemberCouponsById(member.getId());
+        Member member                       = this.memberRepository.findMember(orderRequest.getMemberId());
+        List<MemberCoupon> memberCoupons    = this.memberRepository.findMemberCoupons(member.getMemberId());
         member.setOwnedCoupon(memberCoupons);
 
         return member;

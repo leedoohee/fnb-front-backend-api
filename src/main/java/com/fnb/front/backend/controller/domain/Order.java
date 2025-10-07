@@ -29,6 +29,9 @@ public class Order {
     @Column(name = "member_id", nullable = false)
     private String memberId;
 
+    @Column(name = "member_name", nullable = false)
+    private String memberName;
+
     @Column(name = "order_date", updatable = false)
     private LocalDateTime orderDate;
 

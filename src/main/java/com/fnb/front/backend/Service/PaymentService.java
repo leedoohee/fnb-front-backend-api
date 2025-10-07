@@ -107,7 +107,7 @@ public class PaymentService {
     }
 
     private void generateEvent(OrderResultEvent event) {
-        //이벤트 패턴으로 재고 차감, 알림톡,
+        //이벤트 패턴으로 재고 차감, 알림톡
         eventPublisher.publishEvent(event);
     }
 }

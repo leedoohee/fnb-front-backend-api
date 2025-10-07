@@ -13,8 +13,11 @@ import java.util.List;
 @Component
 public class CouponRepository {
 
-    @Autowired
-    private EntityManager em;
+    private final EntityManager em;
+
+    public CouponRepository(EntityManager em) {
+        this.em = em;
+    }
 
     public Coupon findCoupon(int couponId) {
         CriteriaBuilder cb         = em.getCriteriaBuilder();
@@ -27,9 +30,15 @@ public class CouponRepository {
         return typedQuery.getSingleResult();
     }
 
-    public List<Coupon> findInIds(String ids) {
-        return em.createQuery("SELECT c FROM Coupon c WHERE c.id in ( :ids )", Coupon.class)
-                .setParameter("ids", ids)
-                .getResultList();
+    public List<Coupon> findCoupons(List<Integer> couponIds) {
+
+        CriteriaBuilder cb         = em.getCriteriaBuilder();
+        CriteriaQuery<Coupon> cq   = cb.createQuery(Coupon.class);
+        Root<Coupon> root          = cq.from(Coupon.class);
+
+        cq = cq.where(cb.and(root.get("id").in(couponIds)));
+        TypedQuery<Coupon> typedQuery = em.createQuery(cq);
+
+        return typedQuery.getResultList();
     }
 }

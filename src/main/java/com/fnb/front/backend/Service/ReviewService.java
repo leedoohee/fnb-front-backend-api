@@ -18,8 +18,8 @@ public class ReviewService {
         this.reviewRepository = reviewRepository;
     }
 
-    public List<ReviewResponse> getMyReviews(int memberId) {
-        List<Review> myReviews = this.reviewRepository.findReviewsByMemberId(memberId);
+    public List<ReviewResponse> getMyReviews(String memberId) {
+        List<Review> myReviews = this.reviewRepository.findReviews(memberId);
         return this.buildReviewResponses(myReviews);
     }
 
@@ -35,7 +35,7 @@ public class ReviewService {
             reviewResponses.add(ReviewResponse.builder()
                     .id(review.getId())
                     .content(review.getContent())
-                    .registDate(review.getRegistDate())
+                    .registerDate(review.getRegisterDate())
                     .productId(review.getProductId())
                     .registerId(review.getRegisterId())
                     .attachFiles(review.getAttachFiles()).build());

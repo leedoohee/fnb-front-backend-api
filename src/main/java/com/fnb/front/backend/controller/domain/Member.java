@@ -73,6 +73,9 @@ public class Member {
     @Transient
     private MemberGrade memberGrade;
 
+    @Transient
+    private List<MemberPoint> memberPoints;
+
     public boolean isCanPurchase() {
         return status.equals("1");
     }

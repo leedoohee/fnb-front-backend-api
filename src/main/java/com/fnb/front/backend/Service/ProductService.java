@@ -60,12 +60,11 @@ public class ProductService {
     }
 //
     public ProductResponse getInfo(int productId) {
+        List<ProductOptionResponse>  productOptionResponses      = new ArrayList<>();
+        List<AdditionalOptionResponse> additionalOptionResponses = new ArrayList<>();
         Product product                                          = this.productRepository.findProduct(productId);
         List<ProductOption> options                              = this.productRepository.findOptions(productId);
         int reviewCount                                          = this.reviewRepository.findReviews(productId).size();
-
-        List<ProductOptionResponse>  productOptionResponses      = new ArrayList<>();
-        List<AdditionalOptionResponse> additionalOptionResponses = new ArrayList<>();
 
         for (ProductOption productOption : options) {
             productOptionResponses.add(ProductOptionResponse.builder()

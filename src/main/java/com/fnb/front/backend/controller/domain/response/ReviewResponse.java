@@ -5,6 +5,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
 
@@ -16,8 +17,8 @@ public class ReviewResponse {
     private int productId;
     private String type; //매장, 상품
     private String content;
-    private Date registDate;
-    private int registerId;
+    private LocalDateTime registerDate;
+    private String registerId;
 
     private List<ReviewAttachFile> attachFiles;
 }

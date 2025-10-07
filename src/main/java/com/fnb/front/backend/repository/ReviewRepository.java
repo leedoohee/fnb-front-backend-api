@@ -1,10 +1,13 @@
 package com.fnb.front.backend.repository;
 
-import com.fnb.front.backend.controller.domain.Coupon;
+import com.fnb.front.backend.controller.domain.Product;
 import com.fnb.front.backend.controller.domain.Review;
 import com.fnb.front.backend.controller.domain.ReviewAttachFile;
 import jakarta.persistence.EntityManager;
-import org.springframework.beans.factory.annotation.Autowired;
+import jakarta.persistence.TypedQuery;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Root;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -12,19 +15,34 @@ import java.util.List;
 @Component
 public class ReviewRepository {
 
-    @Autowired
-    private EntityManager em;
+    private final EntityManager em;
 
-    public List<Review> findReviews(int productId) {
-        return em.createQuery("SELECT r FROM Review r WHERE r.productId = :productId", Review.class)
-                .setParameter("productId", productId)
-                .getResultList();
+    public ReviewRepository(EntityManager em) {
+        this.em = em;
     }
 
-    public List<Review> findReviewsByMemberId(int memberId) {
-        return em.createQuery("SELECT r FROM Review r WHERE r.registerId = :memberId", Review.class)
-                .setParameter("memberId", memberId)
-                .getResultList();
+    public List<Review> findReviews(int productId) {
+
+        CriteriaBuilder cb          = em.getCriteriaBuilder();
+        CriteriaQuery<Review> cq    = cb.createQuery(Review.class);
+        Root<Review> root           = cq.from(Review.class);
+
+        cq = cq.where(cb.and(cb.equal(root.get("productId"), productId)));
+        TypedQuery<Review> typedQuery = em.createQuery(cq);
+
+        return typedQuery.getResultList();
+    }
+
+    public List<Review> findReviews(String memberId) {
+
+        CriteriaBuilder cb          = em.getCriteriaBuilder();
+        CriteriaQuery<Review> cq    = cb.createQuery(Review.class);
+        Root<Review> root           = cq.from(Review.class);
+
+        cq = cq.where(cb.and(cb.equal(root.get("memberId"), memberId)));
+        TypedQuery<Review> typedQuery = em.createQuery(cq);
+
+        return typedQuery.getResultList();
     }
 
     public List<ReviewAttachFile> findAttachFile(int reviewId) {

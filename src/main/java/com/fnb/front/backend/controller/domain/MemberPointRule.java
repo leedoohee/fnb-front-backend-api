@@ -1,7 +1,6 @@
 package com.fnb.front.backend.controller.domain;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -10,15 +9,30 @@ import java.math.BigDecimal;
 @Getter
 @Setter
 @Entity
+@Table(name = "member_point_rule")
 public class MemberPointRule {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id", updatable = false, nullable = false)
     private int id;
+
+    @Column(name = "grade", updatable = false, nullable = false)
     private String grade;
+
+    @Column(name = "apply_point_type")
     private String addingPointType;
+
+    @Column(name = "adding_point_amount", precision = 19, scale = 2)
     private BigDecimal addingPointAmount;
-    private String applyUnit; // 상품 주문 총금액 or 결제 금액(쿠폰, 포인트제외)
+
+    @Column(name = "apply_unit")
+    private String applyUnit;
+
+    @Column(name = "min_apply_amount", precision = 19, scale = 2)
     private BigDecimal minApplyAmount;
+
+    @Column(name = "max_apply_amount", precision = 19, scale = 2)
     private BigDecimal maxApplyAmount;
 
     //시작일자

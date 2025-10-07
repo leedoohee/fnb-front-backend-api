@@ -47,7 +47,7 @@ public class OrderProcessor {
 
         List<CreateOrderProductDto> createOrderProductDtos = this.buildOrderProducts(this.member, this.products, this.coupons);
 
-        int totalCouponPrice        = this.calculateTotalCouponPrice(createOrderProductDtos);
+        int totalCouponPrice        = this.calculateTotalCouponPrice(Objects.requireNonNull(createOrderProductDtos));
         int totalMemberShipPrice    = this.calculateTotalMemberShipPrice(createOrderProductDtos);
         int totalOriginPrice        = this.calculateTotalOriginPrice(createOrderProductDtos);
 
@@ -183,7 +183,8 @@ public class OrderProcessor {
 
         if (memberShipPolicy != null) {
             memberShipCalculator = new MemberShipCalculator(member,
-                                        this.calculatePriceWithQuantity(product), product.getApplyMemberGradeDisAmt().intValue(), memberShipPolicy);
+                                        this.calculatePriceWithQuantity(product),
+                                        product.getApplyMemberGradeDisAmt().intValue(), memberShipPolicy);
         }
 
         return Objects.requireNonNull(memberShipCalculator).calculate().intValue();

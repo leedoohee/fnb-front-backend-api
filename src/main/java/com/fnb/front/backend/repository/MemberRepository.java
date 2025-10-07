@@ -2,34 +2,64 @@ package com.fnb.front.backend.repository;
 
 import com.fnb.front.backend.controller.domain.Member;
 import com.fnb.front.backend.controller.domain.MemberCoupon;
-import com.fnb.front.backend.controller.domain.Point;
+import com.fnb.front.backend.controller.domain.MemberPoint;
 import jakarta.persistence.EntityManager;
-import org.springframework.beans.factory.annotation.Autowired;
+import jakarta.persistence.TypedQuery;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Component
 public class MemberRepository {
 
-    @Autowired
-    private EntityManager em;
+    private final EntityManager em;
 
-    public Member find(String id) {
-        return em.createQuery("SELECT m FROM Member m WHERE m.memberId = :id", Member.class)
-                .setParameter("memberId", id)
-                .getSingleResult();
+    public MemberRepository(EntityManager em) {
+        this.em = em;
     }
 
-    public List<Point> findPointsById(int memberId) {
-        return em.createQuery("SELECT p FROM Point p WHERE p.memberId = : memberId", Point.class)
-                .setParameter("memberId", memberId)
-                .getResultList();
+    public Member findMember(String memberId) {
+
+        CriteriaBuilder cb         = em.getCriteriaBuilder();
+        CriteriaQuery<Member> cq   = cb.createQuery(Member.class);
+        Root<Member> root          = cq.from(Member.class);
+
+        cq = cq.where(cb.and(cb.equal(root.get("memberId"), memberId)));
+        TypedQuery<Member> typedQuery = em.createQuery(cq);
+
+        return typedQuery.getSingleResult();
     }
 
-    public List<MemberCoupon> findMemberCouponsById(int memberId) {
-        return em.createQuery("SELECT mc FROM MemberCoupon mc WHERE mc.memberId = :id and mc.isUsed = 1", MemberCoupon.class)
-                .setParameter("id", memberId)
-                .getResultList();
+    public List<MemberPoint> findMemberPoints(String memberId) {
+
+        CriteriaBuilder cb        = em.getCriteriaBuilder();
+        CriteriaQuery<MemberPoint> cq   = cb.createQuery(MemberPoint.class);
+        Root<MemberPoint> root          = cq.from(MemberPoint.class);
+
+        cq = cq.where(cb.and(cb.equal(root.get("memberId"), memberId)));
+        TypedQuery<MemberPoint> typedQuery = em.createQuery(cq);
+
+        return typedQuery.getResultList();
+    }
+
+    public List<MemberCoupon> findMemberCoupons(String memberId) {
+        List<Predicate> searchConditions    = new ArrayList<>();
+
+        CriteriaBuilder cb               = em.getCriteriaBuilder();
+        CriteriaQuery<MemberCoupon> cq   = cb.createQuery(MemberCoupon.class);
+        Root<MemberCoupon> root          = cq.from(MemberCoupon.class);
+
+        searchConditions.add(cb.equal(root.get("memberId"), memberId));
+        searchConditions.add(cb.equal(root.get("isUse"), "1"));
+
+        cq = cq.where(cb.and(searchConditions.toArray(new Predicate[0])));
+        TypedQuery<MemberCoupon> typedQuery = em.createQuery(cq);
+
+        return typedQuery.getResultList();
     }
 }

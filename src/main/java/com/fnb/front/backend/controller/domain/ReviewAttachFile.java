@@ -1,12 +1,10 @@
 package com.fnb.front.backend.controller.domain;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.time.LocalDateTime;
 import java.util.Date;
 
 @Entity
@@ -17,8 +15,16 @@ public class ReviewAttachFile {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
+
+    @Column(name = "file_name", nullable = false)
     private String fileName;
+
+    @Column(name = "file_path", nullable = false)
     private String filePath;
+
+    @Column(name = "review_id", nullable = false)
     private int reviewId;
-    private Date registDate;
+
+    @Column(name = "register_date")
+    private LocalDateTime registerDate;
 }
