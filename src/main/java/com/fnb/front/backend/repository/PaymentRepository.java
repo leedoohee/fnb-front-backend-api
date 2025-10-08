@@ -14,8 +14,9 @@ public class PaymentRepository {
         this.em = em;
     }
 
-    public void insertPayment(Payment payment) {
+    public int insertPayment(Payment payment) {
         em.persist(payment);
+        return payment.getId();
     }
 
     public void insertPaymentElement(PaymentElement paymentElement) {

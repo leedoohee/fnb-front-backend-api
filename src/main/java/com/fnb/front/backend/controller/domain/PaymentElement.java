@@ -19,22 +19,56 @@ public class PaymentElement {
     @Column(name = "id", updatable = false, nullable = false)
     private int id;
 
-    // Foreign Key reference to the Payment entity
     @Column(name = "payment_id", nullable = false)
     private int paymentId;
 
     @Column(name = "payment_method", nullable = false) // 카드, 현금, 포인트 등
     private String paymentMethod;
 
-    // Changing 'amount' to BigDecimal for accurate currency handling
+    @Column(name = "transaction_id")
+    private String transactionId;
+
     @Column(name = "amount", precision = 19, scale = 2, nullable = false)
     private BigDecimal amount;
 
-    @Column(name = "card_type") // 신용카드, 체크카드 등 (카드 결제 시)
+    @Column(name = "tax_free", precision = 19, scale = 2, nullable = false)
+    private BigDecimal taxFree;
+
+    @Column(name = "vat", precision = 19, scale = 2, nullable = false)
+    private BigDecimal vat;
+
+    @Column(name = "approved_at", updatable = false)
+    private LocalDateTime approvedAt;
+
+    @Column(name = "card_type")
     private String cardType;
 
-    @Column(name = "card_number") // 카드 번호 (카드 결제 시). Consider encryption/masking.
+    @Column(name = "card_number")
     private String cardNumber;
+
+    @Column(name = "install")
+    private String install;
+
+    @Column(name = "is_free_install")
+    private String isFreeInstall;
+
+    @Column(name = "install_type")
+    private String installType;
+
+    @Column(name = "card_corp")
+    private String cardCorp;
+
+    @Column(name = "card_corp_code")
+    private String cardCorpCode;
+
+    @Column(name = "bin_number")
+    private String binNumber;
+
+    @Column(name = "issuer")
+    private String issuer;
+
+    @Column(name = "issuer_code")
+    private String issuerCode;
 
     @Column(name = "bank_name") // 은행 이름 (계좌 이체 시)
     private String bankName;

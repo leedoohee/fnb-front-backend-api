@@ -31,7 +31,6 @@ public class MyPageService {
         List<OrderAdditionalOption>  additionalOptions  = this.orderRepository.findOrderAdditionalOptions(orderProductIdList);
         List<MyOrderResponse>   orderResponses          = new ArrayList<>();
 
-
         for (Order order : orders) {
             List<MyOrderProductResponse> orderProductResponse = new ArrayList<>();;
             List<OrderProduct> products = orderProducts.stream()
@@ -41,7 +40,8 @@ public class MyPageService {
             for (OrderProduct product : products) {
                 List<MyAdditionalOptionResponse> additionalOptionResponse = new ArrayList<>();
                 List<OrderAdditionalOption> option = additionalOptions.stream()
-                        .filter(orderAdditionalOption -> orderAdditionalOption.getOrderProductId() == product.getOrderProductId())
+                        .filter(orderAdditionalOption ->
+                                    orderAdditionalOption.getOrderProductId() == product.getOrderProductId())
                         .toList();
 
                 for (OrderAdditionalOption additionalOption : option) {
@@ -66,7 +66,6 @@ public class MyPageService {
                     .memberName(order.getMemberName())
                     .totalAmount(order.getTotalAmount())
                     .orderProducts(orderProductResponse).build());
-
         }
 
         return PageResponse.<MyOrderResponse>builder()

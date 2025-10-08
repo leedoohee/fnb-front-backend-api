@@ -48,10 +48,7 @@ public class KakaoPay implements IPay {
                 .cancelUrl("https://developers.kakao.com/cancel")
                 .build();
 
-        // 3. Combine headers and body into an HttpEntity
         HttpEntity<KakaoPayRequestDto> httpEntity = new HttpEntity<>(requestBody, headers);
-
-        // 4. Send the POST request
         RestTemplate restTemplate = new RestTemplate();
 
         try {
@@ -75,16 +72,14 @@ public class KakaoPay implements IPay {
         RestTemplate restTemplate = new RestTemplate();
         ApprovePaymentResponse approvePaymentResponse = null;
 
-        // 1. Build the request DTO using the builder pattern for clarity
         KakaoPayApproveDto requestBody = KakaoPayApproveDto.builder()
-                .cid(approvePaymentDto.getPaymentKey()) // Use your actual CID
+                .cid(approvePaymentDto.getPaymentKey())
                 .tid(approvePaymentDto.getTransactionId())
                 .partnerOrderId(approvePaymentDto.getOrderId())
                 .partnerUserId(approvePaymentDto.getMemberName())
                 .pgToken(approvePaymentDto.getPgToken())
                 .build();
 
-        // 2. Set the HTTP headers
         HttpHeaders headers = new HttpHeaders();
         headers.set("Authorization", "SECRET_KEY " + SECRET_KEY);
         headers.setContentType(MediaType.APPLICATION_JSON);
@@ -94,12 +89,27 @@ public class KakaoPay implements IPay {
         try {
             KakaoPayApproveResponse response = restTemplate.postForObject(APPROVE_API_URL, httpEntity, KakaoPayApproveResponse.class);
 
-            approvePaymentResponse = ApprovePaymentResponse.builder().approvalId(Objects.requireNonNull(response).getAid())
-                    .approvedAt(LocalDateTime.parse(response.getApprovedAt()))
+            approvePaymentResponse = ApprovePaymentResponse.builder()
+                    .approvalId(Objects.requireNonNull(response).getAid())
+                    .transactionId(response.getTid())
+                    .memberName(response.getPartnerUserId())
                     .orderId(response.getPartnerOrderId())
                     .paymentMethod(response.getPaymentMethodType())
-                    .transactionId(response.getTid())
+                    .productName(response.getItemName())
+                    .quantity(response.getQuantity())
                     .totalAmount(response.getAmount().getTotal())
+                    .taxFree(response.getAmount().getTaxFree())
+                    .vat(response.getAmount().getVat())
+                    .approvedAt(LocalDateTime.parse(response.getApprovedAt()))
+                    .isFreeInstall(response.getCardInfo().getInterestFreeInstall())
+                    .binNumber(response.getCardInfo().getBin())
+                    .cardType(response.getCardInfo().getCardType())
+                    .install(response.getCardInfo().getInstallMonth())
+                    .installType(response.getCardInfo().getInstallmentType())
+                    .cardCorp(response.getCardInfo().getKakaopayPurchaseCorp())
+                    .cardCorpCode(response.getCardInfo().getKakaopayPurchaseCorpCode())
+                    .issuer(response.getCardInfo().getKakaopayIssuerCorp())
+                    .issuerCode(response.getCardInfo().getKakaopayIssuerCorpCode())
                     .build();
 
         } catch (Exception e) {

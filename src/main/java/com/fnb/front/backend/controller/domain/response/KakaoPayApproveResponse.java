@@ -11,37 +11,45 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 public class KakaoPayApproveResponse {
 
+    @JsonProperty("aid")
     private String aid;
+    @JsonProperty("tid")
     private String tid;
-    private String cid;
-    private String sid;
     @JsonProperty("partner_order_id")
     private String partnerOrderId;
     @JsonProperty("partner_user_id")
     private String partnerUserId;
     @JsonProperty("payment_method_type")
     private String paymentMethodType;
-    private Amount amount;
     @JsonProperty("item_name")
     private String itemName;
     @JsonProperty("item_code")
     private String itemCode;
+    @JsonProperty("quantity")
     private int quantity;
+
+    private Amount amount;
+
+    private CardInfo cardInfo;
+
     @JsonProperty("created_at")
     private String createdAt;
     @JsonProperty("approved_at")
     private String approvedAt;
-    private String payload;
 
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
     public static class Amount {
+        @JsonProperty("total")
         private BigDecimal total;
         @JsonProperty("tax_free")
         private BigDecimal taxFree;
+        @JsonProperty("vat")
         private BigDecimal vat;
+        @JsonProperty("point")
         private BigDecimal point;
+        @JsonProperty("discount")
         private Discount discount;
 
         @Data
@@ -50,5 +58,29 @@ public class KakaoPayApproveResponse {
         public static class Discount {
             private BigDecimal total;
         }
+    }
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class CardInfo {
+        @JsonProperty("interest_free_install")
+        private String interestFreeInstall;
+        @JsonProperty("bin")
+        private String bin;
+        @JsonProperty("card_type")
+        private String cardType;
+        @JsonProperty("install_month")
+        private String installMonth;
+        @JsonProperty("installment_type")
+        private String installmentType;
+        @JsonProperty("kakaopay_purchase_corp")
+        private String kakaopayPurchaseCorp;
+        @JsonProperty("kakaopay_purchase_corp_code")
+        private String kakaopayPurchaseCorpCode;
+        @JsonProperty("kakaopay_issuer_corp")
+        private String kakaopayIssuerCorp;
+        @JsonProperty("kakaopay_issuer_corp_code")
+        private String kakaopayIssuerCorpCode;
     }
 }

@@ -59,10 +59,9 @@ public class PaymentService {
         int couponAmount = orderProducts.stream().map(OrderProduct::getCouponAmount).mapToInt(BigDecimal::intValue).sum();
         int pointAmount  = order.getUsePoint().intValue();
 
-        //금액 비교 로직
+        //TODO 금액 비교 로직
 
-        //payment master 추가
-        this.paymentRepository.insertPayment(Payment.builder()
+        int paymentId = this.paymentRepository.insertPayment(Payment.builder()
                 .paymentAt(LocalDateTime.now())
                 .totalAmount(order.getTotalAmount())
                 .orderId(order.getOrderId())
@@ -82,16 +81,33 @@ public class PaymentService {
                    .build());
         }
 
-        // 포인트, 쿠폰 사용 디테일 추가
-
         if(approvePaymentResponse != null) {
-            //pg 결제내역추가
-            int paymentAmount       = approvePaymentResponse.getTotalAmount().intValue();
-            String paymentMethod    = approvePaymentResponse.getPaymentMethod();
+            String cardNumber = "N/A";
+            String emptyField = null;
 
             this.paymentRepository.insertPaymentElement(PaymentElement.builder()
-                    .paymentMethod(paymentMethod)
-                    .amount(BigDecimal.valueOf(paymentAmount))
+                    .paymentId(paymentId)
+                    .paymentMethod(approvePaymentResponse.getPaymentMethod())
+                    .transactionId(approvePaymentResponse.getTransactionId())
+                    .amount(approvePaymentResponse.getTotalAmount())
+                    .taxFree(approvePaymentResponse.getTaxFree())
+                    .vat(approvePaymentResponse.getVat())
+                    .approvedAt(approvePaymentResponse.getApprovedAt())
+                    .cardType(approvePaymentResponse.getCardType())
+                    .cardNumber(cardNumber)
+                    .install(approvePaymentResponse.getInstall())
+                    .isFreeInstall(approvePaymentResponse.getIsFreeInstall())
+                    .installType(approvePaymentResponse.getInstallType())
+                    .cardCorp(approvePaymentResponse.getCardCorp())
+                    .cardCorpCode(approvePaymentResponse.getCardCorpCode())
+                    .binNumber(approvePaymentResponse.getBinNumber())
+                    .issuer(approvePaymentResponse.getIssuer())
+                    .issuerCode(approvePaymentResponse.getIssuerCode())
+                    .bankName(emptyField)
+                    .accountNumber(emptyField)
+                    .accountType(emptyField)
+                    .createdAt(LocalDateTime.now())
+                    .updatedAt(LocalDateTime.now())
                     .build());
         }
 
@@ -107,7 +123,7 @@ public class PaymentService {
     }
 
     private void generateEvent(OrderResultEvent event) {
-        //이벤트 패턴으로 재고 차감, 알림톡
+        //TODO 알림톡 연동
         eventPublisher.publishEvent(event);
     }
 }
