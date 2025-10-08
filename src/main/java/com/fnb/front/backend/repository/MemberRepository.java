@@ -62,4 +62,20 @@ public class MemberRepository {
 
         return typedQuery.getResultList();
     }
+
+    public List<MemberCoupon> findMemberCoupons(String memberId, List<Integer> couponIds) {
+        List<Predicate> searchConditions    = new ArrayList<>();
+
+        CriteriaBuilder cb               = em.getCriteriaBuilder();
+        CriteriaQuery<MemberCoupon> cq   = cb.createQuery(MemberCoupon.class);
+        Root<MemberCoupon> root          = cq.from(MemberCoupon.class);
+
+        searchConditions.add(cb.equal(root.get("memberId"), memberId));
+        searchConditions.add(root.get("couponId").in(couponIds));
+
+        cq = cq.where(cb.and(searchConditions.toArray(new Predicate[0])));
+        TypedQuery<MemberCoupon> typedQuery = em.createQuery(cq);
+
+        return typedQuery.getResultList();
+    }
 }

@@ -4,9 +4,7 @@ import com.fnb.front.backend.controller.domain.Product;
 import com.fnb.front.backend.controller.domain.ProductOption;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.TypedQuery;
-import jakarta.persistence.criteria.CriteriaBuilder;
-import jakarta.persistence.criteria.CriteriaQuery;
-import jakarta.persistence.criteria.Root;
+import jakarta.persistence.criteria.*;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -77,5 +75,20 @@ public class ProductRepository {
         TypedQuery<ProductOption> typedQuery = em.createQuery(cq);
 
         return typedQuery.getResultList();
+    }
+
+    public void updateQuantity(int productId, int quantity) {
+        CriteriaBuilder cb = this.em.getCriteriaBuilder();
+
+        CriteriaUpdate<Product> update = cb.createCriteriaUpdate(Product.class);
+        Root<Product> root = update.from(Product.class);
+
+        Expression<Integer> currentQuantity = root.get("quantity");
+        Expression<Integer> newQuantity     = cb.diff(currentQuantity, quantity);
+
+        update.set("quantity", newQuantity);
+        update.where(cb.and(cb.equal(root.get("productId"), productId)));
+
+        this.em.createQuery(update).executeUpdate();
     }
 }

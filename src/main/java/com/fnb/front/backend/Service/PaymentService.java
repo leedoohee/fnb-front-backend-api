@@ -51,7 +51,7 @@ public class PaymentService {
         return new PaymentResultResponse();
     }
 
-    @Transactional
+    @Transactional(rollbackFor = {Exception.class})
     public boolean insertPayments(String orderId, ApprovePaymentResponse approvePaymentResponse) {
         List<OrderProduct> orderProducts    = this.orderService.getOrderProducts(orderId);
         Order order                         = this.orderService.getOrder(orderId);

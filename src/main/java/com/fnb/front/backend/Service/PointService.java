@@ -1,12 +1,11 @@
 package com.fnb.front.backend.Service;
 
-import com.fnb.front.backend.controller.domain.Member;
-import com.fnb.front.backend.controller.domain.MemberPointRule;
-import com.fnb.front.backend.controller.domain.PointCalculator;
-import com.fnb.front.backend.controller.domain.PointFactory;
+import com.fnb.front.backend.controller.domain.*;
 import com.fnb.front.backend.controller.domain.event.OrderResultEvent;
+import com.fnb.front.backend.repository.PointRepository;
 import com.fnb.front.backend.util.CommonUtil;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 
 import java.math.BigDecimal;
@@ -14,14 +13,43 @@ import java.math.BigDecimal;
 @Service
 public class PointService {
 
-    @TransactionalEventListener()
+    private final PointRepository pointRepository;
+
+    public PointService(PointRepository pointRepository) {
+        this.pointRepository = pointRepository;
+    }
+
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_ROLLBACK)
     public void handlePointToOrder(OrderResultEvent event) {
         Member member = event.getMember();
         //TODO 페이에 따른 추가적립
-        int applyPoint        = this.applyPointForOrder(event.getPayType(), member, event.getTotalProductAmount(), event.getPaymentAmount());
-        // 포인트 저장
-        BigDecimal usePoint   = event.getOrder().getUsePoint();
-        //포인트 차감
+        int applyPoint = this.applyPointForOrder(event.getPayType(), member, event.getTotalProductAmount(), event.getPaymentAmount());
+
+        if(member.isUsablePoint(member.getPoints())) {
+            BigDecimal usePoint = event.getOrder().getUsePoint();
+
+            MemberPoint minusPoint = MemberPoint.builder()
+                    .pointType(0) // 차감
+                    .orderId(event.getOrder().getOrderId())
+                    .memberId(member.getId())
+                    .amount(usePoint.intValue())
+                    .isUsed("1")
+                    .build();
+
+            this.pointRepository.insertMemberPoint(minusPoint);
+        } else {
+            throw new RuntimeException("포인트 부족");
+        }
+
+        MemberPoint plusPoint = MemberPoint.builder()
+                                .pointType(1) // 적립
+                                .orderId(event.getOrder().getOrderId())
+                                .memberId(member.getId())
+                                .amount(applyPoint)
+                                .isUsed("1")
+                                .build();
+
+        this.pointRepository.insertMemberPoint(plusPoint);
     }
 
     private int applyPointForOrder(String payType, Member member, BigDecimal totalProductAmount, BigDecimal paymentAmount) {
@@ -46,7 +74,7 @@ public class PointService {
             }
         }
 
-        point += this.calculateSpecificPaymentPoint(payType, point);
+        //point += this.calculateSpecificPaymentPoint(payType, point);
 
         return point;
     }

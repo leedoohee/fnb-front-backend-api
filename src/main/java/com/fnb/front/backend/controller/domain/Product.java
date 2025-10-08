@@ -114,6 +114,10 @@ public class Product {
         return this.maxQuantity < this.quantity ;
     }
 
+    public boolean isInfiniteQty() {
+        return this.isInfiniteQty > 0;
+    }
+
     public boolean inMemberShipDiscount(Member member) {
         List<String> grades = Arrays.stream(this.applyMemberGrades.split(",")).toList();
         return this.isApplyMembership == 1 && grades.contains(member.getGrade());

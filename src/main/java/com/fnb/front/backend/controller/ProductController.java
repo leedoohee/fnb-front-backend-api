@@ -28,4 +28,9 @@ public class ProductController {
     public ResponseEntity<ProductResponse> getInfo(@PathVariable int productId) {
         return ResponseEntity.ok(this.productService.getInfo(productId));
     }
+
+    @GetMapping("/product/validate/{productId}")
+    public ResponseEntity<ProductResponse> validate(@PathVariable int productId) {
+        return ResponseEntity.ok(this.productService.getInfo(productId));
+    }
 }

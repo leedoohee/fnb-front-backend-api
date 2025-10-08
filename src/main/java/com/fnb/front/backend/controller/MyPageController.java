@@ -23,12 +23,12 @@ public class MyPageController {
         this.myPageService = myPageService;
     }
 
-    @GetMapping("/mypage/info/{memberId}")
+    @GetMapping("/my-page/info/{memberId}")
     public ResponseEntity<MyInfoResponse> getProductReviews(@PathVariable String memberId) {
         return ResponseEntity.ok(this.myPageService.getMyInfo(memberId));
     }
 
-    @GetMapping("/mypage/order")
+    @GetMapping("/my-page/order")
     public ResponseEntity<PageResponse<MyOrderResponse>> getMyReviews(MyPageRequest myPageRequest) {
         return ResponseEntity.ok(this.myPageService.getMyOrders(myPageRequest));
     }

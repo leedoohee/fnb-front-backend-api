@@ -10,13 +10,16 @@ import com.fnb.front.backend.controller.domain.response.ProductOptionResponse;
 import com.fnb.front.backend.controller.domain.response.ProductResponse;
 import com.fnb.front.backend.repository.ProductRepository;
 import com.fnb.front.backend.repository.ReviewRepository;
+import com.fnb.front.backend.util.CommonUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class ProductService {
@@ -30,12 +33,24 @@ public class ProductService {
         this.reviewRepository = reviewRepository;
     }
 
-    @TransactionalEventListener()
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_ROLLBACK)
     public void handleQuantityToOrder(OrderResultEvent event) {
         List<OrderProduct> orderProducts = event.getOrderProducts();
+        List<Integer> productIdList      = orderProducts.stream().map(OrderProduct::getProductId).toList();
+        List<Product> products           = this.productRepository.findProducts(productIdList);
 
         for (OrderProduct orderProduct : orderProducts) {
-            //재고 차감
+            Product product = products.stream().filter(element -> element.getId() == orderProduct.getProductId()).findFirst().orElse(null);
+
+            if(product != null && product.isInfiniteQty()) {
+                continue;
+            }
+
+            if (product != null && CommonUtil.isMinAndMaxBetween(product.getMinQuantity(), product.getMaxQuantity(), orderProduct.getQuantity())) {
+                this.productRepository.updateQuantity(product.getId(), orderProduct.getQuantity());
+            } else {
+                throw new RuntimeException("재고 부족");
+            }
         }
     }
 
@@ -74,7 +89,6 @@ public class ProductService {
                     .name(productOption.getName())
                     .build());
         }
-
 
         ProductResponse.builder()
                 .applyMemberGradeDisType(product.getApplyMemberGradeDisType())

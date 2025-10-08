@@ -14,7 +14,7 @@ import java.util.List;
 @Setter
 @Builder
 public class OrderResultEvent {
-    String payType;
+    private String payType;
     private Member member;
     private Order order;
     private List<OrderProduct> orderProducts;

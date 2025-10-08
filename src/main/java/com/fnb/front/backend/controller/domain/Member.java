@@ -79,4 +79,8 @@ public class Member {
     public boolean isCanPurchase() {
         return status.equals("1");
     }
+
+    public boolean isUsablePoint(int usePoint) {
+        return this.points >= usePoint;
+    }
 }

@@ -103,6 +103,10 @@ public class OrderProcessor {
         }
 
         for (Product product : products) {
+            if(product.isInfiniteQty()) {
+                continue;
+            }
+
             if(!product.isAvailablePurchase()) {
                 return false;
             }

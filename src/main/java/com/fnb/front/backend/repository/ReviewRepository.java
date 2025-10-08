@@ -46,8 +46,13 @@ public class ReviewRepository {
     }
 
     public List<ReviewAttachFile> findAttachFile(int reviewId) {
-        return em.createQuery("SELECT raf FROM ReviewAttachFile raf WHERE raf.reviewId = :reviewId", ReviewAttachFile.class)
-                .setParameter("reviewId", reviewId)
-                .getResultList();
+        CriteriaBuilder cb          = em.getCriteriaBuilder();
+        CriteriaQuery<ReviewAttachFile> cq    = cb.createQuery(ReviewAttachFile.class);
+        Root<ReviewAttachFile> root           = cq.from(ReviewAttachFile.class);
+
+        cq = cq.where(cb.and(cb.equal(root.get("reviewId"), reviewId)));
+        TypedQuery<ReviewAttachFile> typedQuery = em.createQuery(cq);
+
+        return typedQuery.getResultList();
     }
 }
