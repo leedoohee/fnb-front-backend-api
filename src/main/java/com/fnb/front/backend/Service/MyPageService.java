@@ -6,6 +6,7 @@ import com.fnb.front.backend.controller.domain.response.*;
 import com.fnb.front.backend.repository.MemberRepository;
 import com.fnb.front.backend.repository.OrderRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 
@@ -21,6 +22,7 @@ public class MyPageService {
         this.memberRepository = memberRepository;
     }
 
+    @Transactional(readOnly = true)
     public PageResponse<MyOrderResponse> getMyOrders(MyPageRequest myPageRequest) {
         long totalCount                                 = this.orderRepository.findTotalOrderCount(myPageRequest);
         int lastPageNumber                              = (int) (Math.ceil((double) totalCount / myPageRequest.getPageLimit()));
@@ -73,6 +75,7 @@ public class MyPageService {
                 .data(orderResponses).build();
     }
 
+    @Transactional(readOnly = true)
     public MyInfoResponse getMyInfo(String memberId) {
         Member member                    = this.memberRepository.findMember(memberId);
         List<MemberCoupon> memberCoupons = this.memberRepository.findMemberCoupons(memberId);

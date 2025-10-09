@@ -40,7 +40,8 @@ public class ProductService {
         List<Product> products           = this.productRepository.findProducts(productIdList);
 
         for (OrderProduct orderProduct : orderProducts) {
-            Product product = products.stream().filter(element -> element.getId() == orderProduct.getProductId()).findFirst().orElse(null);
+            Product product = products.stream()
+                                .filter(element -> element.getId() == orderProduct.getProductId()).findFirst().orElse(null);
 
             if(product != null && product.isInfiniteQty()) {
                 continue;
@@ -73,7 +74,7 @@ public class ProductService {
 
         return response;
     }
-//
+
     public ProductResponse getInfo(int productId) {
         List<ProductOptionResponse>  productOptionResponses      = new ArrayList<>();
         List<AdditionalOptionResponse> additionalOptionResponses = new ArrayList<>();
@@ -105,5 +106,20 @@ public class ProductService {
                 .build();
 
         return ProductResponse.builder().build();
+    }
+
+    public boolean validate(int productId, int quantity) {
+        boolean result  = true;
+        Product product = this.productRepository.findProduct(productId);
+
+        if (!product.isInfiniteQty()) {
+            result = false;
+        }
+
+        if (!CommonUtil.isMinAndMaxBetween(product.getMinQuantity(), product.getMaxQuantity(), quantity)) {
+            result = false;
+        }
+
+        return result;
     }
 }

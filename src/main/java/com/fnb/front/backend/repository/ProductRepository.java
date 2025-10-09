@@ -1,5 +1,6 @@
 package com.fnb.front.backend.repository;
 
+import com.fnb.front.backend.controller.domain.MemberCoupon;
 import com.fnb.front.backend.controller.domain.Product;
 import com.fnb.front.backend.controller.domain.ProductOption;
 import jakarta.persistence.EntityManager;
@@ -7,6 +8,7 @@ import jakarta.persistence.TypedQuery;
 import jakarta.persistence.criteria.*;
 import org.springframework.stereotype.Repository;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Repository
@@ -34,8 +36,8 @@ public class ProductRepository {
         CriteriaQuery<Product> cq    = cb.createQuery(Product.class);
         Root<Product> root           = cq.from(Product.class);
 
-        cq.select(root);
-        
+        cq = cq.where(cb.and(cb.equal(root.get("status"), "available")));
+
         TypedQuery<Product> typedQuery = em.createQuery(cq);
 
         return typedQuery.getResultList();
@@ -66,12 +68,29 @@ public class ProductRepository {
     }
 
     public List<ProductOption> findOptions(List<Integer> productOptionIds) {
-
+        List<Predicate> searchConditions    = new ArrayList<>();
         CriteriaBuilder cb                 = em.getCriteriaBuilder();
         CriteriaQuery<ProductOption> cq    = cb.createQuery(ProductOption.class);
         Root<ProductOption> root           = cq.from(ProductOption.class);
 
-        cq = cq.where(cb.and(root.get("productId").in(productOptionIds)));
+        searchConditions.add(cb.and(root.get("optionId").in(productOptionIds)));
+
+        cq = cq.where(cb.and(searchConditions.toArray(new Predicate[0])));
+        TypedQuery<ProductOption> typedQuery = em.createQuery(cq);
+
+        return typedQuery.getResultList();
+    }
+
+    public List<ProductOption> findOptions(List<Integer> productOptionIds, int productId) {
+        List<Predicate> searchConditions    = new ArrayList<>();
+        CriteriaBuilder cb                 = em.getCriteriaBuilder();
+        CriteriaQuery<ProductOption> cq    = cb.createQuery(ProductOption.class);
+        Root<ProductOption> root           = cq.from(ProductOption.class);
+
+        searchConditions.add(cb.equal(root.get("productId"), productId));
+        searchConditions.add(cb.and(root.get("optionId").in(productOptionIds)));
+
+        cq = cq.where(cb.and(searchConditions.toArray(new Predicate[0])));
         TypedQuery<ProductOption> typedQuery = em.createQuery(cq);
 
         return typedQuery.getResultList();

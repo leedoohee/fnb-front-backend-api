@@ -23,7 +23,7 @@ public class CouponService {
     }
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_ROLLBACK)
-    public void handlePointToOrder(OrderResultEvent event) {
+    public void handleCouponToOrder(OrderResultEvent event) {
         Member member                    = event.getMember();
         List<OrderProduct> orderProducts = event.getOrderProducts();
         List<Integer> couponIdList       = orderProducts.stream().map(OrderProduct::getCouponId).toList();
