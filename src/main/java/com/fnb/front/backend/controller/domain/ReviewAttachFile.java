@@ -1,6 +1,8 @@
 package com.fnb.front.backend.controller.domain;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -10,6 +12,8 @@ import java.util.Date;
 @Entity
 @Getter
 @Setter
+@Builder
+@AllArgsConstructor
 public class ReviewAttachFile {
 
     @Id
@@ -27,4 +31,12 @@ public class ReviewAttachFile {
 
     @Column(name = "register_date")
     private LocalDateTime registerDate;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id")
+    private Review review;
+
+    public ReviewAttachFile() {
+
+    }
 }

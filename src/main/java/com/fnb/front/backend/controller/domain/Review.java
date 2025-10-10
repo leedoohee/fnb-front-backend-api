@@ -30,6 +30,6 @@ public class Review {
     @Column(name = "register_id")
     private String registerId;
 
-    @Transient
+    @OneToMany(mappedBy = "review")
     private List<ReviewAttachFile> attachFiles;
 }

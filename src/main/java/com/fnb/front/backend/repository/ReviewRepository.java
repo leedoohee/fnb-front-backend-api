@@ -7,6 +7,7 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.TypedQuery;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.JoinType;
 import jakarta.persistence.criteria.Root;
 import org.springframework.stereotype.Component;
 
@@ -27,7 +28,12 @@ public class ReviewRepository {
         CriteriaQuery<Review> cq    = cb.createQuery(Review.class);
         Root<Review> root           = cq.from(Review.class);
 
-        cq = cq.where(cb.and(cb.equal(root.get("productId"), productId)));
+        root.fetch("reviewAttachFiles", JoinType.LEFT);
+
+        cq = cq.select(root)
+                .where(cb.and(cb.equal(root.get("productId"), productId)))
+                .distinct(true);
+
         TypedQuery<Review> typedQuery = em.createQuery(cq);
 
         return typedQuery.getResultList();
@@ -39,7 +45,12 @@ public class ReviewRepository {
         CriteriaQuery<Review> cq    = cb.createQuery(Review.class);
         Root<Review> root           = cq.from(Review.class);
 
-        cq = cq.where(cb.and(cb.equal(root.get("memberId"), memberId)));
+        root.fetch("reviewAttachFiles", JoinType.LEFT);
+
+        cq = cq.select(root)
+                .where(cb.and(cb.equal(root.get("memberId"), memberId)))
+                .distinct(true);
+
         TypedQuery<Review> typedQuery = em.createQuery(cq);
 
         return typedQuery.getResultList();

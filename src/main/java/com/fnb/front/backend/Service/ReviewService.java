@@ -38,7 +38,8 @@ public class ReviewService {
                     .registerDate(review.getRegisterDate())
                     .productId(review.getProductId())
                     .registerId(review.getRegisterId())
-                    .attachFiles(review.getAttachFiles()).build());
+                    .attachFiles(review.getAttachFiles())
+                    .build());
         }
 
         return reviewResponses;

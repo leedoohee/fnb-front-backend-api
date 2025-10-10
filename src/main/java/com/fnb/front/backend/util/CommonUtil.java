@@ -1,8 +1,5 @@
 package com.fnb.front.backend.util;
 
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-
 public class CommonUtil {
 
     public static boolean isMinAndMaxBetween(int min, int max, int amount) {
