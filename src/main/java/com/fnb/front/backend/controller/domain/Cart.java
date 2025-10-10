@@ -7,6 +7,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
 @Getter
@@ -23,9 +24,6 @@ public class Cart {
     @Column(name = "productId", updatable = false, nullable = false)
     private int productId;
 
-    @Column(name = "basic_option_id", updatable = false, nullable = false)
-    private int basicOptionId;
-
     @Column(name = "member_id", updatable = false, nullable = false)
     private String memberId;
 
@@ -34,6 +32,17 @@ public class Cart {
 
     @Column(name = "created_at")
     private LocalDateTime createdAt;
+
+    @OneToOne(mappedBy = "cart", cascade = CascadeType.ALL)
+    @JoinColumn(name = "member_id")
+    private Member member;
+
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id")
+    private Product product;
+
+    @OneToMany(mappedBy = "cart")
+    private List<CartItem> cartItems;
 
     public Cart() {
 

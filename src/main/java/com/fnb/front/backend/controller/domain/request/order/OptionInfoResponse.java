@@ -8,7 +8,7 @@ import lombok.Setter;
 @Setter
 @Builder
 public class OptionInfoResponse {
-    private String optionGroupId;
+    private int optionGroupId;
     private int optionId;
     private String optionType;
     private String optionName;

@@ -10,5 +10,7 @@ import lombok.Setter;
 public class CartItemRequest {
 
     private int cartId;
-    private int additionalOptionId;
+    private String optionType;
+    private int optionGroupId;
+    private int optionId;
 }

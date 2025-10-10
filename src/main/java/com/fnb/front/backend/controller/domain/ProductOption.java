@@ -5,6 +5,7 @@ import lombok.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Getter
 @Setter
@@ -53,4 +54,7 @@ public class ProductOption {
 
     @Column(name = "updated_by")
     private String updatedBy;
+
+    @OneToOne(mappedBy = "productOption", cascade = CascadeType.ALL)
+    private CartItem cartItems;
 }

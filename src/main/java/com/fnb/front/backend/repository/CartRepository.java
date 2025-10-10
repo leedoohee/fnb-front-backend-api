@@ -55,6 +55,23 @@ public class CartRepository {
         return typedQuery.getResultList();
     }
 
+    public List<CartItem> findCartItems(String memberId) {
+        CriteriaBuilder cb          = this.em.getCriteriaBuilder();
+        CriteriaQuery<CartItem> cq  = cb.createQuery(CartItem.class);
+        Root<CartItem> root         = cq.from(CartItem.class);
+
+        root.fetch("Cart", JoinType.INNER);
+        root.fetch("productOption", JoinType.INNER);
+        root.fetch("member", JoinType.INNER);
+        root.fetch("product", JoinType.INNER);
+
+        cq = cq.where(cb.and(cb.equal(root.get("memberId"), memberId)));
+
+        TypedQuery<CartItem> typedQuery = em.createQuery(cq);
+
+        return typedQuery.getResultList();
+    }
+
     public void deleteCart(int cartId) {
         CriteriaBuilder cb = this.em.getCriteriaBuilder();
 

@@ -19,13 +19,9 @@ import java.util.List;
 public class CartService {
 
     private final CartRepository cartRepository;
-    private final ProductRepository productRepository;
-    private final MemberRepository memberRepository;
 
-    public CartService(CartRepository cartRepository, ProductRepository productRepository, MemberRepository memberRepository) {
+    public CartService(CartRepository cartRepository) {
         this.cartRepository = cartRepository;
-        this.productRepository = productRepository;
-        this.memberRepository = memberRepository;
     }
 
     @Transactional
@@ -38,7 +34,6 @@ public class CartService {
         }
 
         int cartId = this.cartRepository.insertCart(Cart.builder()
-                            .basicOptionId(cartRequest.getBasicOptionId())
                             .memberId(cartRequest.getMemberId())
                             .productId(cartRequest.getProductId())
                             .createdAt(LocalDateTime.now())
@@ -48,7 +43,9 @@ public class CartService {
             for (CartItemRequest cartItemRequest : cartRequest.getCartItemRequests()) {
                 this.cartRepository.insertCartItem(CartItem.builder()
                             .cartId(cartId)
-                            .additionalOptionId(cartItemRequest.getAdditionalOptionId())
+                            .optionId(cartItemRequest.getOptionId())
+                            .optionType(cartItemRequest.getOptionType())
+                            .optionGroupId(cartItemRequest.getOptionGroupId())
                             .createdAt(LocalDateTime.now())
                             .build());
             }
@@ -57,47 +54,28 @@ public class CartService {
         return true;
     }
 
-    @Transactional(readOnly = true)
     public CartInfoResponse getInfo(String memberId) {
-        Member member                           = this.memberRepository.findMember(memberId);
-        Cart cart                               = this.cartRepository.findCart(memberId);
-        List<CartItem> cartItems                = this.cartRepository.findCartItems(cart.getId());
-        List<Integer> optionIdList              = cartItems.stream().map(CartItem::getAdditionalOptionId).toList();
-        Product product                         = this.productRepository.findProduct(cart.getProductId());
-        List<ProductOption> productOption       = this.productRepository.findOptions(cart.getProductId());
-        List<ProductOption> additionalOptions   = this.productRepository.findOptions(optionIdList, cart.getProductId());
+        List<CartItem> cartItems = this.cartRepository.findCartItems(memberId);
         List<OptionInfoResponse> optionInfoResponses = new ArrayList<>();
 
-        ProductOption basicOption = productOption.stream()
-                        .filter(option -> option.getOptionId() == cart.getBasicOptionId()).findFirst().orElse(null);
-
-        optionInfoResponses.add(OptionInfoResponse.builder()
-                        .optionGroupId(basicOption != null ? basicOption.getOptionGroupId() : null)
-                        .optionType(basicOption != null ? basicOption.getOptionType() : null)
-                        .optionId(basicOption != null ? basicOption.getOptionId() : 0)
-                        .optionName(basicOption != null ? basicOption.getName() : null)
-                        .price(basicOption != null ? basicOption.getPrice() : 0)
-                        .build());
-
-        for (ProductOption additionalOption : additionalOptions) {
+        for (CartItem cartItem : cartItems) {
             optionInfoResponses.add(OptionInfoResponse.builder()
-                            .optionGroupId(additionalOption.getOptionGroupId())
-                            .optionType(additionalOption.getOptionType())
-                            .optionId(additionalOption.getOptionId())
-                            .optionName(additionalOption.getName())
-                            .build());
+                    .optionGroupId(cartItem.getOptionGroupId())
+                    .price(cartItem.getProductOption().getPrice())
+                    .optionName(cartItem.getProductOption().getName())
+                    .optionId(cartItem.getOptionId())
+                    .build());
         }
 
         return CartInfoResponse.builder()
-                .memberId(memberId)
-                .memberName(member.getName())
-                .address(member.getAddress())
-                .productId(cart.getProductId())
-                .productName(product.getName())
-                .description(product.getDescription())
-                .minQuantity(product.getMinQuantity())
-                .maxQuantity(product.getMaxQuantity())
-                .cartId(cart.getId())
+                .minQuantity(cartItems.get(0).getCart().getProduct().getMinQuantity())
+                .maxQuantity(cartItems.get(0).getCart().getProduct().getMaxQuantity())
+                .productId(cartItems.get(0).getCart().getProduct().getId())
+                .description(cartItems.get(0).getCart().getProduct().getDescription())
+                .productName(cartItems.get(0).getCart().getProduct().getName())
+                .address(cartItems.get(0).getCart().getMember().getAddress())
+                .memberId(cartItems.get(0).getCart().getMember().getMemberId())
+                .cartId(cartItems.get(0).getCart().getId())
                 .options(optionInfoResponses)
                 .build();
     }

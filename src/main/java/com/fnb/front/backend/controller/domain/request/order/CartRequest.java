@@ -10,7 +10,6 @@ import java.util.List;
 public class CartRequest {
 
     private int productId;
-    private int basicOptionId;
     private String memberId;
     private int quantity;
 

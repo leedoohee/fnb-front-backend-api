@@ -67,6 +67,10 @@ public class Member {
     @Column(name = "grade") // Duplicative of memberGrade, but kept per original
     private String grade;
 
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id")
+    private Cart cart;
+
     @Transient
     private List<MemberCoupon> ownedCoupon;
 
