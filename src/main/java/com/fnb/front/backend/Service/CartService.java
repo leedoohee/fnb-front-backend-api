@@ -6,8 +6,7 @@ import com.fnb.front.backend.controller.domain.request.order.CartItemRequest;
 import com.fnb.front.backend.controller.domain.request.order.CartRequest;
 import com.fnb.front.backend.controller.domain.request.order.OptionInfoResponse;
 import com.fnb.front.backend.repository.CartRepository;
-import com.fnb.front.backend.repository.MemberRepository;
-import com.fnb.front.backend.repository.ProductRepository;
+import com.fnb.front.backend.repository.PaymentRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,8 +19,11 @@ public class CartService {
 
     private final CartRepository cartRepository;
 
-    public CartService(CartRepository cartRepository) {
+    private final PaymentRepository paymentRepository;
+
+    public CartService(CartRepository cartRepository, PaymentRepository paymentRepository) {
         this.cartRepository = cartRepository;
+        this.paymentRepository = paymentRepository;
     }
 
     @Transactional
@@ -55,7 +57,9 @@ public class CartService {
     }
 
     public CartInfoResponse getInfo(String memberId) {
-        Cart cart = this.cartRepository.findCart(memberId);
+        Cart cart                       = this.cartRepository.findCart(memberId);
+        List<PaymentType> paymentTypes  = this.paymentRepository.findPaymentType();
+
         List<OptionInfoResponse> optionInfoResponses = new ArrayList<>();
 
         for (CartItem cartItem : cart.getCartItems()) {
@@ -77,6 +81,7 @@ public class CartService {
                 .memberId(cart.getMember().getMemberId())
                 .cartId(cart.getId())
                 .options(optionInfoResponses)
+                .paymentTypes(paymentTypes)
                 .build();
     }
 }

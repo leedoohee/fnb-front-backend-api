@@ -16,7 +16,7 @@ public class PointRepository {
     }
 
     public void insertMemberPoint(MemberPoint memberPoint) {
-        em.persist(memberPoint);
+        this.em.persist(memberPoint);
     }
 
 }

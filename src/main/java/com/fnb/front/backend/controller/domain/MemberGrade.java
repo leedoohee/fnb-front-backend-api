@@ -53,6 +53,7 @@ public class MemberGrade {
     @JoinColumn(name = "member_id")
     private Member member;
 
-    @Transient
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id")
     private MemberPointRule memberPointRule;
 }

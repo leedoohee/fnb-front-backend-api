@@ -1,6 +1,5 @@
 package com.fnb.front.backend.repository;
 
-import com.fnb.front.backend.controller.domain.Product;
 import com.fnb.front.backend.controller.domain.Review;
 import com.fnb.front.backend.controller.domain.ReviewAttachFile;
 import jakarta.persistence.EntityManager;

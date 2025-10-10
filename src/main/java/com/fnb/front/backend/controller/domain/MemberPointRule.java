@@ -37,5 +37,7 @@ public class MemberPointRule {
 
     //시작일자
     //종료일자 추가?
+    @OneToOne(mappedBy = "memberPointRule")
+    private MemberGrade memberGrade;
 
 }

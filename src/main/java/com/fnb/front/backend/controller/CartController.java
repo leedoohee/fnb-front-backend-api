@@ -1,7 +1,6 @@
 package com.fnb.front.backend.controller;
 
 import com.fnb.front.backend.Service.CartService;
-import com.fnb.front.backend.controller.domain.Cart;
 import com.fnb.front.backend.controller.domain.request.order.CartInfoResponse;
 import com.fnb.front.backend.controller.domain.request.order.CartRequest;
 import org.springframework.http.ResponseEntity;

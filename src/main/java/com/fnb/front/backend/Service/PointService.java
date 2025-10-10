@@ -23,7 +23,7 @@ public class PointService {
     public void handlePointToOrder(OrderResultEvent event) {
         Member member = event.getMember();
         //TODO 페이에 따른 추가적립
-        int applyPoint = this.applyPointForOrder(event.getPayType(), member, event.getTotalProductAmount(), event.getPaymentAmount());
+        int applyPoint = this.applyPointForOrder(member, event.getTotalProductAmount(), event.getPaymentAmount());
 
         if(member.isUsablePoint(member.getPoints())) {
             BigDecimal usePoint = event.getOrder().getUsePoint();
@@ -52,7 +52,7 @@ public class PointService {
         this.pointRepository.insertMemberPoint(plusPoint);
     }
 
-    private int applyPointForOrder(String payType, Member member, BigDecimal totalProductAmount, BigDecimal paymentAmount) {
+    private int applyPointForOrder(Member member, BigDecimal totalProductAmount, BigDecimal paymentAmount) {
         MemberPointRule rule = member.getMemberGrade().getMemberPointRule();
         int point = 0;
 
@@ -73,17 +73,6 @@ public class PointService {
                 point += pointCalculator.calculate().intValue();
             }
         }
-
-        //point += this.calculateSpecificPaymentPoint(payType, point);
-
-        return point;
-    }
-
-    private int calculateSpecificPaymentPoint(String payType, int point) {
-        if(payType == null) return 0;
-
-        //정률, 정액
-        //페이별 분기
 
         return point;
     }

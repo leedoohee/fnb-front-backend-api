@@ -57,4 +57,8 @@ public class ProductOption {
 
     @OneToOne(mappedBy = "productOption", cascade = CascadeType.ALL)
     private CartItem cartItems;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id")
+    private Product product;
 }

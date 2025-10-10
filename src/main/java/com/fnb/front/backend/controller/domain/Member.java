@@ -79,6 +79,9 @@ public class Member {
     @OneToMany(mappedBy = "member")
     private List<MemberPoint> memberPoints;
 
+    @OneToMany(mappedBy = "member")
+    private List<Order> orders;
+
     public boolean isCanPurchase() {
         return status.equals("1");
     }

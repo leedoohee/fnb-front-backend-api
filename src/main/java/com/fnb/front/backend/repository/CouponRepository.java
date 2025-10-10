@@ -2,8 +2,6 @@ package com.fnb.front.backend.repository;
 
 import com.fnb.front.backend.controller.domain.Coupon;
 import com.fnb.front.backend.controller.domain.MemberCoupon;
-import com.fnb.front.backend.controller.domain.MemberPoint;
-import com.fnb.front.backend.controller.domain.Product;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.TypedQuery;
 import jakarta.persistence.criteria.*;

@@ -92,6 +92,10 @@ public class PaymentElement {
     @Column(name = "updated_by")
     private String updatedBy;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id")
+    private Payment payment;
+
     public PaymentElement() {
 
     }

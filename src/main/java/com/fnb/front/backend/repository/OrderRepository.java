@@ -40,28 +40,6 @@ public class OrderRepository {
         return typedQuery.getResultList();
     }
 
-    public List<OrderProduct> findOrderProducts(List<String> orderIds) {
-        CriteriaBuilder cb               = em.getCriteriaBuilder();
-        CriteriaQuery<OrderProduct> cq   = cb.createQuery(OrderProduct.class);
-        Root<OrderProduct> root          = cq.from(OrderProduct.class);
-
-        cq = cq.where(cb.and(root.get("orderId").in(orderIds)));
-        TypedQuery<OrderProduct> typedQuery = em.createQuery(cq);
-
-        return typedQuery.getResultList();
-    }
-
-    public List<OrderOption> findOrderAdditionalOptions(List<Integer> orderProductIds) {
-        CriteriaBuilder cb                        = em.getCriteriaBuilder();
-        CriteriaQuery<OrderOption> cq   = cb.createQuery(OrderOption.class);
-        Root<OrderOption> root          = cq.from(OrderOption.class);
-
-        cq = cq.where(cb.and(root.get("orderProductId").in(orderProductIds)));
-        TypedQuery<OrderOption> typedQuery = em.createQuery(cq);
-
-        return typedQuery.getResultList();
-    }
-
     public Long findTotalOrderCount(MyPageRequest orderRequest) {
         CriteriaBuilder cb          = em.getCriteriaBuilder();
         CriteriaQuery<Long> cq      = cb.createQuery(Long.class);

@@ -1,5 +1,6 @@
 package com.fnb.front.backend.controller.domain.request.order;
 
+import com.fnb.front.backend.controller.domain.PaymentType;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
@@ -22,4 +23,6 @@ public class CartInfoResponse {
     private String address;
 
     private List<OptionInfoResponse> options;
+
+    private List<PaymentType> paymentTypes;
 }

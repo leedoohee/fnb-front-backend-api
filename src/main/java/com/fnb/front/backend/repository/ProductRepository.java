@@ -1,6 +1,5 @@
 package com.fnb.front.backend.repository;
 
-import com.fnb.front.backend.controller.domain.MemberCoupon;
 import com.fnb.front.backend.controller.domain.Product;
 import com.fnb.front.backend.controller.domain.ProductOption;
 import jakarta.persistence.EntityManager;
@@ -25,7 +24,12 @@ public class ProductRepository {
         CriteriaQuery<Product> cq    = cb.createQuery(Product.class);
         Root<Product> root           = cq.from(Product.class);
 
-        cq = cq.where(cb.and(cb.equal(root.get("id"), productId)));
+        root.fetch("productOption", JoinType.LEFT);
+
+        cq = cq.select(root)
+                .where(cb.and(cb.equal(root.get("id"), productId)))
+                .distinct(true);
+
         TypedQuery<Product> typedQuery = em.createQuery(cq);
 
         return typedQuery.getSingleResult();

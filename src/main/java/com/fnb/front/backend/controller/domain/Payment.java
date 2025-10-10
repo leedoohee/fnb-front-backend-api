@@ -41,9 +41,11 @@ public class Payment {
     @Column(name = "payment_amount", precision = 19, scale = 2)
     private BigDecimal paymentAmount;
 
-    // This relationship is loaded separately or mapped via @OneToMany
-    @Transient
+    @OneToMany(mappedBy = "payment")
     private List<PaymentElement> paymentElements;
+
+    @OneToOne(mappedBy = "order")
+    private Order order;
 
     public Payment() {
 

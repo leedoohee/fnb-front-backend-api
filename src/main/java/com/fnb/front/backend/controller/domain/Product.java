@@ -88,7 +88,7 @@ public class Product {
     @Column(name = "apply_member_grade_dis_amt")
     private BigDecimal applyMemberGradeDisAmt;
 
-    @Transient
+    @OneToMany(mappedBy = "product")
     private List<ProductOption> productOption;
 
     @Transient

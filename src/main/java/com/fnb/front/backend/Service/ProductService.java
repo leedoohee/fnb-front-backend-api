@@ -76,10 +76,9 @@ public class ProductService {
         List<ProductOptionResponse>  productOptionResponses      = new ArrayList<>();
         List<AdditionalOptionResponse> additionalOptionResponses = new ArrayList<>();
         Product product                                          = this.productRepository.findProduct(productId);
-        List<ProductOption> options                              = this.productRepository.findOptions(productId);
         int reviewCount                                          = this.reviewRepository.findReviews(productId).size();
 
-        for (ProductOption productOption : options) {
+        for (ProductOption productOption : product.getProductOption()) {
             productOptionResponses.add(ProductOptionResponse.builder()
                     .id(productOption.getId())
                     .optionPrice(BigDecimal.valueOf(productOption.getPrice()))
@@ -88,7 +87,7 @@ public class ProductService {
                     .build());
         }
 
-        ProductResponse.builder()
+        return ProductResponse.builder()
                 .applyMemberGradeDisType(product.getApplyMemberGradeDisType())
                 .price(product.getPrice())
                 .applyMemberGrades(product.getApplyMemberGrades())
@@ -101,8 +100,6 @@ public class ProductService {
                 .productOptions(productOptionResponses)
                 .additionalOptions(additionalOptionResponses)
                 .build();
-
-        return ProductResponse.builder().build();
     }
 
     public boolean validate(int productId, int quantity) {
