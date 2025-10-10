@@ -10,7 +10,7 @@ import lombok.*;
 @AllArgsConstructor
 @Builder
 @Table(name = "order_additional_option")
-public class OrderAdditionalOption {
+public class OrderOption {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -20,19 +20,26 @@ public class OrderAdditionalOption {
     @Column(name = "order_id", nullable = false)
     private String orderId;
 
+    @Column(name = "option_type", nullable = false)
+    private String optionType;
+
     @Column(name = "order_product_id", nullable = false)
     private int orderProductId;
 
-    @Column(name = "additional_option_id", nullable = false)
-    private String additionalOptionId;
+    @Column(name = "option_id", nullable = false)
+    private String optionId;
 
-    @Column(name = "additional_option_name")
-    private String additionalOptionName;
+    @Column(name = "option_name")
+    private String optionName;
 
     @Column(name = "price")
     private int price;
 
-    public OrderAdditionalOption() {
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name="order_product_id")
+    private OrderProduct orderProduct;
+
+    public OrderOption() {
 
     }
 }

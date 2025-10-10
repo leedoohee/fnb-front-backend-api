@@ -19,9 +19,6 @@ public class OrderProduct {
     @Column(name = "id", updatable = false, nullable = false)
     private int orderProductId;
 
-    @Column(name = "option_id", nullable = false)
-    private String optionId;
-
     @Column(name = "order_id", nullable = false)
     private String orderId;
 
@@ -53,8 +50,12 @@ public class OrderProduct {
     @Column(name = "coupon_id")
     private int couponId;
 
-    @Transient
-    private List<OrderAdditionalOption> orderAdditionalOptions;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name="order_id")
+    private Order order;
+
+    @OneToMany(mappedBy = "orderProduct")
+    private List<OrderOption> orderOptions;
 
     @Transient
     Product product;

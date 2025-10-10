@@ -49,6 +49,10 @@ public class MemberGrade {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "member_id")
+    private Member member;
+
     @Transient
     private MemberPointRule memberPointRule;
 }

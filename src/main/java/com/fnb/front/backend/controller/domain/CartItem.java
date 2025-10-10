@@ -35,16 +35,16 @@ public class CartItem {
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
-    public CartItem() {
-
-    }
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "cart_id")
     private Cart cart;
 
-    @OneToOne(fetch = FetchType.LAZY)
+    // CartItem이 OPTION_ID 외래 키를 가집니다. (주인)
+    @OneToOne(fetch = FetchType.LAZY) // N:1로 가정
     @JoinColumn(name = "option_id")
     private ProductOption productOption;
 
+    public CartItem() {
+
+    }
 }

@@ -1,21 +1,15 @@
 package com.fnb.front.backend.repository;
 
-import com.fnb.front.backend.controller.domain.Coupon;
 import com.fnb.front.backend.controller.domain.Order;
-import com.fnb.front.backend.controller.domain.OrderAdditionalOption;
+import com.fnb.front.backend.controller.domain.OrderOption;
 import com.fnb.front.backend.controller.domain.OrderProduct;
 import com.fnb.front.backend.controller.domain.request.MyPageRequest;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.TypedQuery;
-import jakarta.persistence.criteria.CriteriaBuilder;
-import jakarta.persistence.criteria.CriteriaQuery;
-import jakarta.persistence.criteria.Predicate;
-import jakarta.persistence.criteria.Root;
-import org.springframework.beans.factory.annotation.Autowired;
+import jakarta.persistence.criteria.*;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 @Component
@@ -57,13 +51,13 @@ public class OrderRepository {
         return typedQuery.getResultList();
     }
 
-    public List<OrderAdditionalOption> findOrderAdditionalOptions(List<Integer> orderProductIds) {
+    public List<OrderOption> findOrderAdditionalOptions(List<Integer> orderProductIds) {
         CriteriaBuilder cb                        = em.getCriteriaBuilder();
-        CriteriaQuery<OrderAdditionalOption> cq   = cb.createQuery(OrderAdditionalOption.class);
-        Root<OrderAdditionalOption> root          = cq.from(OrderAdditionalOption.class);
+        CriteriaQuery<OrderOption> cq   = cb.createQuery(OrderOption.class);
+        Root<OrderOption> root          = cq.from(OrderOption.class);
 
         cq = cq.where(cb.and(root.get("orderProductId").in(orderProductIds)));
-        TypedQuery<OrderAdditionalOption> typedQuery = em.createQuery(cq);
+        TypedQuery<OrderOption> typedQuery = em.createQuery(cq);
 
         return typedQuery.getResultList();
     }
@@ -96,7 +90,13 @@ public class OrderRepository {
         CriteriaQuery<Order> cq    = cb.createQuery(Order.class);
         Root<Order> root           = cq.from(Order.class);
 
-        cq = cq.where(cb.and(this.buildConditions(myPageRequest, cb, root).toArray(new Predicate[0])));
+        Fetch<Order, OrderProduct> orderProductFetch = root.fetch("orderProduct", JoinType.INNER);
+
+        orderProductFetch.fetch("orderOption", JoinType.INNER);
+
+        cq = cq.select(root)
+                .where(cb.and(this.buildConditions(myPageRequest, cb, root).toArray(new Predicate[0])))
+                .distinct(true);
 
         TypedQuery<Order> typedQuery = em.createQuery(cq);
         typedQuery.setFirstResult(myPageRequest.getPage() - 1);

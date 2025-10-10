@@ -92,7 +92,7 @@ public class Product {
     private List<ProductOption> productOption;
 
     @Transient
-    private List<OrderAdditionalOption> orderAdditionalOptions;
+    private List<OrderOption> orderOptions;
 
     public Product() {
 

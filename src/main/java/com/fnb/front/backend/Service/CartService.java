@@ -55,10 +55,10 @@ public class CartService {
     }
 
     public CartInfoResponse getInfo(String memberId) {
-        List<CartItem> cartItems = this.cartRepository.findCartItems(memberId);
+        Cart cart = this.cartRepository.findCart(memberId);
         List<OptionInfoResponse> optionInfoResponses = new ArrayList<>();
 
-        for (CartItem cartItem : cartItems) {
+        for (CartItem cartItem : cart.getCartItems()) {
             optionInfoResponses.add(OptionInfoResponse.builder()
                     .optionGroupId(cartItem.getOptionGroupId())
                     .price(cartItem.getProductOption().getPrice())
@@ -68,14 +68,14 @@ public class CartService {
         }
 
         return CartInfoResponse.builder()
-                .minQuantity(cartItems.get(0).getCart().getProduct().getMinQuantity())
-                .maxQuantity(cartItems.get(0).getCart().getProduct().getMaxQuantity())
-                .productId(cartItems.get(0).getCart().getProduct().getId())
-                .description(cartItems.get(0).getCart().getProduct().getDescription())
-                .productName(cartItems.get(0).getCart().getProduct().getName())
-                .address(cartItems.get(0).getCart().getMember().getAddress())
-                .memberId(cartItems.get(0).getCart().getMember().getMemberId())
-                .cartId(cartItems.get(0).getCart().getId())
+                .minQuantity(cart.getProduct().getMinQuantity())
+                .maxQuantity(cart.getProduct().getMaxQuantity())
+                .productId(cart.getProduct().getId())
+                .description(cart.getProduct().getDescription())
+                .productName(cart.getProduct().getName())
+                .address(cart.getMember().getAddress())
+                .memberId(cart.getMember().getMemberId())
+                .cartId(cart.getId())
                 .options(optionInfoResponses)
                 .build();
     }

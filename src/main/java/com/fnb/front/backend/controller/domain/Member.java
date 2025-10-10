@@ -67,17 +67,16 @@ public class Member {
     @Column(name = "grade") // Duplicative of memberGrade, but kept per original
     private String grade;
 
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "id")
+    @OneToOne(mappedBy = "member")
     private Cart cart;
 
-    @Transient
+    @OneToMany(mappedBy = "member")
     private List<MemberCoupon> ownedCoupon;
 
-    @Transient
+    @OneToOne(mappedBy = "member")
     private MemberGrade memberGrade;
 
-    @Transient
+    @OneToMany(mappedBy = "member")
     private List<MemberPoint> memberPoints;
 
     public boolean isCanPurchase() {

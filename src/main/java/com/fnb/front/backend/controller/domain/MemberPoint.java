@@ -36,6 +36,10 @@ public class MemberPoint {
     @Column(name = "member_id", updatable = false, nullable = false)
     private int memberId;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "member_id")
+    private Member member;
+
     public MemberPoint() {
 
     }

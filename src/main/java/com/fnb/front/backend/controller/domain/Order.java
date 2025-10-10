@@ -53,7 +53,7 @@ public class Order {
     @Column(name = "discount_amount", precision = 19, scale = 2)
     private BigDecimal discountAmount;
 
-    @Transient
+    @OneToMany(mappedBy = "order")
     private List<OrderProduct> orderProducts;
 
     @Transient

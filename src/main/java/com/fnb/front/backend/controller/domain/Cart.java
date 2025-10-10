@@ -33,14 +33,16 @@ public class Cart {
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
-    @OneToOne(mappedBy = "cart", cascade = CascadeType.ALL)
+    @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id")
     private Member member;
 
-    @OneToOne(fetch = FetchType.LAZY)
+    // Cart가 PRODUCT_ID 외래 키를 가집니다. (주인)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id")
     private Product product;
 
+    // CartItem에 의해 매핑됩니다. (주인이 아님)
     @OneToMany(mappedBy = "cart")
     private List<CartItem> cartItems;
 

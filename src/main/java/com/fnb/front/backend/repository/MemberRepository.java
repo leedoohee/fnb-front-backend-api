@@ -37,7 +37,7 @@ public class MemberRepository {
 
     public List<MemberPoint> findMemberPoints(String memberId) {
 
-        CriteriaBuilder cb        = em.getCriteriaBuilder();
+        CriteriaBuilder cb              = em.getCriteriaBuilder();
         CriteriaQuery<MemberPoint> cq   = cb.createQuery(MemberPoint.class);
         Root<MemberPoint> root          = cq.from(MemberPoint.class);
 

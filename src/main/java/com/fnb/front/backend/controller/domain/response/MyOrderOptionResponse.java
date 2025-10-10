@@ -7,7 +7,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @Builder
-public class MyAdditionalOptionResponse {
+public class MyOrderOptionResponse {
     private int quantity;
     private String optionName;
     private String optionId;

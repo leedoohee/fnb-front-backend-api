@@ -45,6 +45,10 @@ public class MemberCoupon {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "member_id")
+    private Member member;
+
     public MemberCoupon() {
 
     }

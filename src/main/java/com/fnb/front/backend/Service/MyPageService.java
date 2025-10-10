@@ -27,39 +27,29 @@ public class MyPageService {
         long totalCount                                 = this.orderRepository.findTotalOrderCount(myPageRequest);
         int lastPageNumber                              = (int) (Math.ceil((double) totalCount / myPageRequest.getPageLimit()));
         List<Order> orders                              = this.orderRepository.findOrders(myPageRequest);
-        List<String> orderIdList                        = orders.stream().map(Order::getOrderId).toList();
-        List<OrderProduct> orderProducts                = this.orderRepository.findOrderProducts(orderIdList);
-        List<Integer> orderProductIdList                = orderProducts.stream().map(OrderProduct::getOrderProductId).toList();
-        List<OrderAdditionalOption>  additionalOptions  = this.orderRepository.findOrderAdditionalOptions(orderProductIdList);
         List<MyOrderResponse>   orderResponses          = new ArrayList<>();
 
         for (Order order : orders) {
             List<MyOrderProductResponse> orderProductResponse = new ArrayList<>();;
-            List<OrderProduct> products = orderProducts.stream()
-                                .filter(orderProduct -> orderProduct.getOrderId().equals(order.getOrderId()))
-                                .toList();
+            List<OrderProduct> products = order.getOrderProducts();
 
             for (OrderProduct product : products) {
-                List<MyAdditionalOptionResponse> additionalOptionResponse = new ArrayList<>();
-                List<OrderAdditionalOption> option = additionalOptions.stream()
-                        .filter(orderAdditionalOption ->
-                                    orderAdditionalOption.getOrderProductId() == product.getOrderProductId())
-                        .toList();
+                List<MyOrderOptionResponse> orderOptionResponses = new ArrayList<>();
+                List<OrderOption> option = product.getOrderOptions();
 
-                for (OrderAdditionalOption additionalOption : option) {
-                    additionalOptionResponse.add(MyAdditionalOptionResponse.builder()
-                                                .optionId(additionalOption.getAdditionalOptionId())
-                                                .optionName(additionalOption.getAdditionalOptionName())
-                                                .price(additionalOption.getPrice())
+                for (OrderOption orderOption : option) {
+                    orderOptionResponses.add(MyOrderOptionResponse.builder()
+                                                .optionId(orderOption.getOptionId())
+                                                .optionName(orderOption.getOptionName())
+                                                .price(orderOption.getPrice())
                                                     .build());
                 }
 
                 orderProductResponse.add(MyOrderProductResponse.builder()
                         .orderProductId(product.getOrderProductId())
                         .quantity(product.getQuantity())
-                        .basicOptionId(product.getOptionId())
                         .basicOptionName(product.getOptionName())
-                        .additionalOptions(additionalOptionResponse)
+                        .additionalOptions(orderOptionResponses)
                         .build());
             }
 
@@ -75,7 +65,7 @@ public class MyPageService {
                 .data(orderResponses).build();
     }
 
-    @Transactional(readOnly = true)
+    //TODO 네이티브로?
     public MyInfoResponse getMyInfo(String memberId) {
         Member member                    = this.memberRepository.findMember(memberId);
         List<MemberCoupon> memberCoupons = this.memberRepository.findMemberCoupons(memberId);

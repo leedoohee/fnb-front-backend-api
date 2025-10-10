@@ -16,5 +16,5 @@ public class MyOrderProductResponse {
     private int price;
     private String basicOptionId;
     private String basicOptionName;
-    private List<MyAdditionalOptionResponse> additionalOptions;
+    private List<MyOrderOptionResponse> additionalOptions;
 }
