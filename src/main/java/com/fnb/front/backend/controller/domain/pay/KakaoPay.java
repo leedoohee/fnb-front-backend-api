@@ -6,7 +6,7 @@ import com.fnb.front.backend.controller.domain.response.ApprovePaymentResponse;
 import com.fnb.front.backend.controller.domain.response.KakaoPayApproveResponse;
 import com.fnb.front.backend.controller.domain.response.KakaoPayRequestResponse;
 import com.fnb.front.backend.controller.domain.response.RequestPaymentResponse;
-import com.fnb.front.backend.controller.domain.request.Payment.RequestPayment;
+import com.fnb.front.backend.controller.domain.request.RequestPayment;
 import com.fnb.front.backend.controller.dto.ApprovePaymentDto;
 import com.fnb.front.backend.controller.dto.CancelPaymentDto;
 import com.fnb.front.backend.controller.dto.KakaoPayApproveDto;
@@ -55,7 +55,7 @@ public class KakaoPay implements IPay {
             KakaoPayRequestResponse response = restTemplate.postForObject(REQUEST_API_URL, httpEntity, KakaoPayRequestResponse.class);
             requestPaymentResponse = RequestPaymentResponse.builder().redirectUrl(Objects.requireNonNull(response).getNextRedirectMobileUrl()).build();
         } catch (Exception e) {
-            e.printStackTrace();
+            return null;
         }
 
         return requestPaymentResponse;
@@ -113,7 +113,7 @@ public class KakaoPay implements IPay {
                     .build();
 
         } catch (Exception e) {
-            e.printStackTrace();
+            return null;
         }
 
         return approvePaymentResponse;

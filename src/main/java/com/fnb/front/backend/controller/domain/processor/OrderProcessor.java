@@ -25,25 +25,15 @@ public class OrderProcessor {
 
     public CreateOrderDto buildOrder() {
 
-        if(!this.member.isCanPurchase()) {
-            return null;
-        }
+        assert !this.member.isCanPurchase() :"구매 불가능한 회원입니다.";
 
-        if(!this.validatePoint(this.order.getUsePoint(), this.member.getPoints())) {
-            return null;
-        }
+        assert !this.validatePoint(this.order.getUsePoint(), this.member.getPoints()) : "사용 가능한 포인트를 초괴하였습니다";
 
-        if(!this.isOwnedCoupons(this.member, this.coupons)){
-            return null;
-        }
+        assert !this.isOwnedCoupons(this.member, this.coupons) : "소유하지 않은 쿠폰을 사용하였습니다.";
 
-        if(!this.validateCoupons(this.coupons, this.member)){
-            return null;
-        }
+        assert !this.validateCoupons(this.coupons, this.member) : "사용 불가능한 쿠폰이 포함되어 있습니다.";
 
-        if(!this.validateOrderProduct(this.products)) {
-            return null;
-        }
+        assert !this.validateOrderProduct(this.products) : "구매 불가능한 상품이 포함되어 있습니다.";
 
         List<CreateOrderProductDto> createOrderProductDtos = this.buildOrderProducts(this.member, this.products, this.coupons);
 
@@ -129,9 +119,7 @@ public class OrderProcessor {
         for (Product product : products) {
             int memberShipPrice = 0;
 
-            if(!product.isAvailableUseCoupon()) {
-                return null;
-            }
+            assert !product.isAvailableUseCoupon() : "쿠폰 사용이 불가능한 상품입니다.";
 
             if (product.inMemberShipDiscount(member)) {
                 memberShipPrice = this.calculateMemberShipToProduct(product, member);

@@ -1,23 +1,16 @@
 package com.fnb.front.backend.Service;
 
-import com.fnb.front.backend.controller.domain.OrderProduct;
 import com.fnb.front.backend.controller.domain.Product;
 import com.fnb.front.backend.controller.domain.ProductOption;
-import com.fnb.front.backend.controller.domain.event.OrderResultEvent;
-import com.fnb.front.backend.controller.domain.response.AdditionalOptionResponse;
 import com.fnb.front.backend.controller.domain.response.ProductOptionResponse;
 import com.fnb.front.backend.controller.domain.response.ProductResponse;
 import com.fnb.front.backend.repository.ProductRepository;
 import com.fnb.front.backend.repository.ReviewRepository;
 import com.fnb.front.backend.util.CommonUtil;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.event.TransactionPhase;
-import org.springframework.transaction.event.TransactionalEventListener;
-
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 @Service
 public class ProductService {
@@ -32,8 +25,8 @@ public class ProductService {
     }
 
     public List<ProductResponse> getProducts() {
-        List<ProductResponse> response = new ArrayList<>();
-        List<Product> products = productRepository.findProducts();
+        List<ProductResponse> response  = new ArrayList<>();
+        List<Product> products          = productRepository.findProducts();
 
         for (Product product : products) {
             response.add(ProductResponse.builder()
@@ -81,17 +74,15 @@ public class ProductService {
     }
 
     public boolean validate(int productId, int quantity) {
-        boolean result  = true;
         Product product = this.productRepository.findProduct(productId);
 
-        if (!product.isInfiniteQty()) {
-            result = false;
+        if (product.isInfiniteQty()) {
+            return true;
         }
 
-        if (!CommonUtil.isMinAndMaxBetween(product.getMinQuantity(), product.getMaxQuantity(), quantity)) {
-            result = false;
-        }
+        assert !CommonUtil.isMinAndMaxBetween(product.getMinQuantity(), product.getMaxQuantity(), quantity) :
+                "주문 수량이 초과 또는 미만입니다.";
 
-        return result;
+        return true;
     }
 }

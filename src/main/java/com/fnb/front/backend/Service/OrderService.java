@@ -6,9 +6,9 @@ import com.fnb.front.backend.repository.*;
 import com.fnb.front.backend.controller.domain.processor.OrderProcessor;
 import com.fnb.front.backend.controller.dto.CreateOrderDto;
 import com.fnb.front.backend.controller.dto.CreateOrderProductDto;
-import com.fnb.front.backend.controller.domain.request.order.OrderCouponRequest;
-import com.fnb.front.backend.controller.domain.request.order.OrderProductRequest;
-import com.fnb.front.backend.controller.domain.request.order.OrderRequest;
+import com.fnb.front.backend.controller.domain.request.OrderCouponRequest;
+import com.fnb.front.backend.controller.domain.request.OrderProductRequest;
+import com.fnb.front.backend.controller.domain.request.OrderRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -46,10 +46,6 @@ public class OrderService {
         List<OrderProduct> newOrderProducts = new ArrayList<>();
         OrderProcessor orderProcessor       = new OrderProcessor(member, order, orderProducts, orderCoupons);
         CreateOrderDto createOrderDto       = orderProcessor.buildOrder();
-
-        if(createOrderDto == null) {
-            return null;
-        }
 
         Order newOrder = Order.builder()
                 .orderId(createOrderDto.getOrderId())

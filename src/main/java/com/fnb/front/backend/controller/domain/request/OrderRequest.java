@@ -1,5 +1,8 @@
-package com.fnb.front.backend.controller.domain.request.order;
+package com.fnb.front.backend.controller.domain.request;
 
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -9,10 +12,18 @@ import java.util.List;
 @Getter
 @Setter
 public class OrderRequest {
+
+    @NotBlank
     private String memberId;
+
+    @NotNull
     private int orderType;
-    private String merchantId;
+
+    @NotNull
     private BigDecimal point;
+
+    @NotEmpty
     private List<OrderProductRequest> orderProductRequests;
+
     private List<OrderCouponRequest> orderCouponRequests;
 }

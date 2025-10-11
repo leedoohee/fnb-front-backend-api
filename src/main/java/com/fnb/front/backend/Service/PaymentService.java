@@ -1,25 +1,18 @@
 package com.fnb.front.backend.Service;
 
 import com.fnb.front.backend.controller.domain.*;
-import com.fnb.front.backend.controller.domain.event.OrderResultEvent;
 import com.fnb.front.backend.controller.domain.processor.PaymentProcessor;
 import com.fnb.front.backend.controller.domain.response.ApprovePaymentResponse;
-import com.fnb.front.backend.controller.domain.response.PaymentResultResponse;
 import com.fnb.front.backend.controller.domain.response.RequestPaymentResponse;
 import com.fnb.front.backend.controller.dto.ApprovePaymentDto;
-import com.fnb.front.backend.controller.domain.request.Payment.RequestPayment;
+import com.fnb.front.backend.controller.domain.request.RequestPayment;
 import com.fnb.front.backend.repository.*;
 import com.fnb.front.backend.util.CommonUtil;
-import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 
@@ -52,30 +45,30 @@ public class PaymentService {
     }
 
     @Transactional
-    public PaymentResultResponse approveKakaoResult(ApprovePaymentDto approvePaymentDto) {
+    public boolean approveKakaoResult(ApprovePaymentDto approvePaymentDto) {
+        boolean result = false;
+
         PaymentProcessor paymentProcessor   = new PaymentProcessor(PayFactory.getPay("K"));
         ApprovePaymentResponse response     = paymentProcessor.approve(approvePaymentDto);
 
-        if(response == null) {
-            return null;
-        }
+        assert response == null : "결제 API 호출 결과가 실패하였습니다";
 
         Order order           = this.orderService.getOrder(response.getOrderId());
         boolean productResult = this.afterBehavingForProduct(order.getOrderProducts());
         boolean couponResult  = this.afterBehavingForCoupon(order.getMember(), order.getOrderProducts());
-        boolean pointResult   = this.afterBehavingForPoint(order, order.getMember(), order.getTotalAmount(), BigDecimal.ZERO); //TODO 오더 만들때 실결제금액 넣기
+        boolean pointResult   = this.afterBehavingForPoint(order, order.getMember(),
+                                        order.getTotalAmount(), BigDecimal.valueOf(order.getTotalAmount().intValue() - order.getCouponAmount() - order.getDiscountAmount().intValue())); //TODO 오더 만들때 실결제금액 넣기
 
         if(productResult && couponResult && pointResult) {
-            this.insertPayments(response.getOrderId(), response);
+            result = this.insertPayments(response.getOrderId(), response);
         }
 
-        return new PaymentResultResponse();
+        return result;
     }
 
     @Transactional(rollbackFor = {Exception.class})
     public boolean insertPayments(String orderId, ApprovePaymentResponse approvePaymentResponse) {
         Order order = this.orderService.getOrder(orderId);
-        List<OrderProduct> orderProducts = order.getOrderProducts();
 
         int couponAmount = order.getOrderProducts().stream().map(OrderProduct::getCouponAmount).mapToInt(BigDecimal::intValue).sum();
         int pointAmount  = order.getUsePoint().intValue();
@@ -141,10 +134,9 @@ public class PaymentService {
                 continue;
             }
 
-            if (!CommonUtil.isMinAndMaxBetween(Objects.requireNonNull(orderProduct.getProduct()).getMinQuantity(),
-                    orderProduct.getProduct().getMaxQuantity(), orderProduct.getQuantity())) {
-                return false;
-            }
+            assert !CommonUtil.isMinAndMaxBetween(Objects.requireNonNull(orderProduct.getProduct()).getMinQuantity(),
+                    orderProduct.getProduct().getMaxQuantity(), orderProduct.getQuantity())
+                    : "상품 재고 범위를 초과 혹은 미만으로 선택하였습니다.";
 
             this.productRepository.updateQuantity(Objects.requireNonNull(orderProduct.getProduct()).getId(),
                     orderProduct.getQuantity());
@@ -163,9 +155,7 @@ public class PaymentService {
             MemberCoupon memberCoupon = memberCoupons.stream()
                     .filter(coupon -> coupon.getCouponId() == couponId).findFirst().orElse(null);
 
-            if (memberCoupon != null && !memberCoupon.getIsUsed().equals("1")) {
-                return false;
-            }
+            assert memberCoupon != null && !memberCoupon.getIsUsed().equals("1") : "쿠폰 사용이 불가합니다.";
 
             this.couponRepository.updateUsedMemberCoupon(member.getMemberId(), couponId);
         }
@@ -175,11 +165,9 @@ public class PaymentService {
 
     private boolean afterBehavingForPoint(Order order, Member member, BigDecimal totalProductAmount, BigDecimal paymentAmount) {
         //TODO 페이에 따른 추가적립
-        int applyPoint = this.applyPointForOrder(member, totalProductAmount, paymentAmount);
+        int applyPoint = this.applyGradePointForOrder(member, totalProductAmount, paymentAmount);
 
-        if(!member.isUsablePoint(member.getPoints())) {
-            return false;
-        }
+        assert !member.isUsablePoint(member.getPoints()) : "포인트가 부족합니다.";
 
         BigDecimal usePoint = order.getUsePoint();
 
@@ -206,12 +194,13 @@ public class PaymentService {
         return true;
     }
 
-    private int applyPointForOrder(Member member, BigDecimal totalProductAmount, BigDecimal paymentAmount) {
+    private int applyGradePointForOrder(Member member, BigDecimal totalProductAmount, BigDecimal paymentAmount) {
         MemberPointRule rule = member.getMemberGrade().getMemberPointRule();
         int point = 0;
 
         if(CommonUtil.isProductAmountPolicyType(rule.getApplyUnit())){
             if(CommonUtil.isMinAndMaxBetween(rule.getMinApplyAmount().intValue(), rule.getMaxApplyAmount().intValue(), totalProductAmount.intValue())) {
+
                 PointCalculator pointCalculator = new PointCalculator(totalProductAmount,
                         rule.getAddingPointAmount(), PointFactory.getPolicy(rule.getAddingPointType()));
 

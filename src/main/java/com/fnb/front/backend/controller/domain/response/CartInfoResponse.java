@@ -1,4 +1,4 @@
-package com.fnb.front.backend.controller.domain.request.order;
+package com.fnb.front.backend.controller.domain.response;
 
 import com.fnb.front.backend.controller.domain.PaymentType;
 import lombok.Builder;

@@ -1,10 +1,10 @@
 package com.fnb.front.backend.Service;
 
 import com.fnb.front.backend.controller.domain.*;
-import com.fnb.front.backend.controller.domain.request.order.CartInfoResponse;
-import com.fnb.front.backend.controller.domain.request.order.CartItemRequest;
-import com.fnb.front.backend.controller.domain.request.order.CartRequest;
-import com.fnb.front.backend.controller.domain.request.order.OptionInfoResponse;
+import com.fnb.front.backend.controller.domain.response.CartInfoResponse;
+import com.fnb.front.backend.controller.domain.request.CartItemRequest;
+import com.fnb.front.backend.controller.domain.request.CartRequest;
+import com.fnb.front.backend.controller.domain.response.OptionInfoResponse;
 import com.fnb.front.backend.repository.CartRepository;
 import com.fnb.front.backend.repository.PaymentRepository;
 import org.springframework.stereotype.Service;

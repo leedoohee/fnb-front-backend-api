@@ -1,10 +1,9 @@
 package com.fnb.front.backend.controller;
 
 import com.fnb.front.backend.Service.PaymentService;
-import com.fnb.front.backend.controller.domain.response.PaymentResultResponse;
 import com.fnb.front.backend.controller.domain.response.RequestPaymentResponse;
 import com.fnb.front.backend.controller.dto.ApprovePaymentDto;
-import com.fnb.front.backend.controller.domain.request.Payment.RequestPayment;
+import com.fnb.front.backend.controller.domain.request.RequestPayment;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -26,7 +25,7 @@ public class PaymentController {
     }
 
     @PostMapping("/payment/kakao/approve")
-    public PaymentResultResponse approve(@RequestBody ApprovePaymentDto approvePaymentDto) {
-        return this.paymentService.approveKakaoResult(approvePaymentDto);
+    public ResponseEntity<Boolean> approve(@RequestBody ApprovePaymentDto approvePaymentDto) {
+        return ResponseEntity.ok(this.paymentService.approveKakaoResult(approvePaymentDto));
     }
 }

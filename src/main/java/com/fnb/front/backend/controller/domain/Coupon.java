@@ -109,7 +109,7 @@ public class Coupon {
     }
 
     public boolean isApplyToEntireProduct() {
-        return this.applyEntireProduct.equals("1");
+        return this.applyEntireProduct.equals("1"); //1이면 전체
     }
 
     public boolean isAvailableStatus() {

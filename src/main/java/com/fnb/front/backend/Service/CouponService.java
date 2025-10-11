@@ -45,13 +45,9 @@ public class CouponService {
         Coupon coupon               = this.couponRepository.findCoupon(couponId);
         MemberCoupon memberCoupon   = this.couponRepository.findMemberCoupon(member.getMemberId(), couponId);
 
-        if(memberCoupon != null) {
-            return false;
-        }
+        assert memberCoupon != null : "이미 소유한 쿠폰입니다";
 
-        if(coupon != null && isUsableCoupon(coupon, member)) {
-            return false;
-        }
+        assert (coupon != null && !isUsableCoupon(coupon, member)): "소유할 수 없는 쿠폰입니다.";
 
         MemberCoupon mCoupon = MemberCoupon.builder()
                 .memberId(memberId)
@@ -61,36 +57,29 @@ public class CouponService {
 
         int memberCouponId = this.couponRepository.insertMemberCoupon(mCoupon);
 
-        if (memberCouponId <= 0) {
-            return false;
-        }
+        assert memberCouponId <= 0 : "저장 과정중 오류가 발생하였습니다.";
 
         return true;
     }
 
     public boolean applyCouponToProduct(String memberId, int couponId, int productId) {
         MemberCoupon memberCoupon = this.couponRepository.findMemberCoupon(memberId, couponId);
+        Coupon coupon             = memberCoupon.getCoupon();
 
-        if(memberCoupon == null) {
-            return false;
+        assert memberCoupon == null : "소유하지 않은 쿠폰입니다.";
+
+        if(coupon.isApplyToEntireProduct()) {
+            return true;
         }
 
-        if(!memberCoupon.getCoupon().isApplyToEntireProduct() && memberCoupon.getCoupon().getCouponProducts().isEmpty()) {
-            return false;
-        }
-
-        if(!memberCoupon.getCoupon().isApplyToEntireProduct()) {
+        if (!coupon.isApplyToEntireProduct()) {
             CouponProduct couponProduct = memberCoupon.getCoupon().getCouponProducts().stream()
-                    .filter(coupon -> coupon.getProductId() == productId).findFirst().orElse(null);
+                    .filter(element -> element.getProductId() == productId).findFirst().orElse(null);
 
-            if (couponProduct == null) {
-                return false;
-            }
+            assert couponProduct == null : "쿠폰적용이 불가능한 상품입니다.";
         }
 
-        if (memberCoupon.getCoupon() != null && isUsableCoupon(memberCoupon.getCoupon(), memberCoupon.getMember())) {
-            return false;
-        }
+        assert coupon != null && isUsableCoupon(coupon, memberCoupon.getMember()) : "적용불가능한 쿠폰입니다.";
 
         return true;
     }
