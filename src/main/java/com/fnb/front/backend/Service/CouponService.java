@@ -24,8 +24,8 @@ public class CouponService {
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_ROLLBACK)
     public void handleCouponToOrder(OrderResultEvent event) {
-        Member member                    = event.getMember();
-        List<OrderProduct> orderProducts = event.getOrderProducts();
+        Member member                    = event.getOrder().getMember();
+        List<OrderProduct> orderProducts = event.getOrder().getOrderProducts();
         List<Integer> couponIdList       = orderProducts.stream().map(OrderProduct::getCouponId).toList();
         List<MemberCoupon> memberCoupons = this.memberRepository.findMemberCoupons(member.getMemberId(), couponIdList);
 
@@ -33,11 +33,12 @@ public class CouponService {
             int couponId = orderProduct.getCouponId();
 
             MemberCoupon memberCoupon = memberCoupons.stream().filter(coupon -> coupon.getCouponId() == couponId).findFirst().orElse(null);
-            if (memberCoupon != null && memberCoupon.getIsUsed().equals("1")) {
-                this.couponRepository.updateUsedMemberCoupon(member.getMemberId(), couponId);
-            } else {
+
+            if (memberCoupon != null && !memberCoupon.getIsUsed().equals("1")) {
                 throw new RuntimeException("이미 사용된 쿠폰입니다.");
             }
+
+            this.couponRepository.updateUsedMemberCoupon(member.getMemberId(), couponId);
         }
     }
 }

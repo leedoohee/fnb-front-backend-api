@@ -94,16 +94,8 @@ public class OrderService {
                 .build();
     }
 
-    public List<OrderProduct> getOrderProducts(String orderId) {
-        return this.orderRepository.findOrderProducts(orderId);
-    }
-
     public Order getOrder(String orderId) {
         return this.orderRepository.findOrder(orderId);
-    }
-
-    public Member getMember(String memberId) {
-        return this.memberRepository.findMember(memberId);
     }
 
     private boolean isNonExecutePaymentGateWay(List<CreateOrderProductDto> orderProductRequests) {

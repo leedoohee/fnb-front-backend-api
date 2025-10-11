@@ -15,9 +15,7 @@ import java.util.List;
 @Builder
 public class OrderResultEvent {
     private String payType;
-    private Member member;
     private Order order;
-    private List<OrderProduct> orderProducts;
     private BigDecimal paymentAmount;
     private BigDecimal totalProductAmount;
 }

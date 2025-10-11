@@ -40,7 +40,11 @@ public class ProductRepository {
         CriteriaQuery<Product> cq    = cb.createQuery(Product.class);
         Root<Product> root           = cq.from(Product.class);
 
-        cq = cq.where(cb.and(cb.equal(root.get("status"), "available")));
+        root.fetch("productAttachFile", JoinType.INNER);
+
+        cq = cq.select(root)
+                .where(cb.and(cb.equal(root.get("status"), "available")))
+                .distinct(true);
 
         TypedQuery<Product> typedQuery = em.createQuery(cq);
 

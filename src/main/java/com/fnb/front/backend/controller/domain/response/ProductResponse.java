@@ -1,6 +1,7 @@
 package com.fnb.front.backend.controller.domain.response;
 
 
+import com.fnb.front.backend.controller.domain.ProductAttachFile;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -34,6 +35,6 @@ public class ProductResponse {
     private BigDecimal applyMemberGradeDisAmt;
     private int reviewCount;
 
+    List<ProductAttachFile> productAttachFiles;
     List<ProductOptionResponse> productOptions;
-    List<AdditionalOptionResponse> additionalOptions;
 }

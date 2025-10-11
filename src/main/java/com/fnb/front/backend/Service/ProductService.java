@@ -17,6 +17,7 @@ import org.springframework.transaction.event.TransactionalEventListener;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 @Service
 public class ProductService {
@@ -32,23 +33,18 @@ public class ProductService {
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_ROLLBACK)
     public void handleQuantityToOrder(OrderResultEvent event) {
-        List<OrderProduct> orderProducts = event.getOrderProducts();
-        List<Integer> productIdList      = orderProducts.stream().map(OrderProduct::getProductId).toList();
-        List<Product> products           = this.productRepository.findProducts(productIdList);
+        List<OrderProduct> orderProducts = event.getOrder().getOrderProducts();
 
         for (OrderProduct orderProduct : orderProducts) {
-            Product product = products.stream()
-                                .filter(element -> element.getId() == orderProduct.getProductId()).findFirst().orElse(null);
-
-            if(product != null && product.isInfiniteQty()) {
+            if(orderProduct.getProduct() != null && orderProduct.getProduct().isInfiniteQty()) {
                 continue;
             }
 
-            if (product != null && CommonUtil.isMinAndMaxBetween(product.getMinQuantity(), product.getMaxQuantity(), orderProduct.getQuantity())) {
-                this.productRepository.updateQuantity(product.getId(), orderProduct.getQuantity());
-            } else {
+            if (!CommonUtil.isMinAndMaxBetween(Objects.requireNonNull(orderProduct.getProduct()).getMinQuantity(), orderProduct.getProduct().getMaxQuantity(), orderProduct.getQuantity())) {
                 throw new RuntimeException("재고 부족");
             }
+
+            this.productRepository.updateQuantity(Objects.requireNonNull(orderProduct.getProduct()).getId(), orderProduct.getQuantity());
         }
     }
 
@@ -66,6 +62,7 @@ public class ProductService {
                     .name(product.getName())
                     .maxPurchaseQuantity(product.getMaxQuantity())
                     .minPurchaseQuantity(product.getMinQuantity())
+                    .productAttachFiles(product.getProductAttachFiles())
                     .build());
         }
 
@@ -74,7 +71,6 @@ public class ProductService {
 
     public ProductResponse getInfo(int productId) {
         List<ProductOptionResponse>  productOptionResponses      = new ArrayList<>();
-        List<AdditionalOptionResponse> additionalOptionResponses = new ArrayList<>();
         Product product                                          = this.productRepository.findProduct(productId);
         int reviewCount                                          = this.reviewRepository.findReviews(productId).size();
 
@@ -98,7 +94,6 @@ public class ProductService {
                 .minPurchaseQuantity(product.getMinQuantity())
                 .reviewCount(reviewCount)
                 .productOptions(productOptionResponses)
-                .additionalOptions(additionalOptionResponses)
                 .build();
     }
 

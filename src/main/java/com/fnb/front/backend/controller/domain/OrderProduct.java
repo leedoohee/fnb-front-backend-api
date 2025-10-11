@@ -57,8 +57,9 @@ public class OrderProduct {
     @OneToMany(mappedBy = "orderProduct")
     private List<OrderOption> orderOptions;
 
-    @Transient
-    Product product;
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id")
+    private Product product;
 
     public OrderProduct() {
 

@@ -53,10 +53,9 @@ public class PaymentService {
 
     @Transactional(rollbackFor = {Exception.class})
     public boolean insertPayments(String orderId, ApprovePaymentResponse approvePaymentResponse) {
-        List<OrderProduct> orderProducts    = this.orderService.getOrderProducts(orderId);
         Order order                         = this.orderService.getOrder(orderId);
 
-        int couponAmount = orderProducts.stream().map(OrderProduct::getCouponAmount).mapToInt(BigDecimal::intValue).sum();
+        int couponAmount = order.getOrderProducts().stream().map(OrderProduct::getCouponAmount).mapToInt(BigDecimal::intValue).sum();
         int pointAmount  = order.getUsePoint().intValue();
 
         //TODO 금액 비교 로직
@@ -112,10 +111,8 @@ public class PaymentService {
         }
 
         OrderResultEvent event = OrderResultEvent.builder()
-                .member(this.orderService.getMember(order.getMemberId()))
-                .order(order)
-                .orderProducts(orderProducts)
-                .build();
+                                    .order(order)
+                                    .build();
 
         this.generateEvent(event);
 

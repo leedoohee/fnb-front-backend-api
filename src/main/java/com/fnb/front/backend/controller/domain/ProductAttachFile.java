@@ -32,6 +32,10 @@ public class ProductAttachFile {
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id")
+    private Product product;
+
     public ProductAttachFile() {
 
     }

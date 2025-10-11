@@ -21,25 +21,25 @@ public class PointService {
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_ROLLBACK)
     public void handlePointToOrder(OrderResultEvent event) {
-        Member member = event.getMember();
+        Member member = event.getOrder().getMember();
         //TODO 페이에 따른 추가적립
         int applyPoint = this.applyPointForOrder(member, event.getTotalProductAmount(), event.getPaymentAmount());
 
-        if(member.isUsablePoint(member.getPoints())) {
-            BigDecimal usePoint = event.getOrder().getUsePoint();
-
-            MemberPoint minusPoint = MemberPoint.builder()
-                    .pointType(0) // 차감
-                    .orderId(event.getOrder().getOrderId())
-                    .memberId(member.getId())
-                    .amount(usePoint.intValue())
-                    .isUsed("1")
-                    .build();
-
-            this.pointRepository.insertMemberPoint(minusPoint);
-        } else {
+        if(!member.isUsablePoint(member.getPoints())) {
             throw new RuntimeException("포인트 부족");
         }
+
+        BigDecimal usePoint = event.getOrder().getUsePoint();
+
+        MemberPoint minusPoint = MemberPoint.builder()
+                .pointType(0) // 차감
+                .orderId(event.getOrder().getOrderId())
+                .memberId(member.getId())
+                .amount(usePoint.intValue())
+                .isUsed("1")
+                .build();
+
+        this.pointRepository.insertMemberPoint(minusPoint);
 
         MemberPoint plusPoint = MemberPoint.builder()
                                 .pointType(1) // 적립

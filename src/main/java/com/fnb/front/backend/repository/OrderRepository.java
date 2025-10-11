@@ -56,7 +56,14 @@ public class OrderRepository {
         CriteriaQuery<Order> cq   = cb.createQuery(Order.class);
         Root<Order> root          = cq.from(Order.class);
 
-        cq = cq.where(cb.and(cb.equal(root.get("orderId"), orderId)));
+        root.fetch("member", JoinType.INNER);
+        Fetch<Order, OrderProduct> orderProductFetch = root.fetch("orderProduct", JoinType.INNER);
+        orderProductFetch.fetch("product", JoinType.INNER);
+
+        cq = cq.select(root)
+                .where(cb.and(cb.equal(root.get("orderId"), orderId)))
+                .distinct(true);
+
         TypedQuery<Order> typedQuery = em.createQuery(cq);
 
         return typedQuery.getSingleResult();

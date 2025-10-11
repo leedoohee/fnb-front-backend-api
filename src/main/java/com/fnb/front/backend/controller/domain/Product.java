@@ -91,8 +91,11 @@ public class Product {
     @OneToMany(mappedBy = "product")
     private List<ProductOption> productOption;
 
-    @Transient
-    private List<OrderOption> orderOptions;
+    @OneToMany(mappedBy = "product")
+    private List<ProductAttachFile> productAttachFiles;
+
+    @OneToOne(mappedBy = "product")
+    private OrderProduct orderProduct;
 
     public Product() {
 
