@@ -7,22 +7,19 @@ import com.fnb.front.backend.controller.domain.response.ProductResponse;
 import com.fnb.front.backend.repository.ProductRepository;
 import com.fnb.front.backend.repository.ReviewRepository;
 import com.fnb.front.backend.util.CommonUtil;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
 @Service
+@RequiredArgsConstructor
 public class ProductService {
 
     private final ProductRepository productRepository;
 
     private final ReviewRepository reviewRepository;
-
-    public ProductService(ProductRepository productRepository, ReviewRepository reviewRepository) {
-        this.productRepository = productRepository;
-        this.reviewRepository = reviewRepository;
-    }
 
     public List<ProductResponse> getProducts() {
         List<ProductResponse> response  = new ArrayList<>();

@@ -29,7 +29,7 @@ public class CartRepository {
         em.persist(cartItem);
     }
 
-    public Cart findCart(String memberId) {
+    public List<Cart> findCart(String memberId) {
         CriteriaBuilder cb = em.getCriteriaBuilder();
         CriteriaQuery<Cart> cq = cb.createQuery(Cart.class);
         Root<Cart> root = cq.from(Cart.class);
@@ -39,8 +39,22 @@ public class CartRepository {
         Fetch<Cart, CartItem> cartItemFetch = root.fetch("cartItems", JoinType.INNER);
         cartItemFetch.fetch("productOption", JoinType.INNER);
 
-        cq.select(root)
+        cq = cq.select(root)
                 .where(cb.equal(root.get("memberId"), memberId))
+                .distinct(true);
+
+        TypedQuery<Cart> query = em.createQuery(cq);
+
+        return query.getResultList();
+    }
+
+    public Cart findCart(int cartId) {
+        CriteriaBuilder cb = em.getCriteriaBuilder();
+        CriteriaQuery<Cart> cq = cb.createQuery(Cart.class);
+        Root<Cart> root = cq.from(Cart.class);
+
+        cq = cq.select(root)
+                .where(cb.equal(root.get("id"), cartId))
                 .distinct(true);
 
         TypedQuery<Cart> query = em.createQuery(cq);
@@ -68,5 +82,17 @@ public class CartRepository {
         delete = delete.where(cb.and(cb.equal(root.get("cartId"), cartId)));
 
         this.em.createQuery(delete).executeUpdate();
+    }
+
+    public void updateCart(int cartId, int quantity) {
+        CriteriaBuilder cb = this.em.getCriteriaBuilder();
+
+        CriteriaUpdate<Cart> update = cb.createCriteriaUpdate(Cart.class);
+        Root<Cart> root = update.from(Cart.class);
+
+        update.set(root.get("quantity"), quantity);
+        update = update.where(cb.and(cb.equal(root.get("cartId"), cartId)));
+
+        this.em.createQuery(update).executeUpdate();
     }
 }

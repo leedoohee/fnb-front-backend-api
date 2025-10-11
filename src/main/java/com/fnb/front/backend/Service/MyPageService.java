@@ -5,22 +5,19 @@ import com.fnb.front.backend.controller.domain.request.MyPageRequest;
 import com.fnb.front.backend.controller.domain.response.*;
 import com.fnb.front.backend.repository.MemberRepository;
 import com.fnb.front.backend.repository.OrderRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 
 @Service
+@RequiredArgsConstructor
 public class MyPageService {
 
     private final OrderRepository orderRepository;
 
     private final MemberRepository memberRepository;
-
-    public MyPageService(OrderRepository orderRepository, MemberRepository memberRepository) {
-        this.orderRepository = orderRepository;
-        this.memberRepository = memberRepository;
-    }
 
     @Transactional(readOnly = true)
     public PageResponse<MyOrderResponse> getMyOrders(MyPageRequest myPageRequest) {
@@ -42,7 +39,7 @@ public class MyPageService {
                                                 .optionId(orderOption.getOptionId())
                                                 .optionName(orderOption.getOptionName())
                                                 .price(orderOption.getPrice())
-                                                    .build());
+                                                .build());
                 }
 
                 orderProductResponse.add(MyOrderProductResponse.builder()

@@ -1,7 +1,6 @@
 package com.fnb.front.backend.repository;
 
 import com.fnb.front.backend.controller.domain.Order;
-import com.fnb.front.backend.controller.domain.OrderOption;
 import com.fnb.front.backend.controller.domain.OrderProduct;
 import com.fnb.front.backend.controller.domain.request.MyPageRequest;
 import jakarta.persistence.EntityManager;
@@ -27,17 +26,6 @@ public class OrderRepository {
 
     public void insertOrderProducts(List<OrderProduct> orderProducts) {
         em.persist(orderProducts);
-    }
-
-    public List<OrderProduct> findOrderProducts(String orderId) {
-        CriteriaBuilder cb               = em.getCriteriaBuilder();
-        CriteriaQuery<OrderProduct> cq   = cb.createQuery(OrderProduct.class);
-        Root<OrderProduct> root          = cq.from(OrderProduct.class);
-
-        cq = cq.where(cb.and(cb.equal(root.get("orderId"), orderId)));
-        TypedQuery<OrderProduct> typedQuery = em.createQuery(cq);
-
-        return typedQuery.getResultList();
     }
 
     public Long findTotalOrderCount(MyPageRequest orderRequest) {

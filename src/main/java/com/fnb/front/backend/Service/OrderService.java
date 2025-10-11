@@ -9,6 +9,7 @@ import com.fnb.front.backend.controller.dto.CreateOrderProductDto;
 import com.fnb.front.backend.controller.domain.request.OrderCouponRequest;
 import com.fnb.front.backend.controller.domain.request.OrderProductRequest;
 import com.fnb.front.backend.controller.domain.request.OrderRequest;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -17,33 +18,26 @@ import java.time.LocalDateTime;
 import java.util.*;
 
 @Service
+@RequiredArgsConstructor
 public class OrderService {
 
     private final ProductRepository productRepository;
+
     private final CouponRepository couponRepository;
+
     private final MemberRepository memberRepository;
+
     private final OrderRepository orderRepository;
+
     private final PaymentService paymentService;
-
-    public OrderService(ProductRepository productRepository,
-                        CouponRepository couponRepository,
-                        MemberRepository memberRepository,
-                        OrderRepository orderRepository, PaymentService paymentService) {
-
-        this.productRepository = productRepository;
-        this.couponRepository = couponRepository;
-        this.memberRepository = memberRepository;
-        this.orderRepository = orderRepository;
-        this.paymentService = paymentService;
-    }
 
     @Transactional
     public OrderResponse create(OrderRequest orderRequest) {
+        List<OrderProduct> newOrderProducts = new ArrayList<>();
         Order order                         = this.createOrder(orderRequest);
+        Member member                       = this.createMember(orderRequest);
         List<Product> orderProducts         = this.createOrderProduct(orderRequest);
         List<Coupon> orderCoupons           = this.createOrderCoupon(orderRequest);
-        Member member                       = this.createMember(orderRequest);
-        List<OrderProduct> newOrderProducts = new ArrayList<>();
         OrderProcessor orderProcessor       = new OrderProcessor(member, order, orderProducts, orderCoupons);
         CreateOrderDto createOrderDto       = orderProcessor.buildOrder();
 

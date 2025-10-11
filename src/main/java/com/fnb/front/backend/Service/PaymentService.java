@@ -8,6 +8,7 @@ import com.fnb.front.backend.controller.dto.ApprovePaymentDto;
 import com.fnb.front.backend.controller.domain.request.RequestPayment;
 import com.fnb.front.backend.repository.*;
 import com.fnb.front.backend.util.CommonUtil;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -17,6 +18,7 @@ import java.util.List;
 import java.util.Objects;
 
 @Service
+@RequiredArgsConstructor
 public class PaymentService {
     private final PaymentRepository paymentRepository;
 
@@ -30,21 +32,6 @@ public class PaymentService {
 
     private final OrderService orderService;
 
-    public PaymentService(PaymentRepository paymentRepository,
-                          ProductRepository productRepository,
-                          CouponRepository couponRepository,
-                          MemberRepository memberRepository,
-                          PointRepository pointRepository,
-                          OrderService orderService) {
-
-        this.paymentRepository = paymentRepository;
-        this.productRepository = productRepository;
-        this.couponRepository = couponRepository;
-        this.memberRepository = memberRepository;
-        this.pointRepository = pointRepository;
-        this.orderService = orderService;
-    }
-
     public RequestPaymentResponse request(RequestPayment requestPayment) {
         PaymentProcessor paymentProcessor = new PaymentProcessor(PayFactory.getPay(requestPayment.getPayType()));
         return paymentProcessor.request(requestPayment);
@@ -52,31 +39,33 @@ public class PaymentService {
 
     @Transactional
     public boolean approveKakaoResult(ApprovePaymentDto approvePaymentDto) {
-
         PaymentProcessor paymentProcessor   = new PaymentProcessor(PayFactory.getPay("K"));
         ApprovePaymentResponse response     = paymentProcessor.approve(approvePaymentDto);
 
         assert response == null : "결제 API 호출 결과가 실패하였습니다";
 
-        Order order           = this.orderService.getOrder(response.getOrderId());
-        boolean productResult = this.afterBehavingForProduct(order.getOrderProducts());
-        boolean couponResult  = this.afterBehavingForCoupon(order.getMember(), order.getOrderProducts());
-        boolean pointResult   = this.afterBehavingForPoint(order, order.getMember(),
-                                        order.getTotalAmount(), BigDecimal.valueOf(order.getTotalAmount().intValue() - order.getCouponAmount() - order.getDiscountAmount().intValue()));
-
-        if(productResult && couponResult && pointResult) {
-            return this.insertPayments(response.getOrderId(), response);
-        } else {
-            //TODO 취소로직 구현
-        }
-
-        return true;
+        return this.insertPayments(response.getOrderId(), response);
     }
 
     public boolean insertPayments(String orderId, ApprovePaymentResponse approvePaymentResponse) {
         Order order = this.orderService.getOrder(orderId);
 
-        int couponAmount = order.getOrderProducts().stream().map(OrderProduct::getCouponAmount).mapToInt(BigDecimal::intValue).sum();
+        boolean productResult = this.afterProcessForProduct(order.getOrderProducts());
+        boolean couponResult  = this.afterProcessForCoupon(order.getMember(), order.getOrderProducts());
+        boolean pointResult   = this.afterProcessForPoint(order, order.getMember(),
+                order.getTotalAmount(), BigDecimal.valueOf(order.getTotalAmount().intValue() - order.getCouponAmount() - order.getUsePoint().intValue()));
+
+        if (!(productResult && couponResult && pointResult)) {
+            if (approvePaymentResponse != null) {
+                //TODO 취소로직 구현
+            }
+
+            assert !productResult : "재고가 부족합니다.";
+            assert !couponResult  : "쿠폰이 존재하지 않습니다.";
+            assert !pointResult   : "포인트가 부족합니다";
+        }
+
+        int couponAmount = order.getCouponAmount();
         int pointAmount  = order.getUsePoint().intValue();
 
         //TODO 금액 비교 로직
@@ -134,15 +123,16 @@ public class PaymentService {
         return true;
     }
 
-    private boolean afterBehavingForProduct(List<OrderProduct> orderProducts) {
+    private boolean afterProcessForProduct(List<OrderProduct> orderProducts) {
         for (OrderProduct orderProduct : orderProducts) {
             if(orderProduct.getProduct() != null && orderProduct.getProduct().isInfiniteQty()) {
                 continue;
             }
 
-            assert !CommonUtil.isMinAndMaxBetween(Objects.requireNonNull(orderProduct.getProduct()).getMinQuantity(),
-                    orderProduct.getProduct().getMaxQuantity(), orderProduct.getQuantity())
-                    : "상품 재고 범위를 초과 혹은 미만으로 선택하였습니다.";
+            if (!CommonUtil.isMinAndMaxBetween(Objects.requireNonNull(orderProduct.getProduct()).getMinQuantity(),
+                    orderProduct.getProduct().getMaxQuantity(), orderProduct.getQuantity())) {
+                return false;
+            }
 
             this.productRepository.updateQuantity(Objects.requireNonNull(orderProduct.getProduct()).getId(),
                     orderProduct.getQuantity());
@@ -151,7 +141,7 @@ public class PaymentService {
         return true;
     }
 
-    private boolean afterBehavingForCoupon(Member member, List<OrderProduct> orderProducts) {
+    private boolean afterProcessForCoupon(Member member, List<OrderProduct> orderProducts) {
         List<Integer> couponIdList       = orderProducts.stream().map(OrderProduct::getCouponId).toList();
         List<MemberCoupon> memberCoupons = this.memberRepository.findMemberCoupons(member.getMemberId(), couponIdList);
 
@@ -161,7 +151,9 @@ public class PaymentService {
             MemberCoupon memberCoupon = memberCoupons.stream()
                     .filter(coupon -> coupon.getCouponId() == couponId).findFirst().orElse(null);
 
-            assert memberCoupon != null && !memberCoupon.getIsUsed().equals("1") : "쿠폰 사용이 불가합니다.";
+            if (memberCoupon != null && !memberCoupon.getIsUsed().equals("1")) {
+               return false;
+            }
 
             this.couponRepository.updateUsedMemberCoupon(member.getMemberId(), couponId);
         }
@@ -169,11 +161,13 @@ public class PaymentService {
         return true;
     }
 
-    private boolean afterBehavingForPoint(Order order, Member member, BigDecimal totalProductAmount, BigDecimal paymentAmount) {
+    private boolean afterProcessForPoint(Order order, Member member, BigDecimal totalProductAmount, BigDecimal paymentAmount) {
         //TODO 페이에 따른 추가적립
         int applyPoint = this.applyGradePointForOrder(member, totalProductAmount, paymentAmount);
 
-        assert !member.isUsablePoint(member.getPoints()) : "포인트가 부족합니다.";
+        if (!member.isUsablePoint(member.getPoints())) {
+            return false;
+        }
 
         BigDecimal usePoint = order.getUsePoint();
 

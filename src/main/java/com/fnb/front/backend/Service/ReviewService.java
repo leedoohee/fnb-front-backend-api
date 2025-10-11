@@ -3,6 +3,7 @@ package com.fnb.front.backend.Service;
 import com.fnb.front.backend.controller.domain.Review;
 import com.fnb.front.backend.controller.domain.response.ReviewResponse;
 import com.fnb.front.backend.repository.ReviewRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -10,13 +11,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Service
+@RequiredArgsConstructor
 public class ReviewService {
 
     private final ReviewRepository reviewRepository;
-
-    public ReviewService(ReviewRepository reviewRepository) {
-        this.reviewRepository = reviewRepository;
-    }
 
     public List<ReviewResponse> getMyReviews(String memberId) {
         List<Review> myReviews = this.reviewRepository.findReviews(memberId);

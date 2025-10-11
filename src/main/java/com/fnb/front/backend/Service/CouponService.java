@@ -4,6 +4,7 @@ import com.fnb.front.backend.controller.domain.*;
 import com.fnb.front.backend.controller.domain.response.CouponResponse;
 import com.fnb.front.backend.repository.CouponRepository;
 import com.fnb.front.backend.repository.MemberRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -11,15 +12,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Service
+@RequiredArgsConstructor
 public class CouponService {
 
     private final CouponRepository couponRepository;
-    private final MemberRepository memberRepository;
 
-    public CouponService(CouponRepository couponRepository, MemberRepository memberRepository) {
-        this.couponRepository = couponRepository;
-        this.memberRepository = memberRepository;
-    }
+    private final MemberRepository memberRepository;
 
     public List<CouponResponse> getCoupons() {
         List<CouponResponse> responses  = new ArrayList<>();

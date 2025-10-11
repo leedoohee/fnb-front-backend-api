@@ -67,8 +67,8 @@ public class Member {
     @Column(name = "grade") // Duplicative of memberGrade, but kept per original
     private String grade;
 
-    @OneToOne(mappedBy = "member")
-    private Cart cart;
+    @OneToMany(mappedBy = "member")
+    private List<Cart> carts;
 
     @OneToMany(mappedBy = "member")
     private List<MemberCoupon> ownedCoupon;

@@ -2,19 +2,17 @@ package com.fnb.front.backend.controller;
 
 import com.fnb.front.backend.Service.CouponService;
 import com.fnb.front.backend.controller.domain.response.CouponResponse;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
+@RequiredArgsConstructor
 public class CouponController {
 
     private final CouponService couponService;
-
-    public CouponController(CouponService couponService) {
-        this.couponService = couponService;
-    }
 
     @GetMapping("/coupon/list")
     public ResponseEntity<List<CouponResponse>> getCoupons() {
