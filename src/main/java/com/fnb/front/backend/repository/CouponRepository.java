@@ -3,6 +3,7 @@ package com.fnb.front.backend.repository;
 import com.fnb.front.backend.controller.domain.Coupon;
 import com.fnb.front.backend.controller.domain.MemberCoupon;
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.TypedQuery;
 import jakarta.persistence.criteria.*;
 import org.springframework.stereotype.Component;
@@ -19,8 +20,10 @@ public class CouponRepository {
         this.em = em;
     }
 
-    public void insertMemberCoupon(MemberCoupon memberCoupon) {
+    public int insertMemberCoupon(MemberCoupon memberCoupon) {
         em.persist(memberCoupon);
+
+        return memberCoupon.getId();
     }
 
     public void updateUsedMemberCoupon(String memberId, int couponId) {
@@ -49,6 +52,30 @@ public class CouponRepository {
         TypedQuery<Coupon> typedQuery = em.createQuery(cq);
 
         return typedQuery.getSingleResult();
+    }
+
+    public MemberCoupon findMemberCoupon(String memberId, int couponId) {
+        List<Predicate> searchConditions = new ArrayList<>();
+        CriteriaBuilder cb               = em.getCriteriaBuilder();
+        CriteriaQuery<MemberCoupon> cq   = cb.createQuery(MemberCoupon.class);
+        Root<MemberCoupon> root          = cq.from(MemberCoupon.class);
+
+        root.fetch("member", JoinType.INNER);
+        Fetch<MemberCoupon, Coupon> couponFetch = root.fetch("coupon", JoinType.INNER);
+        couponFetch.fetch("couponProduct", JoinType.INNER);
+
+        searchConditions.add(cb.equal(root.get("memberId"), memberId));
+        searchConditions.add(cb.equal(root.get("isUsed"), "1"));
+        searchConditions.add(cb.equal(root.get("couponId"), couponId));
+
+        cq = cq.select(root)
+                .where(cb.and(searchConditions.toArray(new Predicate[0])))
+                .distinct(true);
+
+        TypedQuery<MemberCoupon> typedQuery = em.createQuery(cq);
+
+        return typedQuery.getSingleResult();
+
     }
 
     public List<Coupon> findCoupons(List<Integer> couponIds) {

@@ -20,7 +20,7 @@ public class MemberCoupon {
 
     // Foreign Key to the Member entity (nullable = false is common)
     @Column(name = "member_id", nullable = false)
-    private int memberId;
+    private String memberId;
 
     // Foreign Key to the Coupon entity (nullable = false is common)
     @Column(name = "coupon_id", nullable = false)
@@ -48,6 +48,10 @@ public class MemberCoupon {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id")
     private Member member;
+
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id")
+    private Coupon coupon;
 
     public MemberCoupon() {
 

@@ -1,13 +1,6 @@
 package com.fnb.front.backend.controller.domain;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
-import jakarta.persistence.Temporal;
-import jakarta.persistence.TemporalType;
+import jakarta.persistence.*;
 import lombok.*;
 
 import java.util.Date;
@@ -53,6 +46,10 @@ public class CouponProduct {
 
     @Column(name = "updated_by")
     private String updatedBy;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id")
+    private Coupon coupon;
 
     public CouponProduct() {
 

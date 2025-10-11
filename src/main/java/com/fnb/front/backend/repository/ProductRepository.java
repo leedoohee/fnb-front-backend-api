@@ -51,55 +51,22 @@ public class ProductRepository {
         return typedQuery.getResultList();
     }
 
-    public List<Product> findProducts(List<Integer> productIds) {
-        CriteriaBuilder cb           = em.getCriteriaBuilder();
-        CriteriaQuery<Product> cq    = cb.createQuery(Product.class);
-        Root<Product> root           = cq.from(Product.class);
+    public List<Product> findProducts(List<Integer> productIds, List<Integer> optionIds) {
+        List<Predicate> searchConditions    = new ArrayList<>();
+        CriteriaBuilder cb                  = em.getCriteriaBuilder();
+        CriteriaQuery<Product> cq           = cb.createQuery(Product.class);
+        Root<Product> root                  = cq.from(Product.class);
 
-        cq = cq.where(cb.and(root.get("id").in(productIds)));
+        root.fetch("productOption", JoinType.LEFT);
+
+        searchConditions.add(cb.equal(root.get("productId"), productIds));
+        searchConditions.add(cb.and(root.get("optionId").in(optionIds)));
+
+        cq = cq.select(root)
+                .where(cb.and(searchConditions.toArray(new Predicate[0])))
+                .distinct(true);
 
         TypedQuery<Product> typedQuery = em.createQuery(cq);
-
-        return typedQuery.getResultList();
-    }
-
-    public List<ProductOption> findOptions(int productId) {
-
-        CriteriaBuilder cb                 = em.getCriteriaBuilder();
-        CriteriaQuery<ProductOption> cq    = cb.createQuery(ProductOption.class);
-        Root<ProductOption> root           = cq.from(ProductOption.class);
-
-        cq = cq.where(cb.and(cb.equal(root.get("productId"), productId)));
-        TypedQuery<ProductOption> typedQuery = em.createQuery(cq);
-
-        return typedQuery.getResultList();
-    }
-
-    public List<ProductOption> findOptions(List<Integer> productOptionIds) {
-        List<Predicate> searchConditions    = new ArrayList<>();
-        CriteriaBuilder cb                 = em.getCriteriaBuilder();
-        CriteriaQuery<ProductOption> cq    = cb.createQuery(ProductOption.class);
-        Root<ProductOption> root           = cq.from(ProductOption.class);
-
-        searchConditions.add(cb.and(root.get("optionId").in(productOptionIds)));
-
-        cq = cq.where(cb.and(searchConditions.toArray(new Predicate[0])));
-        TypedQuery<ProductOption> typedQuery = em.createQuery(cq);
-
-        return typedQuery.getResultList();
-    }
-
-    public List<ProductOption> findOptions(List<Integer> productOptionIds, int productId) {
-        List<Predicate> searchConditions    = new ArrayList<>();
-        CriteriaBuilder cb                 = em.getCriteriaBuilder();
-        CriteriaQuery<ProductOption> cq    = cb.createQuery(ProductOption.class);
-        Root<ProductOption> root           = cq.from(ProductOption.class);
-
-        searchConditions.add(cb.equal(root.get("productId"), productId));
-        searchConditions.add(cb.and(root.get("optionId").in(productOptionIds)));
-
-        cq = cq.where(cb.and(searchConditions.toArray(new Predicate[0])));
-        TypedQuery<ProductOption> typedQuery = em.createQuery(cq);
 
         return typedQuery.getResultList();
     }

@@ -1,7 +1,6 @@
 package com.fnb.front.backend.repository;
 
 import com.fnb.front.backend.controller.domain.Review;
-import com.fnb.front.backend.controller.domain.ReviewAttachFile;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.TypedQuery;
 import jakarta.persistence.criteria.CriteriaBuilder;
@@ -51,17 +50,6 @@ public class ReviewRepository {
                 .distinct(true);
 
         TypedQuery<Review> typedQuery = em.createQuery(cq);
-
-        return typedQuery.getResultList();
-    }
-
-    public List<ReviewAttachFile> findAttachFile(int reviewId) {
-        CriteriaBuilder cb          = em.getCriteriaBuilder();
-        CriteriaQuery<ReviewAttachFile> cq    = cb.createQuery(ReviewAttachFile.class);
-        Root<ReviewAttachFile> root           = cq.from(ReviewAttachFile.class);
-
-        cq = cq.where(cb.and(cb.equal(root.get("reviewId"), reviewId)));
-        TypedQuery<ReviewAttachFile> typedQuery = em.createQuery(cq);
 
         return typedQuery.getResultList();
     }

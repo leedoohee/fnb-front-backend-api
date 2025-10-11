@@ -53,7 +53,7 @@ public class PaymentService {
 
     @Transactional(rollbackFor = {Exception.class})
     public boolean insertPayments(String orderId, ApprovePaymentResponse approvePaymentResponse) {
-        Order order                         = this.orderService.getOrder(orderId);
+        Order order = this.orderService.getOrder(orderId);
 
         int couponAmount = order.getOrderProducts().stream().map(OrderProduct::getCouponAmount).mapToInt(BigDecimal::intValue).sum();
         int pointAmount  = order.getUsePoint().intValue();

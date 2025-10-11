@@ -20,13 +20,9 @@ import java.util.*;
 public class OrderService {
 
     private final ProductRepository productRepository;
-
     private final CouponRepository couponRepository;
-
     private final MemberRepository memberRepository;
-
     private final OrderRepository orderRepository;
-
     private final PaymentService paymentService;
 
     public OrderService(ProductRepository productRepository,
@@ -118,11 +114,9 @@ public class OrderService {
         List<Integer> productIdList         = orderRequest.getOrderProductRequests().stream().map(OrderProductRequest::getProductId).toList();
         List<List<Integer>> optionIdsArray  = orderRequest.getOrderProductRequests().stream().map(OrderProductRequest::getProductOptionId).toList();
         List<Integer> optionIdList          = optionIdsArray.stream().flatMap(List::stream).toList();
-        List<Product> products              = this.productRepository.findProducts(productIdList);
-        List<ProductOption> options         = this.productRepository.findOptions(optionIdList);
+        List<Product> products              = this.productRepository.findProducts(productIdList, optionIdList);
 
         for (Product product : products) {
-            product.setProductOption(options.stream().filter(productOption -> productOption.getProductId() == product.getId()).toList());
             product.setQuantity(Objects.requireNonNull(orderRequest.getOrderProductRequests().stream()
                     .filter(orderProductRequest -> orderProductRequest.getProductId() == product.getId())
                     .findFirst().orElse(null)).getQuantity());

@@ -86,14 +86,17 @@ public class Coupon {
     @Column(name = "apply_grades")
     private String applyGrades;
 
+    @Column(name = "apply_entire_product")
+    private String applyEntireProduct;
+
     @Transient
     private int applyProductId;
 
-    @Transient
+    @OneToMany(mappedBy = "coupon")
     private List<CouponProduct> couponProducts;
 
-    @Transient
-    private List<MemberCoupon> memberCoupons;
+    @OneToOne(mappedBy = "coupon")
+    private MemberCoupon memberCoupon;
 
     public Coupon() {
 
@@ -102,6 +105,10 @@ public class Coupon {
     public boolean isCanApplyDuring() {
         Date now = new Date();
         return this.applyStartAt.after(now) && this.applyEndAt.before(now);
+    }
+
+    public boolean isApplyToEntireProduct() {
+        return this.applyEntireProduct.equals("1");
     }
 
     public boolean isAvailableStatus() {
