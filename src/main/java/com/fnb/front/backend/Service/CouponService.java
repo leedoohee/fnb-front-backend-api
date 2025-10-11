@@ -1,14 +1,13 @@
 package com.fnb.front.backend.Service;
 
 import com.fnb.front.backend.controller.domain.*;
-import com.fnb.front.backend.controller.domain.event.OrderResultEvent;
+import com.fnb.front.backend.controller.domain.response.CouponResponse;
 import com.fnb.front.backend.repository.CouponRepository;
 import com.fnb.front.backend.repository.MemberRepository;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.event.TransactionPhase;
-import org.springframework.transaction.event.TransactionalEventListener;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -22,42 +21,45 @@ public class CouponService {
         this.memberRepository = memberRepository;
     }
 
-    @TransactionalEventListener(phase = TransactionPhase.AFTER_ROLLBACK)
-    public void handleCouponToOrder(OrderResultEvent event) {
-        Member member                    = event.getOrder().getMember();
-        List<OrderProduct> orderProducts = event.getOrder().getOrderProducts();
-        List<Integer> couponIdList       = orderProducts.stream().map(OrderProduct::getCouponId).toList();
-        List<MemberCoupon> memberCoupons = this.memberRepository.findMemberCoupons(member.getMemberId(), couponIdList);
+    public List<CouponResponse> getCoupons() {
+        List<CouponResponse> responses  = new ArrayList<>();
+        List<Coupon> coupons            = this.couponRepository.findCoupons();
 
-        for (OrderProduct orderProduct : orderProducts) {
-            int couponId = orderProduct.getCouponId();
-
-            MemberCoupon memberCoupon = memberCoupons.stream()
-                    .filter(coupon -> coupon.getCouponId() == couponId).findFirst().orElse(null);
-
-            if (memberCoupon != null && !memberCoupon.getIsUsed().equals("1")) {
-                throw new RuntimeException("이미 사용된 쿠폰입니다.");
-            }
-
-            this.couponRepository.updateUsedMemberCoupon(member.getMemberId(), couponId);
+        for (Coupon coupon : coupons) {
+            responses.add(CouponResponse.builder()
+                            .couponType(coupon.getCouponType())
+                            .applyStartAt(coupon.getApplyStartAt())
+                            .couponName(coupon.getName())
+                            .description(coupon.getDescription())
+                            .couponId(coupon.getId())
+                            .status(coupon.getStatus())
+                            .applyEndAt(coupon.getApplyEndAt())
+                            .build());
         }
+
+        return responses;
     }
 
     public boolean createMemberCoupon(String memberId, int couponId) {
-        Member member = this.memberRepository.findMember(memberId);
-        Coupon coupon = this.couponRepository.findCoupon(couponId);
+        Member member               = this.memberRepository.findMember(memberId);
+        Coupon coupon               = this.couponRepository.findCoupon(couponId);
+        MemberCoupon memberCoupon   = this.couponRepository.findMemberCoupon(member.getMemberId(), couponId);
+
+        if(memberCoupon != null) {
+            return false;
+        }
 
         if(coupon != null && isUsableCoupon(coupon, member)) {
             return false;
         }
 
-        MemberCoupon memberCoupon = MemberCoupon.builder()
+        MemberCoupon mCoupon = MemberCoupon.builder()
                 .memberId(memberId)
                 .isUsed("1")
                 .createdAt(LocalDateTime.now())
                 .couponId(couponId).build();
 
-        int memberCouponId = this.couponRepository.insertMemberCoupon(memberCoupon);
+        int memberCouponId = this.couponRepository.insertMemberCoupon(mCoupon);
 
         if (memberCouponId <= 0) {
             return false;
@@ -99,6 +101,10 @@ public class CouponService {
         }
 
         if (coupon.isBelongToAvailableGrade(member)) {
+            return true;
+        }
+
+        if (coupon.isCanApplyDuring()) {
             return true;
         }
 

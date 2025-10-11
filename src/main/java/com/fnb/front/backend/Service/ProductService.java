@@ -31,23 +31,6 @@ public class ProductService {
         this.reviewRepository = reviewRepository;
     }
 
-    @TransactionalEventListener(phase = TransactionPhase.AFTER_ROLLBACK)
-    public void handleQuantityToOrder(OrderResultEvent event) {
-        List<OrderProduct> orderProducts = event.getOrder().getOrderProducts();
-
-        for (OrderProduct orderProduct : orderProducts) {
-            if(orderProduct.getProduct() != null && orderProduct.getProduct().isInfiniteQty()) {
-                continue;
-            }
-
-            if (!CommonUtil.isMinAndMaxBetween(Objects.requireNonNull(orderProduct.getProduct()).getMinQuantity(), orderProduct.getProduct().getMaxQuantity(), orderProduct.getQuantity())) {
-                throw new RuntimeException("재고 부족");
-            }
-
-            this.productRepository.updateQuantity(Objects.requireNonNull(orderProduct.getProduct()).getId(), orderProduct.getQuantity());
-        }
-    }
-
     public List<ProductResponse> getProducts() {
         List<ProductResponse> response = new ArrayList<>();
         List<Product> products = productRepository.findProducts();

@@ -27,4 +27,6 @@ public class ReviewController {
     public ResponseEntity<List<ReviewResponse>> getMyReviews(@PathVariable String memberId) {
         return ResponseEntity.ok(this.reviewService.getMyReviews(memberId));
     }
+
+    //TODO 리뷰 등록 및 수정 api 추가
 }

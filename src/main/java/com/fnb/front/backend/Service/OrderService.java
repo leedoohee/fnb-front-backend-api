@@ -38,7 +38,7 @@ public class OrderService {
     }
 
     @Transactional
-    public OrderResponse create(OrderRequest orderRequest) throws Exception {
+    public OrderResponse create(OrderRequest orderRequest) {
         Order order                         = this.createOrder(orderRequest);
         List<Product> orderProducts         = this.createOrderProduct(orderRequest);
         List<Coupon> orderCoupons           = this.createOrderCoupon(orderRequest);
@@ -46,6 +46,10 @@ public class OrderService {
         List<OrderProduct> newOrderProducts = new ArrayList<>();
         OrderProcessor orderProcessor       = new OrderProcessor(member, order, orderProducts, orderCoupons);
         CreateOrderDto createOrderDto       = orderProcessor.buildOrder();
+
+        if(createOrderDto == null) {
+            return null;
+        }
 
         Order newOrder = Order.builder()
                 .orderId(createOrderDto.getOrderId())
@@ -111,8 +115,10 @@ public class OrderService {
 
     private List<Product> createOrderProduct(OrderRequest orderRequest) {
         List<Product> orderProducts         = new ArrayList<>();
-        List<Integer> productIdList         = orderRequest.getOrderProductRequests().stream().map(OrderProductRequest::getProductId).toList();
-        List<List<Integer>> optionIdsArray  = orderRequest.getOrderProductRequests().stream().map(OrderProductRequest::getProductOptionId).toList();
+        List<Integer> productIdList         = orderRequest.getOrderProductRequests()
+                                                .stream().map(OrderProductRequest::getProductId).toList();
+        List<List<Integer>> optionIdsArray  = orderRequest.getOrderProductRequests()
+                                                .stream().map(OrderProductRequest::getProductOptionId).toList();
         List<Integer> optionIdList          = optionIdsArray.stream().flatMap(List::stream).toList();
         List<Product> products              = this.productRepository.findProducts(productIdList, optionIdList);
 

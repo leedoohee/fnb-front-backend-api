@@ -8,6 +8,7 @@ import jakarta.persistence.TypedQuery;
 import jakarta.persistence.criteria.*;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -41,6 +42,25 @@ public class CouponRepository {
         update.where(cb.and(searchConditions.toArray(new Predicate[0])));
 
         this.em.createQuery(update).executeUpdate();
+    }
+
+    public List<Coupon> findCoupons() {
+        List<Predicate> searchConditions = new ArrayList<>();
+        CriteriaBuilder cb               = em.getCriteriaBuilder();
+        CriteriaQuery<Coupon> cq         = cb.createQuery(Coupon.class);
+        Root<Coupon> root                = cq.from(Coupon.class);
+
+        searchConditions.add(cb.equal(root.get("status"), "1"));
+        searchConditions.add(cb.greaterThanOrEqualTo(root.get("applyStartAt"), LocalDateTime.now()));
+        searchConditions.add(cb.lessThanOrEqualTo(root.get("applyEndAt"), LocalDateTime.now()));
+
+        cq = cq.select(root)
+                .where(cb.and(searchConditions.toArray(new Predicate[0])))
+                .distinct(true);
+
+        TypedQuery<Coupon> typedQuery = em.createQuery(cq);
+
+        return typedQuery.getResultList();
     }
 
     public Coupon findCoupon(int couponId) {

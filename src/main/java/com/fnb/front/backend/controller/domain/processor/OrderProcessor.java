@@ -23,7 +23,7 @@ public class OrderProcessor {
         this.coupons = coupons;
     }
 
-    public CreateOrderDto buildOrder() throws Exception {
+    public CreateOrderDto buildOrder() {
 
         if(!this.member.isCanPurchase()) {
             return null;

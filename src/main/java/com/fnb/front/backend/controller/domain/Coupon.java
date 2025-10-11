@@ -7,6 +7,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
@@ -42,11 +43,11 @@ public class Coupon {
 
     @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "apply_start_at")
-    private Date applyStartAt;
+    private LocalDateTime applyStartAt;
 
     @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "apply_end_at")
-    private Date applyEndAt;
+    private LocalDateTime applyEndAt;
 
     @Column(name = "min_apply_price", precision = 19, scale = 2)
     private BigDecimal minApplyPrice;
@@ -103,8 +104,8 @@ public class Coupon {
     }
 
     public boolean isCanApplyDuring() {
-        Date now = new Date();
-        return this.applyStartAt.after(now) && this.applyEndAt.before(now);
+        LocalDateTime now = LocalDateTime.now();
+        return this.applyStartAt.isAfter(now) && this.applyEndAt.isBefore(now);
     }
 
     public boolean isApplyToEntireProduct() {
