@@ -30,7 +30,13 @@ public class PaymentService {
 
     private final OrderService orderService;
 
-    public PaymentService(PaymentRepository paymentRepository, ProductRepository productRepository, CouponRepository couponRepository, MemberRepository memberRepository, PointRepository pointRepository, OrderService orderService) {
+    public PaymentService(PaymentRepository paymentRepository,
+                          ProductRepository productRepository,
+                          CouponRepository couponRepository,
+                          MemberRepository memberRepository,
+                          PointRepository pointRepository,
+                          OrderService orderService) {
+
         this.paymentRepository = paymentRepository;
         this.productRepository = productRepository;
         this.couponRepository = couponRepository;
@@ -46,7 +52,6 @@ public class PaymentService {
 
     @Transactional
     public boolean approveKakaoResult(ApprovePaymentDto approvePaymentDto) {
-        boolean result = false;
 
         PaymentProcessor paymentProcessor   = new PaymentProcessor(PayFactory.getPay("K"));
         ApprovePaymentResponse response     = paymentProcessor.approve(approvePaymentDto);
@@ -57,16 +62,17 @@ public class PaymentService {
         boolean productResult = this.afterBehavingForProduct(order.getOrderProducts());
         boolean couponResult  = this.afterBehavingForCoupon(order.getMember(), order.getOrderProducts());
         boolean pointResult   = this.afterBehavingForPoint(order, order.getMember(),
-                                        order.getTotalAmount(), BigDecimal.valueOf(order.getTotalAmount().intValue() - order.getCouponAmount() - order.getDiscountAmount().intValue())); //TODO 오더 만들때 실결제금액 넣기
+                                        order.getTotalAmount(), BigDecimal.valueOf(order.getTotalAmount().intValue() - order.getCouponAmount() - order.getDiscountAmount().intValue()));
 
         if(productResult && couponResult && pointResult) {
-            result = this.insertPayments(response.getOrderId(), response);
+            return this.insertPayments(response.getOrderId(), response);
+        } else {
+            //TODO 취소로직 구현
         }
 
-        return result;
+        return true;
     }
 
-    @Transactional(rollbackFor = {Exception.class})
     public boolean insertPayments(String orderId, ApprovePaymentResponse approvePaymentResponse) {
         Order order = this.orderService.getOrder(orderId);
 
