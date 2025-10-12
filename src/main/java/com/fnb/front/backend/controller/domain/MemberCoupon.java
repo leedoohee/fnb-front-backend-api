@@ -15,8 +15,8 @@ public class MemberCoupon {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id", updatable = false, nullable = false)
-    private int id;
+    @Column(name = "member_coupon_id", updatable = false, nullable = false)
+    private int memberCouponId;
 
     // Foreign Key to the Member entity (nullable = false is common)
     @Column(name = "member_id", nullable = false)
@@ -46,11 +46,11 @@ public class MemberCoupon {
     private LocalDateTime updatedAt;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "member_id")
+    @JoinColumn(name = "member_id", insertable=false, updatable=false)
     private Member member;
 
     @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "id")
+    @JoinColumn(name = "coupon_id", insertable = false, updatable=false)
     private Coupon coupon;
 
     public MemberCoupon() {

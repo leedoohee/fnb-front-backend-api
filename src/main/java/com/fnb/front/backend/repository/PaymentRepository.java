@@ -21,7 +21,7 @@ public class PaymentRepository {
 
     public int insertPayment(Payment payment) {
         em.persist(payment);
-        return payment.getId();
+        return payment.getPaymentId();
     }
 
     public int insertPaymentCancel(PaymentCancel paymentCancel) {

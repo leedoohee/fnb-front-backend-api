@@ -33,7 +33,7 @@ public class ProductAttachFile {
     private LocalDateTime createdAt;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "id")
+    @JoinColumn(name = "product_id", insertable=false, updatable=false)
     private Product product;
 
     public ProductAttachFile() {

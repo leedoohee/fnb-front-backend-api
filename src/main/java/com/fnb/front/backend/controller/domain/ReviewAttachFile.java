@@ -14,6 +14,7 @@ import java.util.Date;
 @Setter
 @Builder
 @AllArgsConstructor
+@Table(name = "review_attach_file")
 public class ReviewAttachFile {
 
     @Id
@@ -33,7 +34,7 @@ public class ReviewAttachFile {
     private LocalDateTime registerDate;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "id")
+    @JoinColumn(name = "review_id", insertable=false, updatable=false)
     private Review review;
 
     public ReviewAttachFile() {

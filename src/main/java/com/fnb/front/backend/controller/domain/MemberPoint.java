@@ -37,7 +37,7 @@ public class MemberPoint {
     private String memberId;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "member_id")
+    @JoinColumn(name = "member_id", insertable=false, updatable=false)
     private Member member;
 
     public MemberPoint() {

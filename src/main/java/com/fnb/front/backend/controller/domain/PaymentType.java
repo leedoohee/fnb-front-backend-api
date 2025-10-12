@@ -13,6 +13,7 @@ import java.time.LocalDateTime;
 @Setter
 @Builder
 @AllArgsConstructor
+@Table(name = "payment_type")
 public class PaymentType {
 
     @Id

@@ -16,13 +16,13 @@ public class OrderProduct {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id", updatable = false, nullable = false)
+    @Column(name = "order_product_id", updatable = false, nullable = false)
     private int orderProductId;
 
-    @Column(name = "order_id", nullable = false)
+    @Column(name = "order_id", updatable = false, nullable = false)
     private String orderId;
 
-    @Column(name = "product_id", nullable = false)
+    @Column(name = "product_id", updatable = false, nullable = false)
     private int productId;
 
     @Column(name = "product_name")
@@ -51,14 +51,14 @@ public class OrderProduct {
     private int couponId;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name="order_id")
+    @JoinColumn(name="order_id", insertable=false, updatable=false)
     private Order order;
 
     @OneToMany(mappedBy = "orderProduct")
     private List<OrderOption> orderOptions;
 
     @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "id")
+    @JoinColumn(name = "product_id", insertable=false, updatable=false)
     private Product product;
 
     @OneToOne(mappedBy = "orderProduct")

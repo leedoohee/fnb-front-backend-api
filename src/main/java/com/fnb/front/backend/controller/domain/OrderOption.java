@@ -14,8 +14,8 @@ public class OrderOption {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id", updatable = false, nullable = false)
-    private int id;
+    @Column(name = "order_option_id", updatable = false, nullable = false)
+    private int orderOptionId;
 
     @Column(name = "order_id", nullable = false)
     private String orderId;
@@ -36,7 +36,7 @@ public class OrderOption {
     private int price;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name="order_product_id")
+    @JoinColumn(name="order_product_id", insertable=false, updatable=false)
     private OrderProduct orderProduct;
 
     public OrderOption() {

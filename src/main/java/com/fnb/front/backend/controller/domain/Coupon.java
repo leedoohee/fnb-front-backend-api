@@ -24,8 +24,8 @@ public class Coupon {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id", updatable = false, nullable = false)
-    private int id;
+    @Column(name = "coupon_id", updatable = false, nullable = false)
+    private int couponId;
 
     @Column(name = "name")
     private String name;

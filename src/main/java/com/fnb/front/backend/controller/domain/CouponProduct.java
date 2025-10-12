@@ -15,8 +15,8 @@ public class CouponProduct {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id", updatable = false, nullable = false)
-    private int id;
+    @Column(name = "coupon_product_id", updatable = false, nullable = false)
+    private int couponProductId;
 
     @Column(name = "coupon_id", nullable = false)
     private int couponId;
@@ -48,7 +48,7 @@ public class CouponProduct {
     private String updatedBy;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "id")
+    @JoinColumn(name = "coupon_id", insertable=false, updatable=false)
     private Coupon coupon;
 
     public CouponProduct() {

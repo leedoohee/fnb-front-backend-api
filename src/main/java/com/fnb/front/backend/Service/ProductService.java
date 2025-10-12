@@ -49,7 +49,7 @@ public class ProductService {
 
         for (ProductOption productOption : product.getProductOption()) {
             productOptionResponses.add(ProductOptionResponse.builder()
-                    .id(productOption.getId())
+                    .id(productOption.getProductOptionId())
                     .optionPrice(BigDecimal.valueOf(productOption.getPrice()))
                     .productId(productOption.getProductId())
                     .name(productOption.getName())

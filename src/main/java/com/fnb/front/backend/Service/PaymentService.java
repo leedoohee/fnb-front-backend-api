@@ -177,7 +177,7 @@ public class PaymentService {
                 return false;
             }
 
-            this.productRepository.updateMinusQuantity(Objects.requireNonNull(orderProduct.getProduct()).getId(),
+            this.productRepository.updateMinusQuantity(Objects.requireNonNull(orderProduct.getProduct()).getProductId(),
                     orderProduct.getQuantity());
         }
 
@@ -278,13 +278,13 @@ public class PaymentService {
             }
 
             this.couponRepository.updateUsedMemberCoupon(orderProduct.getCoupon().getMemberCoupon().getMemberId(),
-                                            orderProduct.getCoupon().getMemberCoupon().getId(), "1");
+                                            orderProduct.getCoupon().getMemberCoupon().getCouponId(), "1");
         }
     }
 
     private void afterCancelForProduct(List<OrderProduct> orderProducts) {
         for (OrderProduct orderProduct : orderProducts) {
-            this.productRepository.updatePlusQuantity(orderProduct.getProduct().getId(), orderProduct.getQuantity());
+            this.productRepository.updatePlusQuantity(orderProduct.getProduct().getProductId(), orderProduct.getQuantity());
         }
     }
 }

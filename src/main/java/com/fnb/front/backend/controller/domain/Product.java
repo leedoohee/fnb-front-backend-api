@@ -18,8 +18,8 @@ public class Product {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id", updatable = false, nullable = false)
-    private int id;
+    @Column(name = "product_id", updatable = false, nullable = false)
+    private int productId;
 
     @Column(name = "name", nullable = false)
     private String name;

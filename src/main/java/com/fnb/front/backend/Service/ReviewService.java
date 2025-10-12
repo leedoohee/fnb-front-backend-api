@@ -31,7 +31,7 @@ public class ReviewService {
 
         for (Review review : reviews) {
             reviewResponses.add(ReviewResponse.builder()
-                    .id(review.getId())
+                    .id(review.getReviewId())
                     .content(review.getContent())
                     .registerDate(review.getRegisterDate())
                     .productId(review.getProductId())

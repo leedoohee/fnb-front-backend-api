@@ -78,12 +78,12 @@ public class CartService {
             cartInfoResponses.add(CartInfoResponse.builder()
                     .minQuantity(cart.getProduct().getMinQuantity())
                     .maxQuantity(cart.getProduct().getMaxQuantity())
-                    .productId(cart.getProduct().getId())
+                    .productId(cart.getProduct().getProductId())
                     .description(cart.getProduct().getDescription())
                     .productName(cart.getProduct().getName())
                     .address(cart.getMember().getAddress())
                     .memberId(cart.getMember().getMemberId())
-                    .cartId(cart.getId())
+                    .cartId(cart.getCartId())
                     .options(optionInfoResponses)
                     .build());
         }

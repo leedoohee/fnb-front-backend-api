@@ -30,7 +30,7 @@ public class CouponService {
                             .applyStartAt(coupon.getApplyStartAt())
                             .couponName(coupon.getName())
                             .description(coupon.getDescription())
-                            .couponId(coupon.getId())
+                            .couponId(coupon.getCouponId())
                             .status(coupon.getStatus())
                             .applyEndAt(coupon.getApplyEndAt())
                             .build());

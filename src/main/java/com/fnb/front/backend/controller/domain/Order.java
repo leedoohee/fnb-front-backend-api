@@ -16,17 +16,13 @@ import java.util.List;
 public class Order {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id", updatable = false, nullable = false)
-    private int id;
-
-    @Column(name = "order_id", unique = true, nullable = false)
+    @Column(name = "order_id", updatable = false, nullable = false)
     private String orderId;
 
     @Column(name = "member_seq", nullable = false)
     private int memberSeq;
 
-    @Column(name = "member_id", nullable = false)
+    @Column(name = "member_id", updatable = false, nullable = false)
     private String memberId;
 
     @Column(name = "member_name", nullable = false)
@@ -57,11 +53,11 @@ public class Order {
     private List<OrderProduct> orderProducts;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "member_id")
+    @JoinColumn(name = "member_id", insertable=false, updatable=false)
     private Member member;
 
     @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "id")
+    @JoinColumn(name = "payment_id")
     private Payment payment;
 
     public Order() {

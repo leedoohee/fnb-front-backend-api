@@ -14,14 +14,15 @@ import java.util.List;
 @Setter
 @Builder
 @AllArgsConstructor
+@Table(name = "cart")
 public class Cart {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id", updatable = false, nullable = false)
-    private int id;
+    @Column(name = "cart_id", unique = true, updatable = false, nullable = false)
+    private int cartId;
 
-    @Column(name = "productId", updatable = false, nullable = false)
+    @Column(name = "product_id", updatable = false, nullable = false)
     private int productId;
 
     @Column(name = "member_id", updatable = false, nullable = false)
@@ -34,12 +35,12 @@ public class Cart {
     private LocalDateTime createdAt;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "member_id")
+    @JoinColumn(name = "member_id", insertable=false, updatable=false)
     private Member member;
 
     // Cart가 PRODUCT_ID 외래 키를 가집니다. (주인)
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "id")
+    @JoinColumn(name = "product_id", insertable=false, updatable=false)
     private Product product;
 
     // CartItem에 의해 매핑됩니다. (주인이 아님)

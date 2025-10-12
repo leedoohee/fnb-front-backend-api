@@ -17,10 +17,6 @@ import java.util.List;
 public class Member {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id", updatable = false, nullable = false)
-    private int id;
-
     @Column(name = "member_id", unique = true, nullable = false)
     private String memberId;
 

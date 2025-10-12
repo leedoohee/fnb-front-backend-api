@@ -78,7 +78,7 @@ public class OrderProcessor {
         List<Integer> ownedCouponIds = ownedCoupons.stream().map(MemberCoupon::getCouponId).toList();
 
         for (Coupon coupon : coupons) {
-            if(!ownedCouponIds.contains(coupon.getId())) {
+            if(!ownedCouponIds.contains(coupon.getCouponId())) {
                 return false;
             }
         }
@@ -130,7 +130,7 @@ public class OrderProcessor {
             CreateOrderProductDto orderProduct = CreateOrderProductDto.builder()
                     .orderId(this.generateOrderId())
                     .orderProductId(this.generateOrderProductId())
-                    .productId(product.getId())
+                    .productId(product.getProductId())
                     .name(product.getName())
                     .couponId(this.applyCouponToProduct(product, coupons))
                     .quantity(product.getQuantity())
@@ -147,14 +147,14 @@ public class OrderProcessor {
 
     private int applyCouponToProduct(Product product, List<Coupon> coupons) {
         return coupons.stream()
-                .filter(coupon -> Objects.equals(coupon.getApplyProductId(), product.getId()))
-                .map(Coupon::getId)
+                .filter(coupon -> Objects.equals(coupon.getApplyProductId(), product.getProductId()))
+                .map(Coupon::getCouponId)
                 .mapToInt(Integer::intValue).findFirst().orElse(0);
     }
 
     private int calculateCouponToProduct(Product product, List<Coupon> coupons) {
         return coupons.stream()
-            .filter(coupon -> Objects.equals(coupon.getApplyProductId(), product.getId() ))
+            .filter(coupon -> Objects.equals(coupon.getApplyProductId(), product.getProductId() ))
             .map(coupon -> {
 
                 DiscountPolicy couponPolicy = DiscountFactory.getPolicy(coupon.getDiscountType());

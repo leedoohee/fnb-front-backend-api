@@ -114,7 +114,7 @@ public class OrderService {
 
         for (Product product : products) {
             product.setQuantity(Objects.requireNonNull(orderRequest.getOrderProductRequests().stream()
-                    .filter(orderProductRequest -> orderProductRequest.getProductId() == product.getId())
+                    .filter(orderProductRequest -> orderProductRequest.getProductId() == product.getProductId())
                     .findFirst().orElse(null)).getQuantity());
 
             orderProducts.add(product);
@@ -132,9 +132,9 @@ public class OrderService {
 
         for (Coupon coupon : coupons) {
             orderRequest.getOrderCouponRequests().stream()
-                    .filter(orderCouponRequest -> Objects.equals(orderCouponRequest.getCouponId(), coupon.getId()))
+                    .filter(orderCouponRequest -> Objects.equals(orderCouponRequest.getCouponId(), coupon.getCouponId()))
                     .findFirst()
-                    .ifPresent(orderCouponRequest -> { orderCouponRequest.setCouponId(coupon.getId()); });
+                    .ifPresent(orderCouponRequest -> { orderCouponRequest.setCouponId(coupon.getCouponId()); });
         }
 
         return coupons;

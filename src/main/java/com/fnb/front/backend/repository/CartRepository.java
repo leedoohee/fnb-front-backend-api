@@ -22,7 +22,7 @@ public class CartRepository {
     public int insertCart(Cart cart) {
         em.persist(cart);
 
-        return cart.getId();
+        return cart.getCartId();
     }
 
     public void insertCartItem(CartItem cartItem) {

@@ -17,8 +17,8 @@ public class Payment {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id", updatable = false, nullable = false)
-    private int id;
+    @Column(name = "payment_id", updatable = false, nullable = false)
+    private int paymentId;
 
     // Foreign Key reference to the Order entity
     @Column(name = "order_id", unique = true, nullable = false) // Assuming one payment per order
@@ -44,7 +44,7 @@ public class Payment {
     @OneToMany(mappedBy = "payment")
     private List<PaymentElement> paymentElements;
 
-    @OneToOne(mappedBy = "order")
+    @OneToOne(mappedBy = "payment")
     private Order order;
 
     public Payment() {

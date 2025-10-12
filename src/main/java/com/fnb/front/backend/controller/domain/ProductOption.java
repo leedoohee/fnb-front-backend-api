@@ -10,7 +10,6 @@ import java.util.List;
 @Getter
 @Setter
 @Entity
-@NoArgsConstructor
 @Builder
 @AllArgsConstructor
 @Table(name = "product_option")
@@ -18,8 +17,8 @@ public class ProductOption {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id", updatable = false, nullable = false)
-    private int id;
+    @Column(name = "product_option_id", updatable = false, nullable = false)
+    private int productOptionId;
 
     @Column(name = "option_id", nullable = false)
     private int optionId;
@@ -59,6 +58,10 @@ public class ProductOption {
     private CartItem cartItems;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "id")
+    @JoinColumn(name = "product_id", insertable=false, updatable=false)
     private Product product;
+
+    public ProductOption() {
+
+    }
 }
