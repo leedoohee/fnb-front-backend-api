@@ -119,7 +119,7 @@ public class OrderProcessor {
         for (Product product : products) {
             int memberShipPrice = 0;
 
-            assert !product.isAvailableUseCoupon() : "쿠폰 사용이 불가능한 상품입니다.";
+            assert product.isAvailableUseCoupon() : "쿠폰 사용이 불가능한 상품입니다.";
 
             if (product.inMemberShipDiscount(member)) {
                 memberShipPrice = this.calculateMemberShipToProduct(product, member);
