@@ -38,12 +38,10 @@ public class Cart {
     @JoinColumn(name = "member_id", insertable=false, updatable=false)
     private Member member;
 
-    // Cart가 PRODUCT_ID 외래 키를 가집니다. (주인)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "product_id", insertable=false, updatable=false)
     private Product product;
 
-    // CartItem에 의해 매핑됩니다. (주인이 아님)
     @OneToMany(mappedBy = "cart")
     private List<CartItem> cartItems;
 

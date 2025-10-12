@@ -20,6 +20,10 @@ public class MemberRepository {
         this.em = em;
     }
 
+    public void insertMember(Member member) {
+        em.persist(member);
+    }
+
     public Member findMember(String memberId) {
 
         CriteriaBuilder cb         = em.getCriteriaBuilder();

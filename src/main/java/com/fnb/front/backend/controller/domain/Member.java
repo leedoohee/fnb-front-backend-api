@@ -1,9 +1,7 @@
 package com.fnb.front.backend.controller.domain;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -12,7 +10,8 @@ import java.util.List;
 @Getter
 @Setter
 @Entity
-@NoArgsConstructor // Satisfies JPA requirement for a default constructor
+@Builder
+@AllArgsConstructor // Satisfies JPA requirement for a default constructor
 @Table(name = "member")
 public class Member {
 
@@ -83,6 +82,10 @@ public class Member {
 
     @OneToMany(mappedBy = "member")
     private List<Order> orders;
+
+    public Member() {
+
+    }
 
     public boolean isCanPurchase() {
         return status.equals("1");

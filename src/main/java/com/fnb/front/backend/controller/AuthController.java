@@ -2,6 +2,7 @@ package com.fnb.front.backend.controller;
 
 import com.fnb.front.backend.Service.AuthService;
 import com.fnb.front.backend.controller.domain.request.LoginRequest;
+import com.fnb.front.backend.controller.domain.request.SignInRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -15,8 +16,13 @@ public class AuthController {
 
     private final AuthService authService;
 
-    @PostMapping("/login")
+    @PostMapping("/auth/login")
     public ResponseEntity<String> login(@Valid @RequestBody LoginRequest request) {
         return ResponseEntity.ok(this.authService.login(request));
+    }
+
+    @PostMapping("/auth/sign-up")
+    public ResponseEntity<Boolean> signUp(@Valid @RequestBody SignInRequest request) {
+        return ResponseEntity.ok(this.authService.signUp(request));
     }
 }
