@@ -29,8 +29,6 @@ public class CartService {
                             .createdAt(LocalDateTime.now())
                             .build());
 
-        assert cartId <= 0 : "장바구니 저장중 오류가 발생하였습니다.";
-
         for (CartItemRequest cartItemRequest : cartRequest.getCartItemRequests()) {
             this.cartRepository.insertCartItem(CartItem.builder()
                         .cartId(cartId)
@@ -55,7 +53,7 @@ public class CartService {
     public boolean update(CartUpdateRequest cartUpdateRequest) {
         Cart cart = this.cartRepository.findCart(cartUpdateRequest.getCartId());
 
-        assert cart == null : "장바구니가 존재하지 않습니다.";
+        assert cart != null : "장바구니가 존재하지 않습니다.";
 
         this.cartRepository.updateCart(cartUpdateRequest.getCartId(), cartUpdateRequest.getQuantity());
 

@@ -2,15 +2,10 @@ package com.fnb.front.backend.controller.domain.pay;
 
 import com.fnb.front.backend.controller.domain.implement.IPay;
 
-import com.fnb.front.backend.controller.domain.response.ApprovePaymentResponse;
-import com.fnb.front.backend.controller.domain.response.KakaoPayApproveResponse;
-import com.fnb.front.backend.controller.domain.response.KakaoPayRequestResponse;
-import com.fnb.front.backend.controller.domain.response.RequestPaymentResponse;
+import com.fnb.front.backend.controller.domain.response.*;
 import com.fnb.front.backend.controller.domain.request.RequestPayment;
-import com.fnb.front.backend.controller.dto.ApprovePaymentDto;
 import com.fnb.front.backend.controller.dto.CancelPaymentDto;
-import com.fnb.front.backend.controller.dto.KakaoPayApproveDto;
-import com.fnb.front.backend.controller.dto.KakaoPayRequestDto;
+import com.fnb.front.backend.controller.dto.*;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -120,7 +115,44 @@ public class KakaoPay implements IPay {
     }
 
     @Override
-    public void cancel(CancelPaymentDto cancelPaymentDto) {
+    public CancelPaymentDto cancel(RequestCancelPaymentDto cancelPaymentDto) {
+        CancelPaymentDto cancelPaymentResponse = null;
+        RestTemplate restTemplate = new RestTemplate();
+        KakaoPayCancelDto requestBody = KakaoPayCancelDto.builder()
+                .cid("kakao")
+                .tid(cancelPaymentDto.getTransactionId())
+                .cancel_amount(cancelPaymentDto.getCancelAmount())
+                .cancel_tax_free_amount(cancelPaymentDto.getCancelAmount())
+                .build();
 
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", "SECRET_KEY " + SECRET_KEY);
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        HttpEntity<KakaoPayCancelDto> httpEntity = new HttpEntity<>(requestBody, headers);
+
+        try {
+            KakaoPayCancelResponse response = restTemplate.postForObject(APPROVE_API_URL, httpEntity, KakaoPayCancelResponse.class);
+
+            cancelPaymentResponse = CancelPaymentDto.builder()
+                    .approvalId(Objects.requireNonNull(response).getAid())
+                    .transactionId(response.getTid())
+                    .productName(response.getItemName())
+                    .quantity(response.getQuantity())
+                    .totalAmount(response.getCancelAmount().getTotal())
+                    .taxFree(response.getCancelAmount().getTaxFree())
+                    .vat(response.getCancelAmount().getVat())
+                    .point(response.getCancelAmount().getPoint())
+                    .discount(response.getCancelAmount().getDiscount())
+                    .greenDeposit(response.getCancelAmount().getGreenDeposit())
+                    .approvedAt(LocalDateTime.parse(response.getApprovedAt()))
+                    .cancelAt(LocalDateTime.parse(response.getCancelAt()))
+                    .build();
+
+        } catch (Exception e) {
+            return null;
+        }
+
+        return cancelPaymentResponse;
     }
 }

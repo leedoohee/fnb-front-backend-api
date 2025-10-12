@@ -2,10 +2,11 @@ package com.fnb.front.backend.controller.domain.pay;
 
 import com.fnb.front.backend.controller.domain.implement.IPay;
 import com.fnb.front.backend.controller.domain.response.ApprovePaymentResponse;
+import com.fnb.front.backend.controller.dto.CancelPaymentDto;
 import com.fnb.front.backend.controller.domain.response.RequestPaymentResponse;
 import com.fnb.front.backend.controller.dto.ApprovePaymentDto;
-import com.fnb.front.backend.controller.dto.CancelPaymentDto;
 import com.fnb.front.backend.controller.domain.request.RequestPayment;
+import com.fnb.front.backend.controller.dto.RequestCancelPaymentDto;
 
 public class TossPay implements IPay {
 
@@ -29,7 +30,7 @@ public class TossPay implements IPay {
     }
 
     @Override
-    public void cancel(CancelPaymentDto cancelPaymentDto) {
-
+    public CancelPaymentDto cancel(RequestCancelPaymentDto cancelPaymentDto) {
+        return null;
     }
 }

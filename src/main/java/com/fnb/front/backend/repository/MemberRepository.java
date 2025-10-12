@@ -5,10 +5,7 @@ import com.fnb.front.backend.controller.domain.MemberCoupon;
 import com.fnb.front.backend.controller.domain.MemberPoint;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.TypedQuery;
-import jakarta.persistence.criteria.CriteriaBuilder;
-import jakarta.persistence.criteria.CriteriaQuery;
-import jakarta.persistence.criteria.Predicate;
-import jakarta.persistence.criteria.Root;
+import jakarta.persistence.criteria.*;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -47,6 +44,18 @@ public class MemberRepository {
         return typedQuery.getResultList();
     }
 
+    public MemberPoint findMemberPoint(String orderId) {
+
+        CriteriaBuilder cb              = em.getCriteriaBuilder();
+        CriteriaQuery<MemberPoint> cq   = cb.createQuery(MemberPoint.class);
+        Root<MemberPoint> root          = cq.from(MemberPoint.class);
+
+        cq = cq.where(cb.and(cb.equal(root.get("orderId"), orderId)));
+        TypedQuery<MemberPoint> typedQuery = em.createQuery(cq);
+
+        return typedQuery.getSingleResult();
+    }
+
     public List<MemberCoupon> findMemberCoupons(String memberId) {
         List<Predicate> searchConditions    = new ArrayList<>();
 
@@ -77,5 +86,24 @@ public class MemberRepository {
         TypedQuery<MemberCoupon> typedQuery = em.createQuery(cq);
 
         return typedQuery.getResultList();
+    }
+
+    public void updateMinusPoint(String memberId, int point) {
+        List<Predicate> searchConditions    = new ArrayList<>();
+        CriteriaBuilder cb                  = this.em.getCriteriaBuilder();
+
+        CriteriaUpdate<Member> update = cb.createCriteriaUpdate(Member.class);
+        Root<Member> root = update.from(Member.class);
+
+        Expression<Integer> currentPoints = root.get("points");
+        Expression<Integer> newPoints     = cb.mod(currentPoints, point);
+
+        update.set("points", newPoints);
+
+        searchConditions.add(cb.equal(root.get("memberId"), memberId));
+
+        update.where(cb.and(searchConditions.toArray(new Predicate[0])));
+
+        this.em.createQuery(update).executeUpdate();
     }
 }

@@ -21,20 +21,18 @@ public class CouponRepository {
         this.em = em;
     }
 
-    public int insertMemberCoupon(MemberCoupon memberCoupon) {
+    public void insertMemberCoupon(MemberCoupon memberCoupon) {
         em.persist(memberCoupon);
-
-        return memberCoupon.getId();
     }
 
-    public void updateUsedMemberCoupon(String memberId, int couponId) {
+    public void updateUsedMemberCoupon(String memberId, int couponId, String isUsed) {
         List<Predicate> searchConditions    = new ArrayList<>();
         CriteriaBuilder cb = this.em.getCriteriaBuilder();
 
         CriteriaUpdate<MemberCoupon> update = cb.createCriteriaUpdate(MemberCoupon.class);
         Root<MemberCoupon> root = update.from(MemberCoupon.class);
 
-        update.set("isUsed", "0");
+        update.set("isUsed", isUsed);
 
         searchConditions.add(cb.equal(root.get("memberId"), memberId));
         searchConditions.add(cb.equal(root.get("couponId"), couponId));
@@ -95,7 +93,6 @@ public class CouponRepository {
         TypedQuery<MemberCoupon> typedQuery = em.createQuery(cq);
 
         return typedQuery.getSingleResult();
-
     }
 
     public List<Coupon> findCoupons(List<Integer> couponIds) {

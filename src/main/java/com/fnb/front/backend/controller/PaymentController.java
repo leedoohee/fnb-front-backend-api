@@ -4,6 +4,7 @@ import com.fnb.front.backend.Service.PaymentService;
 import com.fnb.front.backend.controller.domain.response.RequestPaymentResponse;
 import com.fnb.front.backend.controller.dto.ApprovePaymentDto;
 import com.fnb.front.backend.controller.domain.request.RequestPayment;
+import com.fnb.front.backend.controller.dto.CancelPaymentDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -23,7 +24,12 @@ public class PaymentController {
     }
 
     @PostMapping("/payment/kakao/approve")
-    public ResponseEntity<Boolean> approve(@RequestBody ApprovePaymentDto approvePaymentDto) {
+    public ResponseEntity<Boolean> approveKakao(@RequestBody ApprovePaymentDto approvePaymentDto) {
         return ResponseEntity.ok(this.paymentService.approveKakaoResult(approvePaymentDto));
+    }
+
+    @PostMapping("/payment/kakao/cancel")
+    public ResponseEntity<Boolean> cancelKakao(@RequestBody CancelPaymentDto cancelPaymentDto) {
+        return ResponseEntity.ok(this.paymentService.cancelKakaoResult(cancelPaymentDto));
     }
 }

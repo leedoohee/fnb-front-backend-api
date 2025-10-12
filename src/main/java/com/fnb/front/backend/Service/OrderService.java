@@ -69,7 +69,7 @@ public class OrderService {
         this.insertOrderProducts(newOrderProducts);
 
         if(this.isNonExecutePaymentGateWay(createOrderDto.getOrderProducts())) {
-            this.paymentService.insertPayments(createOrderDto.getOrderId(), null);
+            this.paymentService.insertPayments(createOrderDto.getOrderId(), null, null);
         }
 
         return OrderResponse.builder()

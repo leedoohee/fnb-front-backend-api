@@ -3,9 +3,11 @@ package com.fnb.front.backend.Service;
 import com.fnb.front.backend.controller.domain.*;
 import com.fnb.front.backend.controller.domain.processor.PaymentProcessor;
 import com.fnb.front.backend.controller.domain.response.ApprovePaymentResponse;
+import com.fnb.front.backend.controller.dto.CancelPaymentDto;
 import com.fnb.front.backend.controller.domain.response.RequestPaymentResponse;
 import com.fnb.front.backend.controller.dto.ApprovePaymentDto;
 import com.fnb.front.backend.controller.domain.request.RequestPayment;
+import com.fnb.front.backend.controller.dto.RequestCancelPaymentDto;
 import com.fnb.front.backend.repository.*;
 import com.fnb.front.backend.util.CommonUtil;
 import lombok.RequiredArgsConstructor;
@@ -44,25 +46,65 @@ public class PaymentService {
 
         assert response == null : "결제 API 호출 결과가 실패하였습니다";
 
-        return this.insertPayments(response.getOrderId(), response);
+        return this.insertPayments(response.getOrderId(), response, "K");
     }
 
-    public boolean insertPayments(String orderId, ApprovePaymentResponse approvePaymentResponse) {
+    @Transactional
+    public boolean cancelKakaoResult(CancelPaymentDto cancelPaymentDto) {
+        PaymentElement paymentElement = this.paymentRepository.findPaymentElement(cancelPaymentDto.getTransactionId());
+
+        if (paymentElement == null) {
+            return true;
+        }
+
+        Payment payment = this.paymentRepository.findPayment(paymentElement.getPaymentId());
+
+        this.afterCancelForPoint(payment.getOrder().getOrderId());
+        this.afterCancelForProduct(payment.getOrder().getOrderProducts());
+        this.afterCancelForCoupon(payment.getOrder().getOrderProducts());
+
+        int cancelId = this.paymentRepository.insertPaymentCancel(PaymentCancel.builder()
+                        .cancelAmount(BigDecimal.valueOf(cancelPaymentDto.getTotalAmount()))
+                        .cancelAt(cancelPaymentDto.getCancelAt())
+                        .cancelStatus("1")
+                        .orderId(payment.getOrderId())
+                        .build());
+
+        this.paymentRepository.insertPaymentElement(PaymentElement.builder()
+                .paymentType("CANCEL")
+                .paymentId(cancelId)
+                .transactionId(cancelPaymentDto.getTransactionId())
+                .amount(BigDecimal.valueOf(cancelPaymentDto.getTotalAmount()))
+                .taxFree(BigDecimal.valueOf(cancelPaymentDto.getTaxFree()))
+                .vat(BigDecimal.valueOf(cancelPaymentDto.getVat()))
+                .approvedAt(cancelPaymentDto.getApprovedAt())
+                .createdAt(LocalDateTime.now())
+                .updatedAt(LocalDateTime.now())
+                .build());
+
+        return true;
+    }
+
+    public boolean insertPayments(String orderId, ApprovePaymentResponse approvePaymentResponse, String payType) {
         Order order = this.orderService.getOrder(orderId);
 
-        boolean productResult = this.afterProcessForProduct(order.getOrderProducts());
-        boolean couponResult  = this.afterProcessForCoupon(order.getMember(), order.getOrderProducts());
-        boolean pointResult   = this.afterProcessForPoint(order, order.getMember(),
+        boolean productResult = this.afterApproveForProduct(order.getOrderProducts());
+        boolean couponResult  = this.afterApproveForCoupon(order.getMember(), order.getOrderProducts());
+        boolean pointResult   = this.afterApproveForPoint(order, order.getMember(),
                 order.getTotalAmount(), BigDecimal.valueOf(order.getTotalAmount().intValue() - order.getCouponAmount() - order.getUsePoint().intValue()));
 
         if (!(productResult && couponResult && pointResult)) {
             if (approvePaymentResponse != null) {
-                //TODO 취소로직 구현
+                PaymentProcessor paymentProcessor  = new PaymentProcessor(PayFactory.getPay(payType));
+                CancelPaymentDto response          = paymentProcessor.cancel(RequestCancelPaymentDto.builder()
+                                                        .cancelAmount(approvePaymentResponse.getTotalAmount())
+                                                        .cancelTaxFreeAmount(approvePaymentResponse.getTaxFree())
+                                                        .transactionId(approvePaymentResponse.getTransactionId()).build());
+
+                assert response != null : "결제취소 과정 중 오류가 발생하였습니다.";
             }
 
-            assert !productResult : "재고가 부족합니다.";
-            assert !couponResult  : "쿠폰이 존재하지 않습니다.";
-            assert !pointResult   : "포인트가 부족합니다";
+            assert false : "결제 후처리 과정에서 오류가 발생하였습니다.";
         }
 
         int couponAmount = order.getCouponAmount();
@@ -95,35 +137,36 @@ public class PaymentService {
             String emptyField = null;
 
             this.paymentRepository.insertPaymentElement(PaymentElement.builder()
-                    .paymentId(paymentId)
-                    .paymentMethod(approvePaymentResponse.getPaymentMethod())
-                    .transactionId(approvePaymentResponse.getTransactionId())
-                    .amount(approvePaymentResponse.getTotalAmount())
-                    .taxFree(approvePaymentResponse.getTaxFree())
-                    .vat(approvePaymentResponse.getVat())
-                    .approvedAt(approvePaymentResponse.getApprovedAt())
-                    .cardType(approvePaymentResponse.getCardType())
-                    .cardNumber(cardNumber)
-                    .install(approvePaymentResponse.getInstall())
-                    .isFreeInstall(approvePaymentResponse.getIsFreeInstall())
-                    .installType(approvePaymentResponse.getInstallType())
-                    .cardCorp(approvePaymentResponse.getCardCorp())
-                    .cardCorpCode(approvePaymentResponse.getCardCorpCode())
-                    .binNumber(approvePaymentResponse.getBinNumber())
-                    .issuer(approvePaymentResponse.getIssuer())
-                    .issuerCode(approvePaymentResponse.getIssuerCode())
-                    .bankName(emptyField)
-                    .accountNumber(emptyField)
-                    .accountType(emptyField)
-                    .createdAt(LocalDateTime.now())
-                    .updatedAt(LocalDateTime.now())
-                    .build());
+                                    .paymentType("APPROVE")
+                                    .paymentId(paymentId)
+                                    .paymentMethod(approvePaymentResponse.getPaymentMethod())
+                                    .transactionId(approvePaymentResponse.getTransactionId())
+                                    .amount(approvePaymentResponse.getTotalAmount())
+                                    .taxFree(approvePaymentResponse.getTaxFree())
+                                    .vat(approvePaymentResponse.getVat())
+                                    .approvedAt(approvePaymentResponse.getApprovedAt())
+                                    .cardType(approvePaymentResponse.getCardType())
+                                    .cardNumber(cardNumber)
+                                    .install(approvePaymentResponse.getInstall())
+                                    .isFreeInstall(approvePaymentResponse.getIsFreeInstall())
+                                    .installType(approvePaymentResponse.getInstallType())
+                                    .cardCorp(approvePaymentResponse.getCardCorp())
+                                    .cardCorpCode(approvePaymentResponse.getCardCorpCode())
+                                    .binNumber(approvePaymentResponse.getBinNumber())
+                                    .issuer(approvePaymentResponse.getIssuer())
+                                    .issuerCode(approvePaymentResponse.getIssuerCode())
+                                    .bankName(emptyField)
+                                    .accountNumber(emptyField)
+                                    .accountType(emptyField)
+                                    .createdAt(LocalDateTime.now())
+                                    .updatedAt(LocalDateTime.now())
+                                    .build());
         }
 
         return true;
     }
 
-    private boolean afterProcessForProduct(List<OrderProduct> orderProducts) {
+    private boolean afterApproveForProduct(List<OrderProduct> orderProducts) {
         for (OrderProduct orderProduct : orderProducts) {
             if(orderProduct.getProduct() != null && orderProduct.getProduct().isInfiniteQty()) {
                 continue;
@@ -134,14 +177,14 @@ public class PaymentService {
                 return false;
             }
 
-            this.productRepository.updateQuantity(Objects.requireNonNull(orderProduct.getProduct()).getId(),
+            this.productRepository.updateMinusQuantity(Objects.requireNonNull(orderProduct.getProduct()).getId(),
                     orderProduct.getQuantity());
         }
 
         return true;
     }
 
-    private boolean afterProcessForCoupon(Member member, List<OrderProduct> orderProducts) {
+    private boolean afterApproveForCoupon(Member member, List<OrderProduct> orderProducts) {
         List<Integer> couponIdList       = orderProducts.stream().map(OrderProduct::getCouponId).toList();
         List<MemberCoupon> memberCoupons = this.memberRepository.findMemberCoupons(member.getMemberId(), couponIdList);
 
@@ -155,27 +198,28 @@ public class PaymentService {
                return false;
             }
 
-            this.couponRepository.updateUsedMemberCoupon(member.getMemberId(), couponId);
+            this.couponRepository.updateUsedMemberCoupon(member.getMemberId(), couponId, "0");
         }
 
         return true;
     }
 
-    private boolean afterProcessForPoint(Order order, Member member, BigDecimal totalProductAmount, BigDecimal paymentAmount) {
+    private boolean afterApproveForPoint(Order order, Member member, BigDecimal totalProductAmount, BigDecimal paymentAmount) {
         //TODO 페이에 따른 추가적립
-        int applyPoint = this.applyGradePointForOrder(member, totalProductAmount, paymentAmount);
 
-        if (!member.isUsablePoint(member.getPoints())) {
+        int usePoint = order.getUsePoint().intValue();
+
+        if (!member.isUsablePoint(usePoint)) {
             return false;
         }
 
-        BigDecimal usePoint = order.getUsePoint();
+        int applyPoint = this.applyGradePointForOrder(member, totalProductAmount, paymentAmount);
 
         MemberPoint minusPoint = MemberPoint.builder()
                 .pointType(0) // 차감
                 .orderId(order.getOrderId())
-                .memberId(member.getId())
-                .amount(usePoint.intValue())
+                .memberId(member.getMemberId())
+                .amount(usePoint)
                 .isUsed("1")
                 .build();
 
@@ -184,7 +228,7 @@ public class PaymentService {
         MemberPoint plusPoint = MemberPoint.builder()
                 .pointType(1) // 적립
                 .orderId(order.getOrderId())
-                .memberId(member.getId())
+                .memberId(member.getMemberId())
                 .amount(applyPoint)
                 .isUsed("1")
                 .build();
@@ -218,5 +262,29 @@ public class PaymentService {
         }
 
         return point;
+    }
+
+    private void afterCancelForPoint(String orderId) {
+        MemberPoint memberPoint = this.memberRepository.findMemberPoint(orderId);
+        this.memberRepository.updateMinusPoint(memberPoint.getMemberId(), memberPoint.getAmount());
+        this.pointRepository.deleteMemberPoint(orderId);
+    }
+
+    private void afterCancelForCoupon(List<OrderProduct> orderProducts) {
+        for (OrderProduct orderProduct : orderProducts) {
+
+            if (orderProduct.getCoupon() == null) {
+                continue;
+            }
+
+            this.couponRepository.updateUsedMemberCoupon(orderProduct.getCoupon().getMemberCoupon().getMemberId(),
+                                            orderProduct.getCoupon().getMemberCoupon().getId(), "1");
+        }
+    }
+
+    private void afterCancelForProduct(List<OrderProduct> orderProducts) {
+        for (OrderProduct orderProduct : orderProducts) {
+            this.productRepository.updatePlusQuantity(orderProduct.getProduct().getId(), orderProduct.getQuantity());
+        }
     }
 }

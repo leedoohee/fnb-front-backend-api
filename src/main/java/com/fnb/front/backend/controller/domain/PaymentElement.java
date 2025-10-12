@@ -19,6 +19,9 @@ public class PaymentElement {
     @Column(name = "id", updatable = false, nullable = false)
     private int id;
 
+    @Column(name = "payment_type", nullable = false)
+    private String paymentType; //결제, 취소
+
     @Column(name = "payment_id", nullable = false)
     private int paymentId;
 

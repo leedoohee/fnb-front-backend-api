@@ -1,6 +1,7 @@
 package com.fnb.front.backend.controller.domain;
 
 import jakarta.persistence.*;
+import jakarta.persistence.criteria.Fetch;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -98,6 +99,10 @@ public class Coupon {
 
     @OneToOne(mappedBy = "coupon")
     private MemberCoupon memberCoupon;
+
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "couponId")
+    private OrderProduct orderProduct;
 
     public Coupon() {
 

@@ -61,6 +61,9 @@ public class OrderProduct {
     @JoinColumn(name = "id")
     private Product product;
 
+    @OneToOne(mappedBy = "orderProduct")
+    private Coupon coupon;
+
     public OrderProduct() {
 
     }

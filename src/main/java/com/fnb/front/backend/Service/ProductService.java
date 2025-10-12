@@ -77,8 +77,7 @@ public class ProductService {
             return true;
         }
 
-        assert !CommonUtil.isMinAndMaxBetween(product.getMinQuantity(), product.getMaxQuantity(), quantity) :
-                "주문 수량이 초과 또는 미만입니다.";
+        assert CommonUtil.isMinAndMaxBetween(product.getMinQuantity(), product.getMaxQuantity(), quantity) : "주문 수량이 초과 또는 미만입니다.";
 
         return true;
     }

@@ -1,16 +1,13 @@
 package com.fnb.front.backend.repository;
 
-import com.fnb.front.backend.controller.domain.Payment;
-import com.fnb.front.backend.controller.domain.PaymentElement;
-import com.fnb.front.backend.controller.domain.PaymentType;
-import com.fnb.front.backend.controller.domain.Product;
+import com.fnb.front.backend.controller.domain.*;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.TypedQuery;
-import jakarta.persistence.criteria.CriteriaBuilder;
-import jakarta.persistence.criteria.CriteriaQuery;
-import jakarta.persistence.criteria.Root;
+import jakarta.persistence.criteria.*;
+import jakarta.persistence.criteria.Order;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Component
@@ -27,8 +24,15 @@ public class PaymentRepository {
         return payment.getId();
     }
 
-    public void insertPaymentElement(PaymentElement paymentElement) {
+    public int insertPaymentCancel(PaymentCancel paymentCancel) {
+        em.persist(paymentCancel);
+        return paymentCancel.getId();
+    }
+
+    public int insertPaymentElement(PaymentElement paymentElement) {
         em.persist(paymentElement);
+
+        return paymentElement.getId();
     }
 
     public List<PaymentType> findPaymentType() {
@@ -43,4 +47,36 @@ public class PaymentRepository {
         return typedQuery.getResultList();
     }
 
+    public PaymentElement findPaymentElement(String transactionId) {
+        CriteriaBuilder cb                  = em.getCriteriaBuilder();
+        CriteriaQuery<PaymentElement> cq    = cb.createQuery(PaymentElement.class);
+        Root<PaymentElement> root           = cq.from(PaymentElement.class);
+
+        cq = cq.where(cb.and(cb.equal(root.get("transactionId"), transactionId)));
+
+        TypedQuery<PaymentElement> typedQuery = em.createQuery(cq);
+
+        return typedQuery.getSingleResult();
+    }
+
+    public Payment findPayment(int paymentId) {
+        List<Predicate> searchConditions    = new ArrayList<>();
+        CriteriaBuilder cb                  = em.getCriteriaBuilder();
+        CriteriaQuery<Payment> cq           = cb.createQuery(Payment.class);
+        Root<Payment> root                  = cq.from(Payment.class);
+
+        Fetch<Payment, Order> orderFetch = root.fetch("order", JoinType.INNER);
+        Fetch<Order, OrderProduct> orderProductFetch = orderFetch.fetch("orderProduct", JoinType.INNER);
+        orderProductFetch.fetch("product", JoinType.INNER);
+        Fetch<OrderProduct, Coupon> couponFetch      = orderProductFetch.fetch("coupon", JoinType.LEFT);
+        couponFetch.fetch("memberCoupon", JoinType.INNER);
+
+        cq = cq.select(root)
+                .where(cb.and(cb.equal(root.get("paymentId"), paymentId)))
+                .distinct(true);
+
+        TypedQuery<Payment> typedQuery = em.createQuery(cq);
+
+        return typedQuery.getSingleResult();
+    }
 }

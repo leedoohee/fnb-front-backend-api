@@ -71,7 +71,7 @@ public class ProductRepository {
         return typedQuery.getResultList();
     }
 
-    public void updateQuantity(int productId, int quantity) {
+    public void updateMinusQuantity(int productId, int quantity) {
         CriteriaBuilder cb = this.em.getCriteriaBuilder();
 
         CriteriaUpdate<Product> update = cb.createCriteriaUpdate(Product.class);
@@ -79,6 +79,21 @@ public class ProductRepository {
 
         Expression<Integer> currentQuantity = root.get("quantity");
         Expression<Integer> newQuantity     = cb.diff(currentQuantity, quantity);
+
+        update.set("quantity", newQuantity);
+        update.where(cb.and(cb.equal(root.get("productId"), productId)));
+
+        this.em.createQuery(update).executeUpdate();
+    }
+
+    public void updatePlusQuantity(int productId, int quantity) {
+        CriteriaBuilder cb = this.em.getCriteriaBuilder();
+
+        CriteriaUpdate<Product> update = cb.createCriteriaUpdate(Product.class);
+        Root<Product> root = update.from(Product.class);
+
+        Expression<Integer> currentQuantity = root.get("quantity");
+        Expression<Integer> newQuantity     = cb.mod(currentQuantity, quantity);
 
         update.set("quantity", newQuantity);
         update.where(cb.and(cb.equal(root.get("productId"), productId)));
