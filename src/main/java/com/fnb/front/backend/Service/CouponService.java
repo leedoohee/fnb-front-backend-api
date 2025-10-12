@@ -81,18 +81,6 @@ public class CouponService {
     }
 
     private boolean isUsableCoupon(Coupon coupon, Member member) {
-        if (!coupon.isAvailableStatus()) {
-            return false;
-        }
-
-        if (!coupon.isBelongToAvailableGrade(member)) {
-            return false;
-        }
-
-        if (!coupon.isCanApplyDuring()) {
-            return false;
-        }
-
-        return true;
+        return coupon.isAvailableStatus() && coupon.isBelongToAvailableGrade(member) && coupon.isCanApplyDuring();
     }
 }
