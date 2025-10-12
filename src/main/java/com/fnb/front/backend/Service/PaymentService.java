@@ -44,7 +44,7 @@ public class PaymentService {
         PaymentProcessor paymentProcessor   = new PaymentProcessor(PayFactory.getPay("K"));
         ApprovePaymentResponse response     = paymentProcessor.approve(approvePaymentDto);
 
-        assert response == null : "결제 API 호출 결과가 실패하였습니다";
+        assert response != null : "결제 API 호출 결과가 실패하였습니다";
 
         return this.insertPayments(response.getOrderId(), response, "K");
     }

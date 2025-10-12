@@ -24,6 +24,9 @@ public class Member {
     @Column(name = "member_id", unique = true, nullable = false)
     private String memberId;
 
+    @Column(name = "password", nullable = false)
+    private String password;
+
     @Column(name = "name", nullable = false)
     private String name;
 
@@ -66,6 +69,9 @@ public class Member {
 
     @Column(name = "grade") // Duplicative of memberGrade, but kept per original
     private String grade;
+
+    @Column(name = "role")
+    private String role;
 
     @OneToMany(mappedBy = "member")
     private List<Cart> carts;
