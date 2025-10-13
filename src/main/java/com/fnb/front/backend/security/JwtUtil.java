@@ -1,4 +1,4 @@
-package com.fnb.front.backend.util;
+package com.fnb.front.backend.security;
 
 import com.fnb.front.backend.controller.domain.Member;
 import io.jsonwebtoken.*;
@@ -45,8 +45,8 @@ public class JwtUtil {
     private String createToken(Member member, long expireTime) {
         Claims claims = Jwts.claims();
         claims.put("memberId", member.getMemberId());
-        claims.put("email", member.getEmail());
-        claims.put("role", member.getRole());
+        //claims.put("email", member.getEmail());
+        //claims.put("role", member.getRole());
 
         ZonedDateTime now = ZonedDateTime.now();
         ZonedDateTime tokenValidity = now.plusSeconds(expireTime);
@@ -62,11 +62,12 @@ public class JwtUtil {
 
     /**
      * Token에서 User ID 추출
+     *
      * @param token
      * @return User ID
      */
-    public Long getUserId(String token) {
-        return parseClaims(token).get("memberId", Long.class);
+    public String getMemberId(String token) {
+        return parseClaims(token).get("memberId", String.class);
     }
 
 

@@ -1,4 +1,4 @@
-package com.fnb.front.backend.Service;
+package com.fnb.front.backend.security;
 
 import com.fnb.front.backend.controller.domain.Member;
 import com.fnb.front.backend.repository.MemberRepository;
@@ -8,9 +8,9 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-@Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
+@Service
 public class CustomUserDetailsService implements UserDetailsService {
     private final MemberRepository memberRepository;
 

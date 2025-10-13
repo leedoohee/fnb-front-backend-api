@@ -10,6 +10,7 @@ import com.fnb.front.backend.controller.domain.request.OrderCouponRequest;
 import com.fnb.front.backend.controller.domain.request.OrderProductRequest;
 import com.fnb.front.backend.controller.domain.request.OrderRequest;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,8 +29,6 @@ public class OrderService {
     private final MemberRepository memberRepository;
 
     private final OrderRepository orderRepository;
-
-    private final PaymentService paymentService;
 
     @Transactional
     public OrderResponse create(OrderRequest orderRequest) {
@@ -68,8 +67,9 @@ public class OrderService {
 
         this.insertOrderProducts(newOrderProducts);
 
-        if(this.isNonExecutePaymentGateWay(createOrderDto.getOrderProducts())) {
-            this.paymentService.insertPayments(createOrderDto.getOrderId(), null, null);
+        if (this.isNonExecutePaymentGateWay(createOrderDto.getOrderProducts())) {
+            //TODO 순환참조 가운데 새로운클래스 생각해보기
+            //this.paymentService.insertPayments(createOrderDto.getOrderId(), null, null);
         }
 
         return OrderResponse.builder()

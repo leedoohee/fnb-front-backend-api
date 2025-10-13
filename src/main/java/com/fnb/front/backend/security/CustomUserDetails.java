@@ -1,4 +1,4 @@
-package com.fnb.front.backend.Service;
+package com.fnb.front.backend.security;
 
 import com.fnb.front.backend.controller.domain.Member;
 import lombok.RequiredArgsConstructor;

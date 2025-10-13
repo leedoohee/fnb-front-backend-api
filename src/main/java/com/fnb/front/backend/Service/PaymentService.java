@@ -11,6 +11,7 @@ import com.fnb.front.backend.controller.dto.RequestCancelPaymentDto;
 import com.fnb.front.backend.repository.*;
 import com.fnb.front.backend.util.CommonUtil;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -100,7 +101,8 @@ public class PaymentService {
                                                         .cancelAmount(approvePaymentResponse.getTotalAmount())
                                                         .cancelTaxFreeAmount(approvePaymentResponse.getTaxFree())
                                                         .transactionId(approvePaymentResponse.getTransactionId()).build());
-
+                
+                //TODO 실패 로그 추가
                 assert response != null : "결제취소 과정 중 오류가 발생하였습니다.";
             }
 

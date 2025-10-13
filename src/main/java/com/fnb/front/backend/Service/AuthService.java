@@ -4,7 +4,7 @@ import com.fnb.front.backend.controller.domain.Member;
 import com.fnb.front.backend.controller.domain.request.LoginRequest;
 import com.fnb.front.backend.controller.domain.request.SignInRequest;
 import com.fnb.front.backend.repository.MemberRepository;
-import com.fnb.front.backend.util.JwtUtil;
+import com.fnb.front.backend.security.JwtUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -17,16 +17,16 @@ public class AuthService {
 
     private final JwtUtil jwtUtil;
     private final MemberRepository memberRepository;
-    private final PasswordEncoder encoder;
+    private final PasswordEncoder passwordEncoder;
 
-    public String login(LoginRequest loginRequest) {
+    public String signIn(LoginRequest loginRequest) {
         String memberId = loginRequest.getMemberId();
         String password = loginRequest.getPassword();
 
         Member member = memberRepository.findMember(memberId);
 
         assert member != null : "사용자가 존재하지 않습니다.";
-        assert encoder.matches(password, member.getPassword()) : "비밀번호가 일치하지 않습니다.";
+        assert passwordEncoder.matches(password, member.getPassword()) : "비밀번호가 일치하지 않습니다.";
 
         return jwtUtil.createAccessToken(member);
     }
@@ -39,7 +39,7 @@ public class AuthService {
         this.memberRepository.insertMember(Member.builder()
                                         .memberId(signInRequest.getMemberId())
                                         .email(signInRequest.getEmail())
-                                        .password(encoder.encode(signInRequest.getPassword()))
+                                        .password(passwordEncoder.encode(signInRequest.getPassword()))
                                         .phoneNumber(signInRequest.getPhone())
                                         .address(signInRequest.getAddress())
                                         .joinDate(LocalDate.now())
