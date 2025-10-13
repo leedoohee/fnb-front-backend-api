@@ -20,7 +20,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SecurityConfig  {
     private final CustomUserDetailsService customUserDetailsService;
     private final JwtUtil jwtUtil;
-    private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
+    //private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
     //private final CustomAccessDeniedHandler accessDeniedHandler;
 
     private static final String[] AUTH_WHITELIST = {

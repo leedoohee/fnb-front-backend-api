@@ -53,13 +53,12 @@ public class CartRepository {
         CriteriaQuery<Cart> cq = cb.createQuery(Cart.class);
         Root<Cart> root = cq.from(Cart.class);
 
-        cq = cq.select(root)
-                .where(cb.equal(root.get("id"), cartId))
-                .distinct(true);
+        cq = cq.select(root).where(cb.equal(root.get("cartId"), cartId));
 
-        TypedQuery<Cart> query = em.createQuery(cq);
+        TypedQuery<Cart> typedQuery = em.createQuery(cq);
+        typedQuery.setMaxResults(1);
 
-        return query.getSingleResult();
+        return !typedQuery.getResultList().isEmpty() ? typedQuery.getSingleResult() : null;
     }
 
     public void deleteCart(int cartId) {

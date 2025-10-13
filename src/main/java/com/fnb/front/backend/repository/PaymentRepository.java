@@ -6,6 +6,7 @@ import jakarta.persistence.TypedQuery;
 import jakarta.persistence.criteria.*;
 import jakarta.persistence.criteria.Order;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -19,20 +20,21 @@ public class PaymentRepository {
         this.em = em;
     }
 
+    @Transactional
     public int insertPayment(Payment payment) {
         em.persist(payment);
         return payment.getPaymentId();
     }
 
+    @Transactional
     public int insertPaymentCancel(PaymentCancel paymentCancel) {
         em.persist(paymentCancel);
         return paymentCancel.getId();
     }
 
-    public int insertPaymentElement(PaymentElement paymentElement) {
+    @Transactional
+    public void insertPaymentElement(PaymentElement paymentElement) {
         em.persist(paymentElement);
-
-        return paymentElement.getId();
     }
 
     public List<PaymentType> findPaymentType() {
@@ -55,8 +57,9 @@ public class PaymentRepository {
         cq = cq.where(cb.and(cb.equal(root.get("transactionId"), transactionId)));
 
         TypedQuery<PaymentElement> typedQuery = em.createQuery(cq);
+        typedQuery.setMaxResults(1);
 
-        return typedQuery.getSingleResult();
+        return !typedQuery.getResultList().isEmpty() ? typedQuery.getSingleResult() : null;
     }
 
     public Payment findPayment(int paymentId) {

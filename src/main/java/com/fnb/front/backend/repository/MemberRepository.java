@@ -6,22 +6,22 @@ import com.fnb.front.backend.controller.domain.MemberPoint;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.TypedQuery;
 import jakarta.persistence.criteria.*;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @Component
+@RequiredArgsConstructor
 public class MemberRepository {
 
     private final EntityManager em;
 
-    public MemberRepository(EntityManager em) {
-        this.em = em;
-    }
-
+    @Transactional
     public void insertMember(Member member) {
-        em.persist(member);
+        this.em.persist(member);
     }
 
     public Member findMember(String memberId) {
@@ -31,9 +31,11 @@ public class MemberRepository {
         Root<Member> root          = cq.from(Member.class);
 
         cq = cq.where(cb.and(cb.equal(root.get("memberId"), memberId)));
-        TypedQuery<Member> typedQuery = em.createQuery(cq);
 
-        return typedQuery.getSingleResult();
+        TypedQuery<Member> typedQuery = em.createQuery(cq);
+        typedQuery.setMaxResults(1);
+
+        return !typedQuery.getResultList().isEmpty() ? typedQuery.getSingleResult() : null;
     }
 
     public List<MemberPoint> findMemberPoints(String memberId) {

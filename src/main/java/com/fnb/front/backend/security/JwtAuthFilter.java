@@ -16,7 +16,6 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 
 @Component
-@RequiredArgsConstructor
 @NonNullApi
 public class JwtAuthFilter extends OncePerRequestFilter {
 
@@ -24,6 +23,12 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     private final JwtUtil jwtUtil;
     private final String[] AUTH_WHITELIST;
     private final AntPathMatcher pathMatcher = new AntPathMatcher();
+
+    public JwtAuthFilter(CustomUserDetailsService customUserDetailsService, JwtUtil jwtUtil, String[] authWhitelist) {
+        this.customUserDetailsService = customUserDetailsService;
+        this.jwtUtil = jwtUtil;
+        AUTH_WHITELIST = authWhitelist;
+    }
 
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {

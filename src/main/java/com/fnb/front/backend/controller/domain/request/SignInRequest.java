@@ -13,6 +13,9 @@ public class SignInRequest {
     private String memberId;
 
     @NotBlank
+    private String name;
+
+    @NotBlank
     private String password;
 
     @Email

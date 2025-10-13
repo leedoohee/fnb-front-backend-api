@@ -16,14 +16,6 @@ import org.springframework.stereotype.Service;
 public class PaymentService {
     private final PaymentRepository paymentRepository;
 
-    private final ProductRepository productRepository;
-
-    private final CouponRepository couponRepository;
-
-    private final MemberRepository memberRepository;
-
-    private final PointRepository pointRepository;
-
     private final AfterPaymentService afterPaymentService;
 
     public RequestPaymentResponse request(RequestPayment requestPayment) {
