@@ -1,6 +1,6 @@
 package com.fnb.front.backend.controller;
 
-import com.fnb.front.backend.Service.CouponService;
+import com.fnb.front.backend.service.CouponService;
 import com.fnb.front.backend.controller.domain.response.CouponResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

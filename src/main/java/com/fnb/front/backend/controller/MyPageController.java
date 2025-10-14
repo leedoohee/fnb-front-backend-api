@@ -1,6 +1,6 @@
 package com.fnb.front.backend.controller;
 
-import com.fnb.front.backend.Service.MyPageService;
+import com.fnb.front.backend.service.MyPageService;
 import com.fnb.front.backend.controller.domain.request.MyPageRequest;
 import com.fnb.front.backend.controller.domain.response.MyInfoResponse;
 import com.fnb.front.backend.controller.domain.response.MyOrderResponse;

@@ -1,6 +1,6 @@
 package com.fnb.front.backend.controller;
 
-import com.fnb.front.backend.Service.OrderService;
+import com.fnb.front.backend.service.OrderService;
 import com.fnb.front.backend.controller.domain.response.OrderResponse;
 import com.fnb.front.backend.controller.domain.request.OrderRequest;
 import lombok.RequiredArgsConstructor;

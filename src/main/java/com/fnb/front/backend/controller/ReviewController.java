@@ -1,6 +1,6 @@
 package com.fnb.front.backend.controller;
 
-import com.fnb.front.backend.Service.ReviewService;
+import com.fnb.front.backend.service.ReviewService;
 import com.fnb.front.backend.controller.domain.response.ReviewResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

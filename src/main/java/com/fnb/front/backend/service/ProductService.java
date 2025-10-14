@@ -1,4 +1,4 @@
-package com.fnb.front.backend.Service;
+package com.fnb.front.backend.service;
 
 import com.fnb.front.backend.controller.domain.Product;
 import com.fnb.front.backend.controller.domain.ProductOption;

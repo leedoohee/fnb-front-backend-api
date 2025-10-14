@@ -1,6 +1,6 @@
 package com.fnb.front.backend.controller;
 
-import com.fnb.front.backend.Service.CartService;
+import com.fnb.front.backend.service.CartService;
 import com.fnb.front.backend.controller.domain.request.CartUpdateRequest;
 import com.fnb.front.backend.controller.domain.response.CartInfoResponse;
 import com.fnb.front.backend.controller.domain.request.CartRequest;

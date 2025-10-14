@@ -1,6 +1,6 @@
 package com.fnb.front.backend.controller;
 
-import com.fnb.front.backend.Service.PaymentService;
+import com.fnb.front.backend.service.PaymentService;
 import com.fnb.front.backend.controller.domain.response.RequestPaymentResponse;
 import com.fnb.front.backend.controller.dto.ApprovePaymentDto;
 import com.fnb.front.backend.controller.domain.request.RequestPayment;
