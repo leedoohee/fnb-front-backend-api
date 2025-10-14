@@ -21,26 +21,11 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
     private final CustomUserDetailsService customUserDetailsService;
     private final JwtUtil jwtUtil;
-    private final String[] AUTH_WHITELIST;
     private final AntPathMatcher pathMatcher = new AntPathMatcher();
 
-    public JwtAuthFilter(CustomUserDetailsService customUserDetailsService, JwtUtil jwtUtil, String[] authWhitelist) {
+    public JwtAuthFilter(CustomUserDetailsService customUserDetailsService, JwtUtil jwtUtil) {
         this.customUserDetailsService = customUserDetailsService;
         this.jwtUtil = jwtUtil;
-        AUTH_WHITELIST = authWhitelist;
-    }
-
-    @Override
-    protected boolean shouldNotFilter(HttpServletRequest request) {
-        String requestPath = request.getServletPath();
-
-        for (String whitelistPath : AUTH_WHITELIST) {
-            if (pathMatcher.match(whitelistPath, requestPath)) {
-                return true;
-            }
-        }
-
-        return false;
     }
 
     @Override
@@ -55,8 +40,8 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         if (token != null) {
             if (jwtUtil.validateToken(token)) {
                 try {
-                    String userId = jwtUtil.getMemberId(token);
-                    UserDetails userDetails = customUserDetailsService.loadUserByUsername(userId);
+                    String memberId = jwtUtil.getMemberId(token);
+                    UserDetails userDetails = customUserDetailsService.loadUserByUsername(memberId);
 
                     UsernamePasswordAuthenticationToken authentication =
                             new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());

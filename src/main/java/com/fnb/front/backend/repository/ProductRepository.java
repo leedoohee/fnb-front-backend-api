@@ -31,8 +31,9 @@ public class ProductRepository {
                 .distinct(true);
 
         TypedQuery<Product> typedQuery = em.createQuery(cq);
+        typedQuery.setMaxResults(1);
 
-        return typedQuery.getSingleResult();
+        return !typedQuery.getResultList().isEmpty() ? typedQuery.getResultList().get(0) : null;
     }
 
     public List<Product> findProducts() {

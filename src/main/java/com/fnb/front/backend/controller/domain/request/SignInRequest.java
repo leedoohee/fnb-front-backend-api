@@ -1,7 +1,6 @@
 package com.fnb.front.backend.controller.domain.request;
 
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -9,21 +8,9 @@ import lombok.Setter;
 @Setter
 public class SignInRequest {
 
-    @NotBlank
+    @NotNull(message = "아이디는 필수값입니다.")
     private String memberId;
 
-    @NotBlank
-    private String name;
-
-    @NotBlank
+    @NotNull(message = "비밀번호는 필수값입니다.")
     private String password;
-
-    @Email
-    private String email;
-
-    @NotBlank
-    private String phone;
-
-    @NotBlank
-    private String address;
 }

@@ -7,6 +7,7 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.TypedQuery;
 import jakarta.persistence.criteria.*;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,10 +21,12 @@ public class OrderRepository {
         this.em = em;
     }
 
+    @Transactional
     public void insertOrder(Order order) {
         em.persist(order);
     }
 
+    @Transactional
     public void insertOrderProducts(List<OrderProduct> orderProducts) {
         em.persist(orderProducts);
     }

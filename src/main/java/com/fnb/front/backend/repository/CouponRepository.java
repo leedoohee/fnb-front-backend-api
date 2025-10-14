@@ -7,6 +7,7 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.TypedQuery;
 import jakarta.persistence.criteria.*;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -21,6 +22,7 @@ public class CouponRepository {
         this.em = em;
     }
 
+    @Transactional
     public void insertMemberCoupon(MemberCoupon memberCoupon) {
         em.persist(memberCoupon);
     }
@@ -66,10 +68,11 @@ public class CouponRepository {
         CriteriaQuery<Coupon> cq   = cb.createQuery(Coupon.class);
         Root<Coupon> root          = cq.from(Coupon.class);
 
-        cq = cq.where(cb.and(cb.equal(root.get("id"), couponId)));
+        cq = cq.where(cb.and(cb.equal(root.get("couponId"), couponId)));
         TypedQuery<Coupon> typedQuery = em.createQuery(cq);
+        typedQuery.setMaxResults(1);
 
-        return typedQuery.getSingleResult();
+        return !typedQuery.getResultList().isEmpty() ? typedQuery.getResultList().get(0) : null;
     }
 
     public MemberCoupon findMemberCoupon(String memberId, int couponId) {
@@ -91,8 +94,9 @@ public class CouponRepository {
                 .distinct(true);
 
         TypedQuery<MemberCoupon> typedQuery = em.createQuery(cq);
+        typedQuery.setMaxResults(1);
 
-        return typedQuery.getSingleResult();
+        return !typedQuery.getResultList().isEmpty() ? typedQuery.getResultList().get(0) : null;
     }
 
     public List<Coupon> findCoupons(List<Integer> couponIds) {

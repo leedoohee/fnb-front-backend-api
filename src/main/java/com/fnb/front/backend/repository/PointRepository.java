@@ -9,6 +9,7 @@ import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaDelete;
 import jakarta.persistence.criteria.Root;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 @Component
 public class PointRepository {
@@ -19,6 +20,7 @@ public class PointRepository {
         this.em = em;
     }
 
+    @Transactional
     public void insertMemberPoint(MemberPoint memberPoint) {
         this.em.persist(memberPoint);
     }

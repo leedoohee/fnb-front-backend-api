@@ -23,10 +23,6 @@ public class SecurityConfig  {
     //private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
     //private final CustomAccessDeniedHandler accessDeniedHandler;
 
-    private static final String[] AUTH_WHITELIST = {
-            "/auth/sign-up", "/auth/sign-in"
-    };
-
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
@@ -45,7 +41,7 @@ public class SecurityConfig  {
                 .httpBasic(AbstractHttpConfigurer::disable);
 
         http.addFilterBefore(
-                new JwtAuthFilter(customUserDetailsService, jwtUtil, AUTH_WHITELIST),
+                new JwtAuthFilter(customUserDetailsService, jwtUtil),
                 UsernamePasswordAuthenticationFilter.class
         );
 

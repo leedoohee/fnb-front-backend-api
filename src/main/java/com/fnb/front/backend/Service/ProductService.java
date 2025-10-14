@@ -23,7 +23,9 @@ public class ProductService {
 
     public List<ProductResponse> getProducts() {
         List<ProductResponse> response  = new ArrayList<>();
-        List<Product> products          = productRepository.findProducts();
+        List<Product> products          = this.productRepository.findProducts();
+
+        assert !products.isEmpty() : "상품이 존재하지 않습니다.";
 
         for (Product product : products) {
             response.add(ProductResponse.builder()
@@ -46,6 +48,8 @@ public class ProductService {
         List<ProductOptionResponse>  productOptionResponses      = new ArrayList<>();
         Product product                                          = this.productRepository.findProduct(productId);
         int reviewCount                                          = this.reviewRepository.findReviews(productId).size();
+
+        assert product != null : "존재하지 않는 상품입니다.";
 
         for (ProductOption productOption : product.getProductOption()) {
             productOptionResponses.add(ProductOptionResponse.builder()
@@ -72,6 +76,8 @@ public class ProductService {
 
     public boolean validate(int productId, int quantity) {
         Product product = this.productRepository.findProduct(productId);
+
+        assert product != null : "존재하지 않는 상품입니다.";
 
         if (product.isInfiniteQty()) {
             return true;

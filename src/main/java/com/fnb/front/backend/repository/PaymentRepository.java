@@ -63,7 +63,6 @@ public class PaymentRepository {
     }
 
     public Payment findPayment(int paymentId) {
-        List<Predicate> searchConditions    = new ArrayList<>();
         CriteriaBuilder cb                  = em.getCriteriaBuilder();
         CriteriaQuery<Payment> cq           = cb.createQuery(Payment.class);
         Root<Payment> root                  = cq.from(Payment.class);

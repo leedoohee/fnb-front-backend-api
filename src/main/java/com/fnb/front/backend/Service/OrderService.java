@@ -84,10 +84,6 @@ public class OrderService {
                 .build();
     }
 
-    public Order getOrder(String orderId) {
-        return this.orderRepository.findOrder(orderId);
-    }
-
     private boolean isNonExecutePaymentGateWay(List<CreateOrderProductDto> orderProductRequests) {
         return orderProductRequests.stream()
                 .map(CreateOrderProductDto::getPurchasePrice)
