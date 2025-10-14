@@ -13,8 +13,8 @@ import java.util.List;
 @Builder
 public class CreateOrderDto {
 
-    private int memberId;
-    private String merchantId;
+    private String memberId;
+    private String memberName;
     private String orderId;
     private LocalDateTime orderDate;
     private BigDecimal orderAmount;

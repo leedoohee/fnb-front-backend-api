@@ -44,6 +44,7 @@ public class OrderProcessor {
         return CreateOrderDto.builder()
                 .orderId(this.generateOrderId())
                 .orderDate(LocalDateTime.now())
+                .memberName(this.member.getName())
                 .discountAmount(BigDecimal.valueOf(totalCouponPrice + totalMemberShipPrice).add(this.order.getUsePoint()))
                 .couponAmount(totalCouponPrice)
                 .orderAmount(BigDecimal.valueOf(totalOriginPrice))
