@@ -24,7 +24,7 @@ public class CouponRepository {
 
     @Transactional
     public void insertMemberCoupon(MemberCoupon memberCoupon) {
-        em.persist(memberCoupon);
+        this.em.persist(memberCoupon);
     }
 
     public void updateUsedMemberCoupon(String memberId, int couponId, String isUsed) {
@@ -46,7 +46,7 @@ public class CouponRepository {
 
     public List<Coupon> findCoupons() {
         List<Predicate> searchConditions = new ArrayList<>();
-        CriteriaBuilder cb               = em.getCriteriaBuilder();
+        CriteriaBuilder cb               = this.em.getCriteriaBuilder();
         CriteriaQuery<Coupon> cq         = cb.createQuery(Coupon.class);
         Root<Coupon> root                = cq.from(Coupon.class);
 
@@ -58,18 +58,18 @@ public class CouponRepository {
                 .where(cb.and(searchConditions.toArray(new Predicate[0])))
                 .distinct(true);
 
-        TypedQuery<Coupon> typedQuery = em.createQuery(cq);
+        TypedQuery<Coupon> typedQuery = this.em.createQuery(cq);
 
         return typedQuery.getResultList();
     }
 
     public Coupon findCoupon(int couponId) {
-        CriteriaBuilder cb         = em.getCriteriaBuilder();
+        CriteriaBuilder cb         = this.em.getCriteriaBuilder();
         CriteriaQuery<Coupon> cq   = cb.createQuery(Coupon.class);
         Root<Coupon> root          = cq.from(Coupon.class);
 
         cq = cq.where(cb.and(cb.equal(root.get("couponId"), couponId)));
-        TypedQuery<Coupon> typedQuery = em.createQuery(cq);
+        TypedQuery<Coupon> typedQuery = this.em.createQuery(cq);
         typedQuery.setMaxResults(1);
 
         return !typedQuery.getResultList().isEmpty() ? typedQuery.getResultList().get(0) : null;
@@ -77,7 +77,7 @@ public class CouponRepository {
 
     public MemberCoupon findMemberCoupon(String memberId, int couponId) {
         List<Predicate> searchConditions = new ArrayList<>();
-        CriteriaBuilder cb               = em.getCriteriaBuilder();
+        CriteriaBuilder cb               = this.em.getCriteriaBuilder();
         CriteriaQuery<MemberCoupon> cq   = cb.createQuery(MemberCoupon.class);
         Root<MemberCoupon> root          = cq.from(MemberCoupon.class);
 
@@ -93,7 +93,7 @@ public class CouponRepository {
                 .where(cb.and(searchConditions.toArray(new Predicate[0])))
                 .distinct(true);
 
-        TypedQuery<MemberCoupon> typedQuery = em.createQuery(cq);
+        TypedQuery<MemberCoupon> typedQuery = this.em.createQuery(cq);
         typedQuery.setMaxResults(1);
 
         return !typedQuery.getResultList().isEmpty() ? typedQuery.getResultList().get(0) : null;
@@ -101,12 +101,12 @@ public class CouponRepository {
 
     public List<Coupon> findCoupons(List<Integer> couponIds) {
 
-        CriteriaBuilder cb         = em.getCriteriaBuilder();
+        CriteriaBuilder cb         = this.em.getCriteriaBuilder();
         CriteriaQuery<Coupon> cq   = cb.createQuery(Coupon.class);
         Root<Coupon> root          = cq.from(Coupon.class);
 
         cq = cq.where(cb.and(root.get("id").in(couponIds)));
-        TypedQuery<Coupon> typedQuery = em.createQuery(cq);
+        TypedQuery<Coupon> typedQuery = this.em.createQuery(cq);
 
         return typedQuery.getResultList();
     }

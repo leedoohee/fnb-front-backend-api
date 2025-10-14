@@ -22,13 +22,13 @@ public class PaymentRepository {
 
     @Transactional
     public int insertPayment(Payment payment) {
-        em.persist(payment);
+        this.em.persist(payment);
         return payment.getPaymentId();
     }
 
     @Transactional
     public int insertPaymentCancel(PaymentCancel paymentCancel) {
-        em.persist(paymentCancel);
+        this.em.persist(paymentCancel);
         return paymentCancel.getId();
     }
 
@@ -38,32 +38,32 @@ public class PaymentRepository {
     }
 
     public List<PaymentType> findPaymentType() {
-        CriteriaBuilder cb               = em.getCriteriaBuilder();
+        CriteriaBuilder cb               = this.em.getCriteriaBuilder();
         CriteriaQuery<PaymentType> cq    = cb.createQuery(PaymentType.class);
         Root<PaymentType> root           = cq.from(PaymentType.class);
 
         cq = cq.select(root);
 
-        TypedQuery<PaymentType> typedQuery = em.createQuery(cq);
+        TypedQuery<PaymentType> typedQuery = this.em.createQuery(cq);
 
         return typedQuery.getResultList();
     }
 
     public PaymentElement findPaymentElement(String transactionId) {
-        CriteriaBuilder cb                  = em.getCriteriaBuilder();
+        CriteriaBuilder cb                  = this.em.getCriteriaBuilder();
         CriteriaQuery<PaymentElement> cq    = cb.createQuery(PaymentElement.class);
         Root<PaymentElement> root           = cq.from(PaymentElement.class);
 
         cq = cq.where(cb.and(cb.equal(root.get("transactionId"), transactionId)));
 
-        TypedQuery<PaymentElement> typedQuery = em.createQuery(cq);
+        TypedQuery<PaymentElement> typedQuery = this.em.createQuery(cq);
         typedQuery.setMaxResults(1);
 
         return !typedQuery.getResultList().isEmpty() ? typedQuery.getSingleResult() : null;
     }
 
     public Payment findPayment(int paymentId) {
-        CriteriaBuilder cb                  = em.getCriteriaBuilder();
+        CriteriaBuilder cb                  = this.em.getCriteriaBuilder();
         CriteriaQuery<Payment> cq           = cb.createQuery(Payment.class);
         Root<Payment> root                  = cq.from(Payment.class);
 

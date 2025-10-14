@@ -19,7 +19,7 @@ public class CustomUserDetails implements UserDetails {
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         List<String> roles = new ArrayList<>();
-        roles.add("ROLE_" + member.getRole());
+        roles.add("ROLE_" + this.member.getRole());
 
         return roles.stream()
                 .map(SimpleGrantedAuthority::new)
@@ -28,12 +28,12 @@ public class CustomUserDetails implements UserDetails {
 
     @Override
     public String getPassword() {
-        return member.getPassword();
+        return this.member.getPassword();
     }
 
     @Override
     public String getUsername() {
-        return member.getMemberId();
+        return this.member.getMemberId();
     }
 
     @Override

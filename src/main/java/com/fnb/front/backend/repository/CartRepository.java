@@ -6,6 +6,7 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.TypedQuery;
 import jakarta.persistence.criteria.*;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -19,18 +20,19 @@ public class CartRepository {
         this.em = em;
     }
 
+    @Transactional
     public int insertCart(Cart cart) {
-        em.persist(cart);
-
+        this.em.persist(cart);
         return cart.getCartId();
     }
 
+    @Transactional
     public void insertCartItem(CartItem cartItem) {
-        em.persist(cartItem);
+        this.em.persist(cartItem);
     }
 
     public List<Cart> findCart(String memberId) {
-        CriteriaBuilder cb = em.getCriteriaBuilder();
+        CriteriaBuilder cb = this.em.getCriteriaBuilder();
         CriteriaQuery<Cart> cq = cb.createQuery(Cart.class);
         Root<Cart> root = cq.from(Cart.class);
 
@@ -49,13 +51,13 @@ public class CartRepository {
     }
 
     public Cart findCart(int cartId) {
-        CriteriaBuilder cb = em.getCriteriaBuilder();
-        CriteriaQuery<Cart> cq = cb.createQuery(Cart.class);
-        Root<Cart> root = cq.from(Cart.class);
+        CriteriaBuilder cb      = this.em.getCriteriaBuilder();
+        CriteriaQuery<Cart> cq  = cb.createQuery(Cart.class);
+        Root<Cart> root         = cq.from(Cart.class);
 
         cq = cq.select(root).where(cb.equal(root.get("cartId"), cartId));
 
-        TypedQuery<Cart> typedQuery = em.createQuery(cq);
+        TypedQuery<Cart> typedQuery = this.em.createQuery(cq);
         typedQuery.setMaxResults(1);
 
         return !typedQuery.getResultList().isEmpty() ? typedQuery.getSingleResult() : null;

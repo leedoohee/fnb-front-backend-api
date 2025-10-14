@@ -38,10 +38,10 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         }
 
         if (token != null) {
-            if (jwtUtil.validateToken(token)) {
+            if (this.jwtUtil.validateToken(token)) {
                 try {
-                    String memberId = jwtUtil.getMemberId(token);
-                    UserDetails userDetails = customUserDetailsService.loadUserByUsername(memberId);
+                    String memberId = this.jwtUtil.getMemberId(token);
+                    UserDetails userDetails = this.customUserDetailsService.loadUserByUsername(memberId);
 
                     UsernamePasswordAuthenticationToken authentication =
                             new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());

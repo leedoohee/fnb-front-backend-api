@@ -55,7 +55,7 @@ public class JwtUtil {
                 .setClaims(claims)
                 .setIssuedAt(Date.from(now.toInstant()))
                 .setExpiration(Date.from(tokenValidity.toInstant()))
-                .signWith(key, SignatureAlgorithm.HS256)
+                .signWith(this.key, SignatureAlgorithm.HS256)
                 .compact();
     }
 
@@ -78,7 +78,7 @@ public class JwtUtil {
      */
     public boolean validateToken(String token) {
         try {
-            Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token);
+            Jwts.parserBuilder().setSigningKey(this.key).build().parseClaimsJws(token);
             return true;
         } catch (io.jsonwebtoken.security.SecurityException | MalformedJwtException e) {
             //log.info("Invalid JWT Token", e);
@@ -100,7 +100,7 @@ public class JwtUtil {
      */
     public Claims parseClaims(String accessToken) {
         try {
-            return Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(accessToken).getBody();
+            return Jwts.parserBuilder().setSigningKey(this.key).build().parseClaimsJws(accessToken).getBody();
         } catch (ExpiredJwtException e) {
             return e.getClaims();
         }

@@ -22,7 +22,7 @@ public class ReviewRepository {
 
     public List<Review> findReviews(int productId) {
 
-        CriteriaBuilder cb          = em.getCriteriaBuilder();
+        CriteriaBuilder cb          = this.em.getCriteriaBuilder();
         CriteriaQuery<Review> cq    = cb.createQuery(Review.class);
         Root<Review> root           = cq.from(Review.class);
 
@@ -32,14 +32,14 @@ public class ReviewRepository {
                 .where(cb.and(cb.equal(root.get("productId"), productId)))
                 .distinct(true);
 
-        TypedQuery<Review> typedQuery = em.createQuery(cq);
+        TypedQuery<Review> typedQuery = this.em.createQuery(cq);
 
         return typedQuery.getResultList();
     }
 
     public List<Review> findReviews(String memberId) {
 
-        CriteriaBuilder cb          = em.getCriteriaBuilder();
+        CriteriaBuilder cb          = this.em.getCriteriaBuilder();
         CriteriaQuery<Review> cq    = cb.createQuery(Review.class);
         Root<Review> root           = cq.from(Review.class);
 
@@ -49,7 +49,7 @@ public class ReviewRepository {
                 .where(cb.and(cb.equal(root.get("memberId"), memberId)))
                 .distinct(true);
 
-        TypedQuery<Review> typedQuery = em.createQuery(cq);
+        TypedQuery<Review> typedQuery = this.em.createQuery(cq);
 
         return typedQuery.getResultList();
     }

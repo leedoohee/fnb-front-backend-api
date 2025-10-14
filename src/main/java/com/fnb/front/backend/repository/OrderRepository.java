@@ -23,7 +23,7 @@ public class OrderRepository {
 
     @Transactional
     public void insertOrder(Order order) {
-        em.persist(order);
+        this.em.persist(order);
     }
 
     @Transactional
@@ -32,18 +32,18 @@ public class OrderRepository {
     }
 
     public Long findTotalOrderCount(MyPageRequest orderRequest) {
-        CriteriaBuilder cb          = em.getCriteriaBuilder();
+        CriteriaBuilder cb          = this.em.getCriteriaBuilder();
         CriteriaQuery<Long> cq      = cb.createQuery(Long.class);
         Root<Order> root            = cq.from(Order.class);
 
         cq = cq.where(cb.and(this.buildConditions(orderRequest, cb, root).toArray(new Predicate[0])));
         cq = cq.select((cb.count(root)));
 
-        return  em.createQuery(cq).getSingleResult();
+        return this.em.createQuery(cq).getSingleResult();
     }
 
     public Order findOrder(String orderId) {
-        CriteriaBuilder cb        = em.getCriteriaBuilder();
+        CriteriaBuilder cb        = this.em.getCriteriaBuilder();
         CriteriaQuery<Order> cq   = cb.createQuery(Order.class);
         Root<Order> root          = cq.from(Order.class);
 
@@ -55,14 +55,14 @@ public class OrderRepository {
                 .where(cb.and(cb.equal(root.get("orderId"), orderId)))
                 .distinct(true);
 
-        TypedQuery<Order> typedQuery = em.createQuery(cq);
+        TypedQuery<Order> typedQuery = this.em.createQuery(cq);
 
         return typedQuery.getSingleResult();
     }
 
     public List<Order> findOrders(MyPageRequest myPageRequest) {
 
-        CriteriaBuilder cb         = em.getCriteriaBuilder();
+        CriteriaBuilder cb         = this.em.getCriteriaBuilder();
         CriteriaQuery<Order> cq    = cb.createQuery(Order.class);
         Root<Order> root           = cq.from(Order.class);
 
@@ -74,7 +74,7 @@ public class OrderRepository {
                 .where(cb.and(this.buildConditions(myPageRequest, cb, root).toArray(new Predicate[0])))
                 .distinct(true);
 
-        TypedQuery<Order> typedQuery = em.createQuery(cq);
+        TypedQuery<Order> typedQuery = this.em.createQuery(cq);
         typedQuery.setFirstResult(myPageRequest.getPage() - 1);
         typedQuery.setMaxResults(myPageRequest.getPageLimit());
 

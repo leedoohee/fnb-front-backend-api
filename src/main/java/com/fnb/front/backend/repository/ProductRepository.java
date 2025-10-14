@@ -20,7 +20,7 @@ public class ProductRepository {
     }
 
     public Product findProduct(int productId) {
-        CriteriaBuilder cb           = em.getCriteriaBuilder();
+        CriteriaBuilder cb           = this.em.getCriteriaBuilder();
         CriteriaQuery<Product> cq    = cb.createQuery(Product.class);
         Root<Product> root           = cq.from(Product.class);
 
@@ -30,14 +30,14 @@ public class ProductRepository {
                 .where(cb.and(cb.equal(root.get("id"), productId)))
                 .distinct(true);
 
-        TypedQuery<Product> typedQuery = em.createQuery(cq);
+        TypedQuery<Product> typedQuery = this.em.createQuery(cq);
         typedQuery.setMaxResults(1);
 
         return !typedQuery.getResultList().isEmpty() ? typedQuery.getResultList().get(0) : null;
     }
 
     public List<Product> findProducts() {
-        CriteriaBuilder cb           = em.getCriteriaBuilder();
+        CriteriaBuilder cb           = this.em.getCriteriaBuilder();
         CriteriaQuery<Product> cq    = cb.createQuery(Product.class);
         Root<Product> root           = cq.from(Product.class);
 
@@ -47,14 +47,14 @@ public class ProductRepository {
                 .where(cb.and(cb.equal(root.get("status"), "available")))
                 .distinct(true);
 
-        TypedQuery<Product> typedQuery = em.createQuery(cq);
+        TypedQuery<Product> typedQuery = this.em.createQuery(cq);
 
         return typedQuery.getResultList();
     }
 
     public List<Product> findProducts(List<Integer> productIds, List<Integer> optionIds) {
         List<Predicate> searchConditions    = new ArrayList<>();
-        CriteriaBuilder cb                  = em.getCriteriaBuilder();
+        CriteriaBuilder cb                  = this.em.getCriteriaBuilder();
         CriteriaQuery<Product> cq           = cb.createQuery(Product.class);
         Root<Product> root                  = cq.from(Product.class);
 
@@ -67,7 +67,7 @@ public class ProductRepository {
                 .where(cb.and(searchConditions.toArray(new Predicate[0])))
                 .distinct(true);
 
-        TypedQuery<Product> typedQuery = em.createQuery(cq);
+        TypedQuery<Product> typedQuery = this.em.createQuery(cq);
 
         return typedQuery.getResultList();
     }
