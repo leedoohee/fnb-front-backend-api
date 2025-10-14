@@ -29,6 +29,8 @@ public class AuthService {
 
         assert passwordEncoder.matches(password, member.getPassword()) : "비밀번호가 일치하지 않습니다.";
 
+        this.memberRepository.updateLastLoginDate(memberId);
+
         return jwtUtil.createAccessToken(member);
     }
 

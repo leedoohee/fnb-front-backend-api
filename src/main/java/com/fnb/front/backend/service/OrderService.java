@@ -9,6 +9,8 @@ import com.fnb.front.backend.controller.dto.CreateOrderProductDto;
 import com.fnb.front.backend.controller.domain.request.OrderCouponRequest;
 import com.fnb.front.backend.controller.domain.request.OrderProductRequest;
 import com.fnb.front.backend.controller.domain.request.OrderRequest;
+import com.fnb.front.backend.util.OrderStatus;
+import com.fnb.front.backend.util.OrderType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -44,8 +46,8 @@ public class OrderService {
         Order newOrder = Order.builder()
                 .orderId(createOrderDto.getOrderId())
                 .orderDate(createOrderDto.getOrderDate())
-                .orderStatus("0")
-                .orderType(1)
+                .orderStatus(OrderStatus.TEMP.getValue())
+                .orderType(orderRequest.getOrderType() == 0 ? OrderType.PICKUP.getValue() : OrderType.DELIVERY.getValue())
                 .discountAmount(createOrderDto.getDiscountAmount())
                 .couponAmount(createOrderDto.getCouponAmount())
                 .totalAmount(createOrderDto.getOrderAmount())

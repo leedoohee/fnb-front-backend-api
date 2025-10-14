@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -109,6 +110,17 @@ public class MemberRepository {
         searchConditions.add(cb.equal(root.get("memberId"), memberId));
 
         update.where(cb.and(searchConditions.toArray(new Predicate[0])));
+
+        this.em.createQuery(update).executeUpdate();
+    }
+
+    public void updateLastLoginDate(String memberId) {
+        CriteriaBuilder cb = this.em.getCriteriaBuilder();
+        CriteriaUpdate<Member> update = cb.createCriteriaUpdate(Member.class);
+        Root<Member> root = update.from(Member.class);
+
+        update.set("lastLoginDate", LocalDateTime.now());
+        update.where(cb.and(cb.equal(root.get("memberId"), memberId)));
 
         this.em.createQuery(update).executeUpdate();
     }

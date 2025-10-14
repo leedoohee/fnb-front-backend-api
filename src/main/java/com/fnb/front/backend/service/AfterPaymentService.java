@@ -7,6 +7,7 @@ import com.fnb.front.backend.controller.dto.CancelPaymentDto;
 import com.fnb.front.backend.controller.dto.RequestCancelPaymentDto;
 import com.fnb.front.backend.repository.*;
 import com.fnb.front.backend.util.CommonUtil;
+import com.fnb.front.backend.util.Used;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -172,7 +173,7 @@ public class AfterPaymentService {
             MemberCoupon memberCoupon = memberCoupons.stream()
                     .filter(coupon -> coupon.getCouponId() == couponId).findFirst().orElse(null);
 
-            if (memberCoupon != null && !memberCoupon.getIsUsed().equals("1")) {
+            if (memberCoupon != null && !memberCoupon.getIsUsed().equals(Used.NOTUSED.getValue())) {
                 return false;
             }
 
@@ -198,7 +199,7 @@ public class AfterPaymentService {
                 .orderId(order.getOrderId())
                 .memberId(member.getMemberId())
                 .amount(usePoint)
-                .isUsed("1")
+                .isUsed(Used.USED.getValue())
                 .build();
 
         this.pointRepository.insertMemberPoint(minusPoint);
@@ -208,7 +209,7 @@ public class AfterPaymentService {
                 .orderId(order.getOrderId())
                 .memberId(member.getMemberId())
                 .amount(applyPoint)
-                .isUsed("1")
+                .isUsed(Used.NOTUSED.getValue())
                 .build();
 
         this.pointRepository.insertMemberPoint(plusPoint);

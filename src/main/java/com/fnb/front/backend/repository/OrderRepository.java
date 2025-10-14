@@ -28,7 +28,7 @@ public class OrderRepository {
 
     @Transactional
     public void insertOrderProducts(List<OrderProduct> orderProducts) {
-        em.persist(orderProducts);
+        this.em.persist(orderProducts);
     }
 
     public Long findTotalOrderCount(MyPageRequest orderRequest) {
