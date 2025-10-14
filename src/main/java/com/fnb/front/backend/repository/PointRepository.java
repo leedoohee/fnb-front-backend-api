@@ -1,9 +1,6 @@
 package com.fnb.front.backend.repository;
 
-import com.fnb.front.backend.controller.domain.CartItem;
 import com.fnb.front.backend.controller.domain.MemberPoint;
-import com.fnb.front.backend.controller.domain.Payment;
-import com.fnb.front.backend.controller.domain.PaymentElement;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaDelete;

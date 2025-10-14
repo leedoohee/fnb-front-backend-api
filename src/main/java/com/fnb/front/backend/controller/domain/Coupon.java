@@ -1,7 +1,6 @@
 package com.fnb.front.backend.controller.domain;
 
 import jakarta.persistence.*;
-import jakarta.persistence.criteria.Fetch;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;

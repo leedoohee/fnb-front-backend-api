@@ -26,22 +26,10 @@ public class JwtUtil {
         this.accessTokenExpTime = accessTokenExpTime;
     }
 
-    /**
-     * Access Token 생성
-     * @param member
-     * @return Access Token String
-     */
     public String createAccessToken(Member member) {
         return createToken(member, accessTokenExpTime);
     }
 
-
-    /**
-     * JWT 생성
-     * @param member
-     * @param expireTime
-     * @return JWT String
-     */
     private String createToken(Member member, long expireTime) {
         Claims claims = Jwts.claims();
         claims.put("memberId", member.getMemberId());
@@ -59,23 +47,10 @@ public class JwtUtil {
                 .compact();
     }
 
-
-    /**
-     * Token에서 User ID 추출
-     *
-     * @param token
-     * @return User ID
-     */
     public String getMemberId(String token) {
         return parseClaims(token).get("memberId", String.class);
     }
 
-
-    /**
-     * JWT 검증
-     * @param token
-     * @return IsValidate
-     */
     public boolean validateToken(String token) {
         try {
             Jwts.parserBuilder().setSigningKey(this.key).build().parseClaimsJws(token);
@@ -92,12 +67,6 @@ public class JwtUtil {
         return false;
     }
 
-
-    /**
-     * JWT Claims 추출
-     * @param accessToken
-     * @return JWT Claims
-     */
     public Claims parseClaims(String accessToken) {
         try {
             return Jwts.parserBuilder().setSigningKey(this.key).build().parseClaimsJws(accessToken).getBody();

@@ -7,8 +7,6 @@ import jakarta.persistence.criteria.*;
 import jakarta.persistence.criteria.Order;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.ArrayList;
 import java.util.List;
 
 @Component

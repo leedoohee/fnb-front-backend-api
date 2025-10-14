@@ -1,7 +1,6 @@
 package com.fnb.front.backend.repository;
 
 import com.fnb.front.backend.controller.domain.Product;
-import com.fnb.front.backend.controller.domain.ProductOption;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.TypedQuery;
 import jakarta.persistence.criteria.*;

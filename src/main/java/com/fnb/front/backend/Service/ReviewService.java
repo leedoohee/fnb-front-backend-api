@@ -4,7 +4,6 @@ import com.fnb.front.backend.controller.domain.Review;
 import com.fnb.front.backend.controller.domain.response.ReviewResponse;
 import com.fnb.front.backend.repository.ReviewRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;

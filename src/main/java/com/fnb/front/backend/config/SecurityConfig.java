@@ -1,6 +1,5 @@
 package com.fnb.front.backend.config;
 
-import com.fnb.front.backend.security.CustomAuthenticationEntryPoint;
 import com.fnb.front.backend.security.CustomUserDetailsService;
 import com.fnb.front.backend.security.JwtAuthFilter;
 import com.fnb.front.backend.security.JwtUtil;
@@ -35,7 +34,6 @@ public class SecurityConfig  {
                         .requestMatchers("/auth/sign-in", "/auth/sign-up").permitAll()
                         // 그 외 모든 요청은 인증(토큰) 필요
                         .anyRequest().authenticated()
-                        //.requestMatchers("/**").permitAll()
                 )
                 .formLogin(AbstractHttpConfigurer::disable)
                 .httpBasic(AbstractHttpConfigurer::disable);
