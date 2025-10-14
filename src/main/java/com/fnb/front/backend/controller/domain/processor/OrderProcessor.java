@@ -27,7 +27,7 @@ public class OrderProcessor {
 
         assert this.member.isCanPurchase() :"구매 불가능한 회원입니다.";
 
-        assert this.validatePoint(this.order.getUsePoint(), this.member.getPoints()) : "사용 가능한 포인트를 초괴하였습니다";
+        assert this.validatePoint(this.order.getUsePoint(), this.member.getPoints()) : "사용 가능한 포인트를 초과하였습니다";
 
         assert this.isOwnedCoupons(this.member, this.coupons) : "소유하지 않은 쿠폰을 사용하였습니다.";
 
