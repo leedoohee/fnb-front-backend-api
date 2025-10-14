@@ -2,7 +2,6 @@ package com.fnb.front.backend.controller.domain.response;
 
 import lombok.Builder;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.util.List;
