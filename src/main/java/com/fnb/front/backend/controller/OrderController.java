@@ -18,7 +18,7 @@ public class OrderController {
         return ResponseEntity.ok(this.orderService.create(orderRequest));
     }
 
-    @PutMapping("cancel-order/{orderId}")
+    @PutMapping("/cancel-order/{orderId}")
     public ResponseEntity<Boolean> cancel(@PathVariable String orderId) {
         return ResponseEntity.ok(this.orderService.cancel(orderId));
     }
