@@ -16,11 +16,11 @@ public class PaymentElement {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id", updatable = false, nullable = false)
-    private int id;
+    @Column(name = "payment_element_id", updatable = false, nullable = false)
+    private int paymentElementId;
 
-    @Column(name = "payment_type", nullable = false)
-    private String paymentType; //결제, 취소
+    @Column(name = "payment_status", nullable = false)
+    private String paymentStatus; //결제, 취소
 
     @Column(name = "payment_id", nullable = false)
     private int paymentId;

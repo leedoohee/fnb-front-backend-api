@@ -12,5 +12,5 @@ public interface IPay {
     RequestPaymentResponse request(RequestPayment requestPayment);
     void pay();
     ApprovePaymentResponse approve(ApprovePaymentDto approvePaymentDto);
-    CancelPaymentDto cancel(RequestCancelPaymentDto cancelPaymentDto);
+    boolean cancel(RequestCancelPaymentDto cancelPaymentDto);
 }

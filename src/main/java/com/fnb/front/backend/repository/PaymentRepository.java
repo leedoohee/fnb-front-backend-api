@@ -65,6 +65,7 @@ public class PaymentRepository {
         CriteriaQuery<Payment> cq           = cb.createQuery(Payment.class);
         Root<Payment> root                  = cq.from(Payment.class);
 
+        root.fetch("paymentElements", JoinType.INNER);
         Fetch<Payment, Order> orderFetch = root.fetch("order", JoinType.INNER);
         Fetch<Order, OrderProduct> orderProductFetch = orderFetch.fetch("orderProduct", JoinType.INNER);
         orderProductFetch.fetch("product", JoinType.INNER);
@@ -73,6 +74,22 @@ public class PaymentRepository {
 
         cq = cq.select(root)
                 .where(cb.and(cb.equal(root.get("paymentId"), paymentId)))
+                .distinct(true);
+
+        TypedQuery<Payment> typedQuery = em.createQuery(cq);
+
+        return typedQuery.getSingleResult();
+    }
+
+    public Payment findPayment(String orderId) {
+        CriteriaBuilder cb                  = this.em.getCriteriaBuilder();
+        CriteriaQuery<Payment> cq           = cb.createQuery(Payment.class);
+        Root<Payment> root                  = cq.from(Payment.class);
+
+        root.fetch("paymentElements", JoinType.INNER);
+
+        cq = cq.select(root)
+                .where(cb.and(cb.equal(root.get("orderId"), orderId)))
                 .distinct(true);
 
         TypedQuery<Payment> typedQuery = em.createQuery(cq);

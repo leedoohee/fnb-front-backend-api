@@ -24,7 +24,6 @@ public class Payment {
     @Column(name = "order_id", unique = true, nullable = false) // Assuming one payment per order
     private String orderId;
 
-    // Using LocalDateTime for precise date and time tracking
     @Column(name = "payment_at", updatable = false)
     private LocalDateTime paymentAt;
 

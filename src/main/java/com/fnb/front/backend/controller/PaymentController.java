@@ -1,5 +1,6 @@
 package com.fnb.front.backend.controller;
 
+import com.fnb.front.backend.controller.domain.response.KakaoPayCancelResponse;
 import com.fnb.front.backend.service.PaymentService;
 import com.fnb.front.backend.controller.domain.response.RequestPaymentResponse;
 import com.fnb.front.backend.controller.dto.ApprovePaymentDto;
@@ -29,7 +30,7 @@ public class PaymentController {
     }
 
     @PostMapping("/payment/kakao/cancel")
-    public ResponseEntity<Boolean> cancelKakao(@RequestBody CancelPaymentDto cancelPaymentDto) {
-        return ResponseEntity.ok(this.paymentService.cancelKakaoResult(cancelPaymentDto));
+    public ResponseEntity<Boolean> cancelKakao(@RequestBody KakaoPayCancelResponse response) {
+        return ResponseEntity.ok(this.paymentService.cancelKakaoResult(response));
     }
 }

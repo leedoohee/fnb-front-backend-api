@@ -60,7 +60,7 @@ public class CartService {
     }
 
     public List<CartInfoResponse> getInfo(String memberId) {
-        List<Cart> carts                             = this.cartRepository.findCart(memberId);
+        List<Cart> carts                             = this.cartRepository.findCarts(memberId);
         List<OptionInfoResponse> optionInfoResponses = new ArrayList<>();
         List<CartInfoResponse> cartInfoResponses     = new ArrayList<>();
 

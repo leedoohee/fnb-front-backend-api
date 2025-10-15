@@ -87,6 +87,10 @@ public class OrderService {
                 .build();
     }
 
+    public boolean cancel(String orderId) {
+        return this.afterPaymentService.requestPaymentCancel(orderId);
+    }
+
     private boolean isNonExecutePaymentGateWay(List<CreateOrderProductDto> orderProductRequests) {
         return orderProductRequests.stream()
                 .map(CreateOrderProductDto::getPurchasePrice)

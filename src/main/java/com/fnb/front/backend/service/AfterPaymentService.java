@@ -3,11 +3,12 @@ package com.fnb.front.backend.service;
 import com.fnb.front.backend.controller.domain.*;
 import com.fnb.front.backend.controller.domain.processor.PaymentProcessor;
 import com.fnb.front.backend.controller.domain.response.ApprovePaymentResponse;
+import com.fnb.front.backend.controller.domain.response.KakaoPayCancelResponse;
 import com.fnb.front.backend.controller.dto.CancelPaymentDto;
 import com.fnb.front.backend.controller.dto.RequestCancelPaymentDto;
 import com.fnb.front.backend.repository.*;
 import com.fnb.front.backend.util.*;
-import com.fnb.front.backend.util.PaymentType;
+import com.fnb.front.backend.util.PaymentStatus;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -44,13 +45,13 @@ public class AfterPaymentService {
         if (!(productResult && couponResult && pointResult)) {
             if (approvePaymentResponse != null) {
                 PaymentProcessor paymentProcessor  = new PaymentProcessor(PayFactory.getPay(payType));
-                CancelPaymentDto response          = paymentProcessor.cancel(RequestCancelPaymentDto.builder()
+                boolean result = paymentProcessor.cancel(RequestCancelPaymentDto.builder()
                         .cancelAmount(approvePaymentResponse.getTotalAmount())
                         .cancelTaxFreeAmount(approvePaymentResponse.getTaxFree())
                         .transactionId(approvePaymentResponse.getTransactionId()).build());
 
                 //TODO 실패 로그 추가
-                assert response != null : "결제취소 과정 중 오류가 발생하였습니다.";
+                assert result : "결제취소 과정 중 오류가 발생하였습니다.";
             }
 
             assert false : "결제 후처리 과정에서 오류가 발생하였습니다.";
@@ -63,6 +64,8 @@ public class AfterPaymentService {
 
         int paymentId = this.paymentRepository.insertPayment(Payment.builder()
                 .paymentAt(LocalDateTime.now())
+                .paymentType(payType)
+                .paymentStatus(PaymentStatus.APPROVE.getValue())
                 .totalAmount(order.getTotalAmount())
                 .orderId(order.getOrderId())
                 .build());
@@ -86,7 +89,7 @@ public class AfterPaymentService {
             String emptyField = null;
 
             this.paymentRepository.insertPaymentElement(PaymentElement.builder()
-                    .paymentType(PaymentType.APPROVE.getValue())
+                    .paymentStatus(PaymentStatus.APPROVE.getValue())
                     .paymentId(paymentId)
                     .paymentMethod(approvePaymentResponse.getPaymentMethod()) // TODO 오는 값에 따라 분기처리
                     .transactionId(approvePaymentResponse.getTransactionId())
@@ -118,30 +121,67 @@ public class AfterPaymentService {
     }
 
     @Transactional
+    public boolean requestPaymentCancel(String orderId) {
+        Payment payment = this.paymentRepository.findPayment(orderId);
+
+        assert payment.getPaymentStatus().equals(PaymentStatus.APPROVE.getValue()): "취소할 수 없는 결제상태입니다.";
+
+        List<PaymentElement> paymentElements = payment.getPaymentElements();
+        PaymentElement paymentGateWayElement = paymentElements.stream()
+                                                .filter(paymentElement -> !paymentElement.getTransactionId().isEmpty())
+                                                .findFirst().orElse(null);
+
+        if(paymentGateWayElement != null) {
+            PaymentProcessor paymentProcessor  = new PaymentProcessor(PayFactory.getPay(payment.getPaymentType()));
+            boolean result = paymentProcessor.cancel(RequestCancelPaymentDto.builder()
+                    .cancelAmount(payment.getTotalAmount())
+                    .cancelTaxFreeAmount(paymentGateWayElement.getTaxFree())
+                    .transactionId(paymentGateWayElement.getTransactionId()).build());
+
+            assert result : "결제취소 과정에서 문제가 발생하였습니다.";
+        } else {
+            this.callCancelProcess(null, payment.getPaymentId());
+        }
+
+        return true;
+    }
+
+    @Transactional
     public boolean callCancelProcess(CancelPaymentDto cancelPaymentDto, int paymentId) {
         Payment payment = this.paymentRepository.findPayment(paymentId);
+        List<PaymentElement> exceptablePgElements = payment.getPaymentElements().stream()
+                                                .filter(paymentElement -> !paymentElement.getTransactionId().isEmpty())
+                                                .toList();
 
         this.afterCancelForPoint(payment.getOrder().getOrderId());
         this.afterCancelForProduct(payment.getOrder().getOrderProducts());
         this.afterCancelForCoupon(payment.getOrder().getOrderProducts());
 
         int cancelId = this.paymentRepository.insertPaymentCancel(PaymentCancel.builder()
-                .cancelAmount(BigDecimal.valueOf(cancelPaymentDto.getTotalAmount()))
-                .cancelAt(cancelPaymentDto.getCancelAt())
+                .cancelAmount(payment.getTotalAmount())
+                .cancelAt(LocalDateTime.now())
                 .orderId(payment.getOrderId())
                 .build());
 
-        this.paymentRepository.insertPaymentElement(PaymentElement.builder()
-                .paymentType(PaymentType.CANCEL.getValue())
-                .paymentId(cancelId)
-                .transactionId(cancelPaymentDto.getTransactionId())
-                .amount(BigDecimal.valueOf(cancelPaymentDto.getTotalAmount()))
-                .taxFree(BigDecimal.valueOf(cancelPaymentDto.getTaxFree()))
-                .vat(BigDecimal.valueOf(cancelPaymentDto.getVat()))
-                .approvedAt(cancelPaymentDto.getApprovedAt())
-                .createdAt(LocalDateTime.now())
-                .updatedAt(LocalDateTime.now())
-                .build());
+        if (cancelPaymentDto != null) {
+            this.paymentRepository.insertPaymentElement(PaymentElement.builder()
+                    .paymentStatus(PaymentStatus.CANCEL.getValue())
+                    .paymentId(cancelId)
+                    .transactionId(cancelPaymentDto.getTransactionId())
+                    .amount(BigDecimal.valueOf(cancelPaymentDto.getTotalAmount()))
+                    .taxFree(BigDecimal.valueOf(cancelPaymentDto.getTaxFree()))
+                    .vat(BigDecimal.valueOf(cancelPaymentDto.getVat()))
+                    .approvedAt(cancelPaymentDto.getApprovedAt())
+                    .createdAt(LocalDateTime.now())
+                    .updatedAt(LocalDateTime.now())
+                    .build());
+        }
+
+        for (PaymentElement paymentElement : exceptablePgElements) {
+            paymentElement.setPaymentStatus(PaymentStatus.CANCEL.getValue());
+            paymentElement.setPaymentElementId(0); //TODO 자동키 생성되는지 확인
+            this.paymentRepository.insertPaymentElement(paymentElement);
+        }
 
         this.finishOrder(payment.getOrder().getOrderId(), OrderStatus.CANCELED.getValue());
 
@@ -260,7 +300,7 @@ public class AfterPaymentService {
             }
 
             this.couponRepository.updateUsedMemberCoupon(orderProduct.getCoupon().getMemberCoupon().getMemberId(),
-                    orderProduct.getCoupon().getMemberCoupon().getCouponId(), "1");
+                    orderProduct.getCoupon().getMemberCoupon().getCouponId(), Used.NOTUSED.getValue());
         }
     }
 

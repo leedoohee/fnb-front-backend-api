@@ -115,7 +115,7 @@ public class KakaoPay implements IPay {
     }
 
     @Override
-    public CancelPaymentDto cancel(RequestCancelPaymentDto cancelPaymentDto) {
+    public boolean cancel(RequestCancelPaymentDto cancelPaymentDto) {
         CancelPaymentDto cancelPaymentResponse = null;
         RestTemplate restTemplate = new RestTemplate();
         KakaoPayCancelDto requestBody = KakaoPayCancelDto.builder()
@@ -132,27 +132,11 @@ public class KakaoPay implements IPay {
         HttpEntity<KakaoPayCancelDto> httpEntity = new HttpEntity<>(requestBody, headers);
 
         try {
-            KakaoPayCancelResponse response = restTemplate.postForObject(APPROVE_API_URL, httpEntity, KakaoPayCancelResponse.class);
-
-            cancelPaymentResponse = CancelPaymentDto.builder()
-                    .approvalId(Objects.requireNonNull(response).getAid())
-                    .transactionId(response.getTid())
-                    .productName(response.getItemName())
-                    .quantity(response.getQuantity())
-                    .totalAmount(response.getCancelAmount().getTotal())
-                    .taxFree(response.getCancelAmount().getTaxFree())
-                    .vat(response.getCancelAmount().getVat())
-                    .point(response.getCancelAmount().getPoint())
-                    .discount(response.getCancelAmount().getDiscount())
-                    .greenDeposit(response.getCancelAmount().getGreenDeposit())
-                    .approvedAt(LocalDateTime.parse(response.getApprovedAt()))
-                    .cancelAt(LocalDateTime.parse(response.getCancelAt()))
-                    .build();
-
+            restTemplate.postForObject(APPROVE_API_URL, httpEntity, KakaoPayCancelResponse.class);
         } catch (Exception e) {
-            return null;
+            return false;
         }
 
-        return cancelPaymentResponse;
+        return true;
     }
 }

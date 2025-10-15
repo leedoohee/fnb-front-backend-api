@@ -30,7 +30,7 @@ public class TossPay implements IPay {
     }
 
     @Override
-    public CancelPaymentDto cancel(RequestCancelPaymentDto cancelPaymentDto) {
-        return null;
+    public boolean cancel(RequestCancelPaymentDto cancelPaymentDto) {
+        return false;
     }
 }

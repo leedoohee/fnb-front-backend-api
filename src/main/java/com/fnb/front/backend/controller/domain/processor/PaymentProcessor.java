@@ -24,7 +24,7 @@ public class PaymentProcessor {
         return this.IPay.approve(approvePaymentDto);
     }
 
-    public CancelPaymentDto cancel(RequestCancelPaymentDto cancelPaymentDto) {
+    public boolean cancel(RequestCancelPaymentDto cancelPaymentDto) {
         return this.IPay.cancel(cancelPaymentDto);
     }
 }

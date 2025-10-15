@@ -29,7 +29,7 @@ public class CartRepository {
         this.em.persist(cartItem);
     }
 
-    public List<Cart> findCart(String memberId) {
+    public List<Cart> findCarts(String memberId) {
         CriteriaBuilder cb = this.em.getCriteriaBuilder();
         CriteriaQuery<Cart> cq = cb.createQuery(Cart.class);
         Root<Cart> root = cq.from(Cart.class);
