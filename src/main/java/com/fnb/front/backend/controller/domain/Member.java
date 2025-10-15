@@ -1,5 +1,6 @@
 package com.fnb.front.backend.controller.domain;
 
+import com.fnb.front.backend.util.MemberStatus;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -88,7 +89,7 @@ public class Member {
     }
 
     public boolean isCanPurchase() {
-        return status.equals("1");
+        return status.equals(MemberStatus.ACTIVE.getValue());
     }
 
     public boolean isUsablePoint(int usePoint) {

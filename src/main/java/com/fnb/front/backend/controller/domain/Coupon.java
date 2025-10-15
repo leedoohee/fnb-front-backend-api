@@ -1,5 +1,7 @@
 package com.fnb.front.backend.controller.domain;
 
+import com.fnb.front.backend.util.CouponStatus;
+import com.fnb.front.backend.util.RangeProduct;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -113,11 +115,11 @@ public class Coupon {
     }
 
     public boolean isApplyToEntireProduct() {
-        return this.applyEntireProduct.equals("1"); //1이면 전체
+        return this.applyEntireProduct.equals(RangeProduct.ENTIRE.getValue()); //1이면 전체
     }
 
     public boolean isAvailableStatus() {
-        return this.status.equals("1");
+        return this.status.equals(CouponStatus.AVAILABLE.getValue());
     }
 
     public boolean isBelongToAvailableGrade(Member member) {
