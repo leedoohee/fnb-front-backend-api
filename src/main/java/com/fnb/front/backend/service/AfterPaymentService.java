@@ -7,6 +7,8 @@ import com.fnb.front.backend.controller.dto.CancelPaymentDto;
 import com.fnb.front.backend.controller.dto.RequestCancelPaymentDto;
 import com.fnb.front.backend.repository.*;
 import com.fnb.front.backend.util.CommonUtil;
+import com.fnb.front.backend.util.PaymentMethod;
+import com.fnb.front.backend.util.PaymentType;
 import com.fnb.front.backend.util.Used;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -69,14 +71,14 @@ public class AfterPaymentService {
 
         if (couponAmount > 0) {
             this.paymentRepository.insertPaymentElement(PaymentElement.builder()
-                    .paymentMethod("COUPON")
+                    .paymentMethod(PaymentMethod.COUPON.getValue())
                     .amount(BigDecimal.valueOf(couponAmount))
                     .build());
         }
 
         if (pointAmount > 0) {
             this.paymentRepository.insertPaymentElement(PaymentElement.builder()
-                    .paymentMethod("POINT")
+                    .paymentMethod(PaymentMethod.POINT.getValue())
                     .amount(BigDecimal.valueOf(pointAmount))
                     .build());
         }
@@ -86,9 +88,9 @@ public class AfterPaymentService {
             String emptyField = null;
 
             this.paymentRepository.insertPaymentElement(PaymentElement.builder()
-                    .paymentType("APPROVE")
+                    .paymentType(PaymentType.APPROVE.getValue())
                     .paymentId(paymentId)
-                    .paymentMethod(approvePaymentResponse.getPaymentMethod())
+                    .paymentMethod(approvePaymentResponse.getPaymentMethod()) // TODO 오는 값에 따라 분기처리
                     .transactionId(approvePaymentResponse.getTransactionId())
                     .amount(approvePaymentResponse.getTotalAmount())
                     .taxFree(approvePaymentResponse.getTaxFree())
@@ -126,12 +128,11 @@ public class AfterPaymentService {
         int cancelId = this.paymentRepository.insertPaymentCancel(PaymentCancel.builder()
                 .cancelAmount(BigDecimal.valueOf(cancelPaymentDto.getTotalAmount()))
                 .cancelAt(cancelPaymentDto.getCancelAt())
-                .cancelStatus("1")
                 .orderId(payment.getOrderId())
                 .build());
 
         this.paymentRepository.insertPaymentElement(PaymentElement.builder()
-                .paymentType("CANCEL")
+                .paymentType(PaymentType.CANCEL.getValue())
                 .paymentId(cancelId)
                 .transactionId(cancelPaymentDto.getTransactionId())
                 .amount(BigDecimal.valueOf(cancelPaymentDto.getTotalAmount()))

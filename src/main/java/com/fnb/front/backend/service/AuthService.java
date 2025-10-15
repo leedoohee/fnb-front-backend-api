@@ -5,6 +5,7 @@ import com.fnb.front.backend.controller.domain.request.SignInRequest;
 import com.fnb.front.backend.controller.domain.request.SignUpRequest;
 import com.fnb.front.backend.repository.MemberRepository;
 import com.fnb.front.backend.security.JwtUtil;
+import com.fnb.front.backend.util.MemberStatus;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -46,6 +47,7 @@ public class AuthService {
                                     .password(passwordEncoder.encode(signUpRequest.getPassword()))
                                     .phoneNumber(signUpRequest.getPhone())
                                     .address(signUpRequest.getAddress())
+                                    .status(MemberStatus.ACTIVE.getValue())
                                     .totalOrderCount(0)
                                     .points(0)
                                     .totalOrderAmount(0)

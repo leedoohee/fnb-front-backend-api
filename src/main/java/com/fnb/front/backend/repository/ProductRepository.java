@@ -35,7 +35,7 @@ public class ProductRepository {
         return !typedQuery.getResultList().isEmpty() ? typedQuery.getResultList().get(0) : null;
     }
 
-    public List<Product> findProducts() {
+    public List<Product> findProducts(String status) {
         CriteriaBuilder cb           = this.em.getCriteriaBuilder();
         CriteriaQuery<Product> cq    = cb.createQuery(Product.class);
         Root<Product> root           = cq.from(Product.class);
@@ -43,7 +43,7 @@ public class ProductRepository {
         root.fetch("productAttachFile", JoinType.INNER);
 
         cq = cq.select(root)
-                .where(cb.and(cb.equal(root.get("status"), "available")))
+                .where(cb.and(cb.equal(root.get("status"), status)))
                 .distinct(true);
 
         TypedQuery<Product> typedQuery = this.em.createQuery(cq);

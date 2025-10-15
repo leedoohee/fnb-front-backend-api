@@ -43,13 +43,13 @@ public class CouponRepository {
         this.em.createQuery(update).executeUpdate();
     }
 
-    public List<Coupon> findCoupons() {
+    public List<Coupon> findCoupons(String status) {
         List<Predicate> searchConditions = new ArrayList<>();
         CriteriaBuilder cb               = this.em.getCriteriaBuilder();
         CriteriaQuery<Coupon> cq         = cb.createQuery(Coupon.class);
         Root<Coupon> root                = cq.from(Coupon.class);
 
-        searchConditions.add(cb.equal(root.get("status"), "1"));
+        searchConditions.add(cb.equal(root.get("status"), status));
         searchConditions.add(cb.greaterThanOrEqualTo(root.get("applyStartAt"), LocalDateTime.now()));
         searchConditions.add(cb.lessThanOrEqualTo(root.get("applyEndAt"), LocalDateTime.now()));
 
@@ -74,7 +74,7 @@ public class CouponRepository {
         return !typedQuery.getResultList().isEmpty() ? typedQuery.getResultList().get(0) : null;
     }
 
-    public MemberCoupon findMemberCoupon(String memberId, int couponId) {
+    public MemberCoupon findMemberCoupon(String memberId, int couponId, String isUsed) {
         List<Predicate> searchConditions = new ArrayList<>();
         CriteriaBuilder cb               = this.em.getCriteriaBuilder();
         CriteriaQuery<MemberCoupon> cq   = cb.createQuery(MemberCoupon.class);
@@ -85,7 +85,7 @@ public class CouponRepository {
         couponFetch.fetch("couponProduct", JoinType.INNER);
 
         searchConditions.add(cb.equal(root.get("memberId"), memberId));
-        searchConditions.add(cb.equal(root.get("isUsed"), "1"));
+        searchConditions.add(cb.equal(root.get("isUsed"), isUsed));
         searchConditions.add(cb.equal(root.get("couponId"), couponId));
 
         cq = cq.select(root)

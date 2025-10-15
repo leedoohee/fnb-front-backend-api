@@ -4,6 +4,8 @@ import com.fnb.front.backend.controller.domain.*;
 import com.fnb.front.backend.controller.domain.response.CouponResponse;
 import com.fnb.front.backend.repository.CouponRepository;
 import com.fnb.front.backend.repository.MemberRepository;
+import com.fnb.front.backend.util.CouponStatus;
+import com.fnb.front.backend.util.Used;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -21,7 +23,7 @@ public class CouponService {
 
     public List<CouponResponse> getCoupons() {
         List<CouponResponse> responses  = new ArrayList<>();
-        List<Coupon> coupons            = this.couponRepository.findCoupons();
+        List<Coupon> coupons            = this.couponRepository.findCoupons(CouponStatus.AVAILABLE.getValue());
 
         for (Coupon coupon : coupons) {
             responses.add(CouponResponse.builder()
@@ -41,7 +43,7 @@ public class CouponService {
     public boolean createMemberCoupon(String memberId, int couponId) {
         Member member               = this.memberRepository.findMember(memberId);
         Coupon coupon               = this.couponRepository.findCoupon(couponId);
-        MemberCoupon memberCoupon   = this.couponRepository.findMemberCoupon(member.getMemberId(), couponId);
+        MemberCoupon memberCoupon   = this.couponRepository.findMemberCoupon(member.getMemberId(), couponId, Used.NOTUSED.getValue());
 
         assert memberCoupon == null : "이미 소유한 쿠폰입니다";
 
@@ -49,7 +51,7 @@ public class CouponService {
 
         MemberCoupon mCoupon = MemberCoupon.builder()
                 .memberId(memberId)
-                .isUsed("1")
+                .isUsed(Used.NOTUSED.getValue())
                 .createdAt(LocalDateTime.now())
                 .couponId(couponId).build();
 
@@ -59,7 +61,7 @@ public class CouponService {
     }
 
     public boolean applyCouponToProduct(String memberId, int couponId, int productId) {
-        MemberCoupon memberCoupon = this.couponRepository.findMemberCoupon(memberId, couponId);
+        MemberCoupon memberCoupon = this.couponRepository.findMemberCoupon(memberId, couponId, Used.NOTUSED.getValue());
 
         assert memberCoupon != null : "보유하지 않은 쿠폰입니다.";
 

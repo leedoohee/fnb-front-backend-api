@@ -5,6 +5,7 @@ import com.fnb.front.backend.controller.domain.request.MyPageRequest;
 import com.fnb.front.backend.controller.domain.response.*;
 import com.fnb.front.backend.repository.MemberRepository;
 import com.fnb.front.backend.repository.OrderRepository;
+import com.fnb.front.backend.util.Used;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -65,7 +66,7 @@ public class MyPageService {
     //TODO 네이티브로?
     public MyInfoResponse getMyInfo(String memberId) {
         Member member                    = this.memberRepository.findMember(memberId);
-        List<MemberCoupon> memberCoupons = this.memberRepository.findMemberCoupons(memberId);
+        List<MemberCoupon> memberCoupons = this.memberRepository.findMemberCoupons(memberId, Used.NOTUSED.getValue());
         List<MemberPoint> memberPoints   = this.memberRepository.findMemberPoints(memberId);
 
         int ownedCouponCount = memberCoupons.stream()

@@ -7,6 +7,7 @@ import com.fnb.front.backend.controller.domain.response.ProductResponse;
 import com.fnb.front.backend.repository.ProductRepository;
 import com.fnb.front.backend.repository.ReviewRepository;
 import com.fnb.front.backend.util.CommonUtil;
+import com.fnb.front.backend.util.ProductStatus;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
@@ -23,7 +24,7 @@ public class ProductService {
 
     public List<ProductResponse> getProducts() {
         List<ProductResponse> response  = new ArrayList<>();
-        List<Product> products          = this.productRepository.findProducts();
+        List<Product> products          = this.productRepository.findProducts(ProductStatus.SALE.getValue());
 
         assert !products.isEmpty() : "상품이 존재하지 않습니다.";
 

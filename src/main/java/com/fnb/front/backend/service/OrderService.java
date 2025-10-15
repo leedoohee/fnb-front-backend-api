@@ -11,6 +11,7 @@ import com.fnb.front.backend.controller.domain.request.OrderProductRequest;
 import com.fnb.front.backend.controller.domain.request.OrderRequest;
 import com.fnb.front.backend.util.OrderStatus;
 import com.fnb.front.backend.util.OrderType;
+import com.fnb.front.backend.util.Used;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -140,7 +141,7 @@ public class OrderService {
 
     private Member createMember(OrderRequest orderRequest) {
         Member member                       = this.memberRepository.findMember(orderRequest.getMemberId());
-        List<MemberCoupon> memberCoupons    = this.memberRepository.findMemberCoupons(member.getMemberId());
+        List<MemberCoupon> memberCoupons    = this.memberRepository.findMemberCoupons(member.getMemberId(), Used.NOTUSED.getValue());
         member.setOwnedCoupon(memberCoupons);
 
         return member;

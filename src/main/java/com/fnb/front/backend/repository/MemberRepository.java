@@ -63,7 +63,7 @@ public class MemberRepository {
         return typedQuery.getSingleResult();
     }
 
-    public List<MemberCoupon> findMemberCoupons(String memberId) {
+    public List<MemberCoupon> findMemberCoupons(String memberId, String isUsed) {
         List<Predicate> searchConditions = new ArrayList<>();
 
         CriteriaBuilder cb               = this.em.getCriteriaBuilder();
@@ -71,7 +71,7 @@ public class MemberRepository {
         Root<MemberCoupon> root          = cq.from(MemberCoupon.class);
 
         searchConditions.add(cb.equal(root.get("memberId"), memberId));
-        searchConditions.add(cb.equal(root.get("isUse"), "1"));
+        searchConditions.add(cb.equal(root.get("isUse"), isUsed));
 
         cq = cq.where(cb.and(searchConditions.toArray(new Predicate[0])));
         TypedQuery<MemberCoupon> typedQuery = this.em.createQuery(cq);
