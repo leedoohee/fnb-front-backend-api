@@ -5,6 +5,7 @@ import com.fnb.front.backend.controller.domain.implement.DiscountPolicy;
 import com.fnb.front.backend.controller.domain.implement.Calculator;
 import com.fnb.front.backend.controller.dto.CreateOrderDto;
 import com.fnb.front.backend.controller.dto.CreateOrderProductDto;
+import com.fnb.front.backend.util.OptionType;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -204,7 +205,7 @@ public class OrderProcessor {
     private int calculatePriceWithQuantity(Product product) {
         List<ProductOption> productOptions  = product.getProductOption();
         ProductOption singleOption          = productOptions.stream()
-                                                .filter(productOption -> productOption.getOptionType().equals("single"))
+                                                .filter(productOption -> productOption.getOptionType().equals(OptionType.BASIC.getValue()))
                                                 .findFirst().orElse(null);
 
         return (product.getPrice().intValue() + Objects.requireNonNull(singleOption).getPrice()) * product.getQuantity();
@@ -212,7 +213,7 @@ public class OrderProcessor {
 
     private int calcPriceWithAdditionalOptions(int optionPrice, Product product) {
         int sumPrice = product.getProductOption().stream()
-                            .filter(productOption -> productOption.getOptionType().equals("multi"))
+                            .filter(productOption -> productOption.getOptionType().equals(OptionType.ADDITIONAL.getValue()))
                             .map(ProductOption::getPrice)
                             .mapToInt(Integer::intValue).sum();
 
