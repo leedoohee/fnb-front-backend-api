@@ -6,10 +6,8 @@ import com.fnb.front.backend.controller.domain.response.ApprovePaymentResponse;
 import com.fnb.front.backend.controller.dto.CancelPaymentDto;
 import com.fnb.front.backend.controller.dto.RequestCancelPaymentDto;
 import com.fnb.front.backend.repository.*;
-import com.fnb.front.backend.util.CommonUtil;
-import com.fnb.front.backend.util.PaymentMethod;
+import com.fnb.front.backend.util.*;
 import com.fnb.front.backend.util.PaymentType;
-import com.fnb.front.backend.util.Used;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -114,6 +112,8 @@ public class AfterPaymentService {
                     .build());
         }
 
+        this.finishOrder(orderId, OrderStatus.ORDERED.getValue());
+
         return true;
     }
 
@@ -142,6 +142,8 @@ public class AfterPaymentService {
                 .createdAt(LocalDateTime.now())
                 .updatedAt(LocalDateTime.now())
                 .build());
+
+        this.finishOrder(payment.getOrder().getOrderId(), OrderStatus.CANCELED.getValue());
 
         return true;
     }
@@ -266,5 +268,9 @@ public class AfterPaymentService {
         for (OrderProduct orderProduct : orderProducts) {
             this.productRepository.updatePlusQuantity(orderProduct.getProduct().getProductId(), orderProduct.getQuantity());
         }
+    }
+
+    private void finishOrder(String orderId, String orderStatus) {
+        this.orderRepository.updateOrderStatus(orderId, orderStatus);
     }
 }

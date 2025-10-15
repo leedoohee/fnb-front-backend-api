@@ -1,5 +1,6 @@
 package com.fnb.front.backend.repository;
 
+import com.fnb.front.backend.controller.domain.MemberCoupon;
 import com.fnb.front.backend.controller.domain.Order;
 import com.fnb.front.backend.controller.domain.OrderProduct;
 import com.fnb.front.backend.controller.domain.request.MyPageRequest;
@@ -29,6 +30,18 @@ public class OrderRepository {
     @Transactional
     public void insertOrderProducts(List<OrderProduct> orderProducts) {
         this.em.persist(orderProducts);
+    }
+
+    public void updateOrderStatus(String orderId, String status) {
+        CriteriaBuilder cb = this.em.getCriteriaBuilder();
+
+        CriteriaUpdate<Order> update = cb.createCriteriaUpdate(Order.class);
+        Root<Order> root = update.from(Order.class);
+
+        update.set("status", status);
+        update.where(cb.and(cb.equal(root.get("orderId"), orderId)));
+
+        this.em.createQuery(update).executeUpdate();
     }
 
     public Long findTotalOrderCount(MyPageRequest orderRequest) {
