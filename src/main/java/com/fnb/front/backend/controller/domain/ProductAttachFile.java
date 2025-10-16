@@ -15,7 +15,8 @@ public class ProductAttachFile {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id;
+    @Column(name = "product_attach_id", nullable = false)
+    private int productAttachId;
 
     @Column(name = "file_name", nullable = false, length = 512)
     private String fileName; // 서버에 실제로 저장된 파일명 (UUID 등)

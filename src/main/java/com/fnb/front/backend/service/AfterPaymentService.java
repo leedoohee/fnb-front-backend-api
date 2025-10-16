@@ -238,7 +238,7 @@ public class AfterPaymentService {
         int applyPoint = this.applyGradePointForOrder(member, totalProductAmount, paymentAmount);
 
         MemberPoint minusPoint = MemberPoint.builder()
-                .pointType(0) // 차감
+                .pointType(PointType.MINUS.getValue()) // 차감
                 .orderId(order.getOrderId())
                 .memberId(member.getMemberId())
                 .amount(usePoint)
@@ -248,7 +248,7 @@ public class AfterPaymentService {
         this.pointRepository.insertMemberPoint(minusPoint);
 
         MemberPoint plusPoint = MemberPoint.builder()
-                .pointType(1) // 적립
+                .pointType(PointType.PLUS.getValue()) // 적립
                 .orderId(order.getOrderId())
                 .memberId(member.getMemberId())
                 .amount(applyPoint)

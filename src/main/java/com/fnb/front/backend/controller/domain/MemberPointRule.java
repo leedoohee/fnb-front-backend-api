@@ -14,8 +14,8 @@ public class MemberPointRule {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id", updatable = false, nullable = false)
-    private int id;
+    @Column(name = "rule_id", updatable = false, nullable = false)
+    private int ruleId;
 
     @Column(name = "grade", updatable = false, nullable = false)
     private String grade;

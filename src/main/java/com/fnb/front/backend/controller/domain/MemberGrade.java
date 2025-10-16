@@ -17,8 +17,8 @@ public class MemberGrade {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id", updatable = false, nullable = false)
-    private int id;
+    @Column(name = "member_grade_id", updatable = false, nullable = false)
+    private int memberGradeId;
 
     @Column(name = "grade", unique = true, nullable = false)
     private String grade;
@@ -53,6 +53,6 @@ public class MemberGrade {
     private Member member;
 
     @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "id")
+    @JoinColumn(name = "rule_id")
     private MemberPointRule memberPointRule;
 }

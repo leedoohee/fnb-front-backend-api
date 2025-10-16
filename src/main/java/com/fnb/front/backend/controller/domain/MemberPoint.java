@@ -16,8 +16,8 @@ public class MemberPoint {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id", updatable = false, nullable = false)
-    private int id;
+    @Column(name = "point_id", updatable = false, nullable = false)
+    private int pointId;
 
     @Column(name = "order_id", updatable = false, nullable = false)
     private String orderId;

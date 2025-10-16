@@ -13,8 +13,8 @@ import lombok.Setter;
 public class MemberGradeProduct {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id", updatable = false, nullable = false)
-    private int id;
+    @Column(name = "grade_product_id", updatable = false, nullable = false)
+    private int gradeProductId;
 
     @Column(name = "grade", unique = true, nullable = false)
     private String grade;
@@ -29,7 +29,7 @@ public class MemberGradeProduct {
     private int addingPoint;
 
     @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "id")
+    @JoinColumn(name = "product_id")
     private Product product;
 
     public MemberGradeProduct() {
