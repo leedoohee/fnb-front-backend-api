@@ -26,16 +26,25 @@ public class OrderProcessor {
 
     public CreateOrderDto buildOrder() {
 
-        //TODO error code 반환이냐, 익셉션이냐...
-        assert this.member.isCanPurchase() :"구매 불가능한 회원입니다.";
+        if(!this.member.isCanPurchase()) {
+            return new CreateOrderDto("400", "구매 불가능한 회원입니다");
+        }
 
-        assert this.isCanUsePoint(this.order.getUsePoint(), this.member.getPoints()) : "사용 가능한 포인트를 초과하였습니다";
+        if(!this.isCanUsePoint(this.order.getUsePoint(), this.member.getPoints())) {
+            return new CreateOrderDto("400", "사용 가능한 포인트를 초과하였습니다");
+        }
 
-        assert this.isOwnedCoupons(this.member, this.coupons) : "소유하지 않은 쿠폰을 사용하였습니다.";
+        if(!this.isOwnedCoupons(this.member, this.coupons)) {
+            return new CreateOrderDto("400", "소유하지 않은 쿠폰을 사용하였습니다");
+        }
 
-        assert this.isCanUseCoupons(this.coupons, this.member) : "사용 불가능한 쿠폰이 포함되어 있습니다.";
+        if(!this.isCanUseCoupons(this.coupons, this.member)) {
+            return new CreateOrderDto("400", "사용 불가능한 쿠폰이 포함되어 있습니다");
+        }
 
-        assert this.isCanOrderProducts(this.products) : "구매 불가능한 상품이 포함되어 있습니다.";
+        if(!this.isCanOrderProducts(this.products)) {
+            return new CreateOrderDto("400", "구매 불가능한 상품이 포함되어 있습니다");
+        }
 
         List<CreateOrderProductDto> createOrderProductDtos = this.buildOrderProducts(this.member, this.products, this.coupons);
 

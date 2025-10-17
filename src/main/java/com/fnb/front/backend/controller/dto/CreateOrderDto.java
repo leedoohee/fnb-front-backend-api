@@ -11,7 +11,8 @@ import java.util.List;
 @Getter
 @Builder
 public class CreateOrderDto {
-
+    private String errorCode;
+    private String errorMessage;
     private String memberId;
     private String memberName;
     private String orderId;
@@ -23,4 +24,9 @@ public class CreateOrderDto {
     private String usePoint;
     private String orderType;
     private List<CreateOrderProductDto> orderProducts;
+
+    public CreateOrderDto(String errorCode, String errorMessage) {
+        this.errorCode      = errorCode;
+        this.errorMessage   = errorMessage;
+    }
 }

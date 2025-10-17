@@ -44,6 +44,13 @@ public class OrderService {
         OrderProcessor orderProcessor       = new OrderProcessor(member, order, orderProducts, orderCoupons);
         CreateOrderDto createOrderDto       = orderProcessor.buildOrder();
 
+        if (createOrderDto.getErrorCode() != null) {
+           return OrderResponse.builder()
+                   .errorCode(createOrderDto.getErrorCode())
+                   .errorMessage(createOrderDto.getErrorMessage())
+                   .build();
+        }
+
         Order newOrder = Order.builder()
                 .orderId(createOrderDto.getOrderId())
                 .orderDate(createOrderDto.getOrderDate())

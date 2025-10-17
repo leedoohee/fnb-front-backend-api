@@ -81,7 +81,39 @@ public class CouponService {
         return true;
     }
 
+    public boolean afterApproveForCoupon(Member member, List<OrderProduct> orderProducts) {
+        List<Integer> couponIdList       = orderProducts.stream().map(OrderProduct::getCouponId).toList();
+        List<MemberCoupon> memberCoupons = this.memberRepository.findMemberCoupons(member.getMemberId(), couponIdList);
+
+        for (OrderProduct orderProduct : orderProducts) {
+            int couponId = orderProduct.getCouponId();
+
+            MemberCoupon memberCoupon = memberCoupons.stream()
+                    .filter(coupon -> coupon.getCouponId() == couponId).findFirst().orElse(null);
+
+            if (memberCoupon != null && !memberCoupon.getIsUsed().equals(Used.NOTUSED.getValue())) {
+                return false;
+            }
+
+            this.couponRepository.updateUsedMemberCoupon(member.getMemberId(), couponId, "0");
+        }
+
+        return true;
+    }
+
     private boolean isUsableCoupon(Coupon coupon, Member member) {
         return coupon.isAvailableStatus() && coupon.isBelongToAvailableGrade(member) && coupon.isCanApplyDuring();
+    }
+
+    public void afterCancelForCoupon(List<OrderProduct> orderProducts) {
+        for (OrderProduct orderProduct : orderProducts) {
+
+            if (orderProduct.getCoupon() == null) {
+                continue;
+            }
+
+            this.couponRepository.updateUsedMemberCoupon(orderProduct.getCoupon().getMemberCoupon().getMemberId(),
+                    orderProduct.getCoupon().getMemberCoupon().getCouponId(), Used.NOTUSED.getValue());
+        }
     }
 }

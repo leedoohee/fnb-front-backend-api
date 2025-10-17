@@ -1,5 +1,6 @@
 package com.fnb.front.backend.service;
 
+import com.fnb.front.backend.controller.domain.OrderProduct;
 import com.fnb.front.backend.controller.domain.Product;
 import com.fnb.front.backend.controller.domain.ProductOption;
 import com.fnb.front.backend.controller.domain.response.ProductOptionResponse;
@@ -13,6 +14,7 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -87,5 +89,29 @@ public class ProductService {
         assert CommonUtil.isMinAndMaxBetween(product.getMinQuantity(), product.getMaxQuantity(), quantity) : "주문 수량이 초과 또는 미만입니다.";
 
         return true;
+    }
+
+    public boolean afterApproveForProduct(List<OrderProduct> orderProducts) {
+        for (OrderProduct orderProduct : orderProducts) {
+            if(orderProduct.getProduct() != null && orderProduct.getProduct().isInfiniteQty()) {
+                continue;
+            }
+
+            if (!CommonUtil.isMinAndMaxBetween(Objects.requireNonNull(orderProduct.getProduct()).getMinQuantity(),
+                    orderProduct.getProduct().getMaxQuantity(), orderProduct.getQuantity())) {
+                return false;
+            }
+
+            this.productRepository.updateMinusQuantity(Objects.requireNonNull(orderProduct.getProduct()).getProductId(),
+                    orderProduct.getQuantity());
+        }
+
+        return true;
+    }
+
+    public void afterCancelForProduct(List<OrderProduct> orderProducts) {
+        for (OrderProduct orderProduct : orderProducts) {
+            this.productRepository.updatePlusQuantity(orderProduct.getProduct().getProductId(), orderProduct.getQuantity());
+        }
     }
 }

@@ -10,6 +10,8 @@ import java.math.BigDecimal;
 @Setter
 @Builder
 public class OrderResponse {
+    private String errorCode;
+    private String errorMessage;
     private boolean isNonPayment;
     private String orderId;
     private String memberName;
