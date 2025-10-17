@@ -35,7 +35,7 @@ public class OrderProcessor {
 
         assert this.isCanUseCoupons(this.coupons, this.member) : "사용 불가능한 쿠폰이 포함되어 있습니다.";
 
-        assert this.isCanOrderProduct(this.products) : "구매 불가능한 상품이 포함되어 있습니다.";
+        assert this.isCanOrderProducts(this.products) : "구매 불가능한 상품이 포함되어 있습니다.";
 
         List<CreateOrderProductDto> createOrderProductDtos = this.buildOrderProducts(this.member, this.products, this.coupons);
 
@@ -89,7 +89,7 @@ public class OrderProcessor {
         return true;
     }
 
-    private boolean isCanOrderProduct(List<Product> products) {
+    private boolean isCanOrderProducts(List<Product> products) {
 
         if(products.isEmpty()) {
             return false;
