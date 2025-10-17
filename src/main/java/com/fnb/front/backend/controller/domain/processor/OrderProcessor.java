@@ -26,21 +26,22 @@ public class OrderProcessor {
 
     public CreateOrderDto buildOrder() {
 
+        //TODO error code 반환이냐, 익셉션이냐...
         assert this.member.isCanPurchase() :"구매 불가능한 회원입니다.";
 
-        assert this.validatePoint(this.order.getUsePoint(), this.member.getPoints()) : "사용 가능한 포인트를 초과하였습니다";
+        assert this.isCanUsePoint(this.order.getUsePoint(), this.member.getPoints()) : "사용 가능한 포인트를 초과하였습니다";
 
         assert this.isOwnedCoupons(this.member, this.coupons) : "소유하지 않은 쿠폰을 사용하였습니다.";
 
-        assert this.validateCoupons(this.coupons, this.member) : "사용 불가능한 쿠폰이 포함되어 있습니다.";
+        assert this.isCanUseCoupons(this.coupons, this.member) : "사용 불가능한 쿠폰이 포함되어 있습니다.";
 
-        assert this.validateOrderProduct(this.products) : "구매 불가능한 상품이 포함되어 있습니다.";
+        assert this.isCanOrderProduct(this.products) : "구매 불가능한 상품이 포함되어 있습니다.";
 
         List<CreateOrderProductDto> createOrderProductDtos = this.buildOrderProducts(this.member, this.products, this.coupons);
 
-        int totalCouponPrice        = this.calculateTotalCouponPrice(Objects.requireNonNull(createOrderProductDtos));
-        int totalMemberShipPrice    = this.calculateTotalMemberShipPrice(createOrderProductDtos);
-        int totalOriginPrice        = this.calculateTotalOriginPrice(createOrderProductDtos);
+        int totalCouponPrice        = this.calcTotalCouponPrice(Objects.requireNonNull(createOrderProductDtos));
+        int totalMemberShipPrice    = this.calcTotalMemberShipPrice(createOrderProductDtos);
+        int totalOriginPrice        = this.calcTotalOriginPrice(createOrderProductDtos);
 
         return CreateOrderDto.builder()
                 .orderId(this.generateOrderId())
@@ -53,11 +54,11 @@ public class OrderProcessor {
                 .build();
     }
 
-    private boolean validatePoint(BigDecimal point, int ownedPoint) {
-        return point.intValue() - ownedPoint < 0;
+    private boolean isCanUsePoint(BigDecimal usedPoint, int ownedPoint) {
+        return usedPoint.intValue() <= ownedPoint;
     }
 
-    private boolean validateCoupons(List<Coupon> coupons, Member member) {
+    private boolean isCanUseCoupons(List<Coupon> coupons, Member member) {
         for(Coupon coupon : coupons) {
             if(!coupon.isAvailableStatus()) {
                 return false;
@@ -88,18 +89,22 @@ public class OrderProcessor {
         return true;
     }
 
-    private boolean validateOrderProduct(List<Product> products) {
+    private boolean isCanOrderProduct(List<Product> products) {
 
         if(products.isEmpty()) {
             return false;
         }
 
         for (Product product : products) {
-            if(product.isInfiniteQty()) {
+            if (product.isInfiniteQty()) {
                 continue;
             }
 
-            if(!product.isAvailablePurchase()) {
+            if (!product.isAvailablePurchase()) {
+                return false;
+            }
+
+            if (!product.isAvailableUseCoupon()) {
                 return false;
             }
 
@@ -121,13 +126,11 @@ public class OrderProcessor {
         for (Product product : products) {
             int memberShipPrice = 0;
 
-            assert product.isAvailableUseCoupon() : "쿠폰 사용이 불가능한 상품입니다.";
-
             if (product.inMemberShipDiscount(member)) {
-                memberShipPrice = this.calculateMemberShipToProduct(product, member);
+                memberShipPrice = this.calcMemberShipPriceToProduct(product, member);
             }
 
-            int couponPrice = this.calculateCouponToProduct(product, coupons);
+            int couponPrice = this.calcCouponPriceToProduct(product, coupons);
 
             CreateOrderProductDto orderProduct = CreateOrderProductDto.builder()
                     .orderId(this.generateOrderId())
@@ -136,7 +139,7 @@ public class OrderProcessor {
                     .name(product.getName())
                     .couponId(this.applyCouponToProduct(product, coupons))
                     .quantity(product.getQuantity())
-                    .originPrice(this.calcPriceWithAdditionalOptions(this.calculatePriceWithQuantity(product), product))
+                    .originPrice(this.calcPriceWithOptions(this.calcPriceWithQuantity(product), product))
                     .couponPrice(couponPrice)
                     .discountPrice(couponPrice + memberShipPrice)
                     .build();
@@ -154,7 +157,7 @@ public class OrderProcessor {
                 .mapToInt(Integer::intValue).findFirst().orElse(0);
     }
 
-    private int calculateCouponToProduct(Product product, List<Coupon> coupons) {
+    private int calcCouponPriceToProduct(Product product, List<Coupon> coupons) {
         return coupons.stream()
             .filter(coupon -> Objects.equals(coupon.getApplyProductId(), product.getProductId() ))
             .map(coupon -> {
@@ -163,46 +166,46 @@ public class OrderProcessor {
                 CouponCalculator couponPriceCalculator = null;
 
                 if (couponPolicy != null) {
-                    couponPriceCalculator = new CouponCalculator(coupon, this.calculatePriceWithQuantity(product), couponPolicy);
+                    couponPriceCalculator = new CouponCalculator(coupon, this.calcPriceWithQuantity(product), couponPolicy);
                 }
 
                 return Objects.requireNonNull(couponPriceCalculator).calculate();
             }).mapToInt(BigDecimal::intValue).findFirst().orElse(0);
     }
 
-    private int calculateMemberShipToProduct(Product product, Member member) {
+    private int calcMemberShipPriceToProduct(Product product, Member member) {
         Calculator memberShipCalculator = null;
 
         DiscountPolicy memberShipPolicy = DiscountFactory.getPolicy(product.getApplyMemberGradeDisType());
 
         if (memberShipPolicy != null) {
             memberShipCalculator = new MemberShipCalculator(member,
-                                        this.calculatePriceWithQuantity(product),
+                                        this.calcPriceWithQuantity(product),
                                         product.getApplyMemberGradeDisAmt().intValue(), memberShipPolicy);
         }
 
         return Objects.requireNonNull(memberShipCalculator).calculate().intValue();
     }
 
-    private int calculateTotalCouponPrice(List<CreateOrderProductDto> createOrderProductDtos) {
+    private int calcTotalCouponPrice(List<CreateOrderProductDto> createOrderProductDtos) {
         return createOrderProductDtos.stream()
                 .map(CreateOrderProductDto::getCouponPrice)
                 .mapToInt(Integer::intValue).sum();
     }
 
-    private int calculateTotalMemberShipPrice(List<CreateOrderProductDto> createOrderProductDtos) {
+    private int calcTotalMemberShipPrice(List<CreateOrderProductDto> createOrderProductDtos) {
         return createOrderProductDtos.stream()
                 .map(CreateOrderProductDto::getMemberShipPrice)
                 .mapToInt(Integer::intValue).sum();
     }
 
-    private int calculateTotalOriginPrice(List<CreateOrderProductDto> createOrderProductDtos) {
+    private int calcTotalOriginPrice(List<CreateOrderProductDto> createOrderProductDtos) {
         return createOrderProductDtos.stream()
                 .map(CreateOrderProductDto::getOriginPrice)
                 .mapToInt(Integer::intValue).sum();
     }
 
-    private int calculatePriceWithQuantity(Product product) {
+    private int calcPriceWithQuantity(Product product) {
         List<ProductOption> productOptions  = product.getProductOption();
         ProductOption singleOption          = productOptions.stream()
                                                 .filter(productOption -> productOption.getOptionType().equals(OptionType.BASIC.getValue()))
@@ -211,7 +214,7 @@ public class OrderProcessor {
         return (product.getPrice().intValue() + Objects.requireNonNull(singleOption).getPrice()) * product.getQuantity();
     }
 
-    private int calcPriceWithAdditionalOptions(int optionPrice, Product product) {
+    private int calcPriceWithOptions(int optionPrice, Product product) {
         int sumPrice = product.getProductOption().stream()
                             .filter(productOption -> productOption.getOptionType().equals(OptionType.ADDITIONAL.getValue()))
                             .map(ProductOption::getPrice)
