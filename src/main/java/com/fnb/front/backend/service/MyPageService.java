@@ -76,7 +76,7 @@ public class MyPageService {
 
         int ownedPoint       = memberPoints.stream()
                                     .filter(memberPoint -> memberPoint.getIsUsed().equals("1"))
-                                    .map(MemberPoint::getId)
+                                    .map(MemberPoint::getAmount)
                                     .mapToInt(Integer::intValue).sum();
 
         return MyInfoResponse.builder()
