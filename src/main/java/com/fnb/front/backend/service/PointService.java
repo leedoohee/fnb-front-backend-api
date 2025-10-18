@@ -2,7 +2,6 @@ package com.fnb.front.backend.service;
 
 import com.fnb.front.backend.controller.domain.*;
 import com.fnb.front.backend.repository.MemberRepository;
-import com.fnb.front.backend.repository.OrderRepository;
 import com.fnb.front.backend.repository.PointRepository;
 import com.fnb.front.backend.util.CommonUtil;
 import com.fnb.front.backend.util.PointType;
@@ -66,9 +65,7 @@ public class PointService {
 
                 point += pointCalculator.calculate().intValue();
             }
-        }
-
-        if(CommonUtil.isPaymentAmountPolicyType(rule.getApplyUnit())) {
+        } else if (CommonUtil.isPaymentAmountPolicyType(rule.getApplyUnit())) {
             if(CommonUtil.isMinAndMaxBetween(rule.getMinApplyAmount().intValue(), rule.getMaxApplyAmount().intValue(), paymentAmount.intValue())) {
                 PointCalculator pointCalculator = new PointCalculator(paymentAmount,
                         rule.getAddingPointAmount(), PointFactory.getPolicy(rule.getAddingPointType()));

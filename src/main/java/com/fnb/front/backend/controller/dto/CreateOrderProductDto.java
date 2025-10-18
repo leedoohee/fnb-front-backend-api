@@ -8,7 +8,6 @@ import lombok.Setter;
 @Builder
 @Setter
 public class CreateOrderProductDto {
-    private String orderProductId;
     private String name;
     private int originPrice;
     private int purchasePrice;

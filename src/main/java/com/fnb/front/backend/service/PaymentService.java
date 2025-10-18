@@ -16,11 +16,11 @@ import com.fnb.front.backend.repository.*;
 import com.fnb.front.backend.util.PayType;
 import com.fnb.front.backend.util.PaymentStatus;
 import lombok.RequiredArgsConstructor;
-import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
@@ -43,9 +43,12 @@ public class PaymentService {
         PaymentProcessor paymentProcessor   = new PaymentProcessor(PayFactory.getPay(PayType.KAKAO.getValue()));
         ApprovePaymentResponse response     = paymentProcessor.approve(approvePaymentDto);
 
-        assert response != null : "결제 API 호출 결과가 실패하였습니다";
+        if (response == null) {
+            throw new RuntimeException("결제승인 과정에서 오류가 발생하였습니다");
+        }
 
-        return this.afterPaymentService.callPaymentProcess(this.orderService.findOrder(response.getOrderId()), response, PayType.KAKAO.getValue());
+        Order order = this.orderService.findOrder(response.getOrderId());
+        return this.afterPaymentService.callPaymentProcess(order, response, PayType.KAKAO.getValue());
     }
 
     public boolean cancelKakaoResult(KakaoPayCancelResponse response) {
@@ -71,13 +74,20 @@ public class PaymentService {
                 .build(), paymentElement.getPaymentId());
     }
 
+    private boolean cancel(String payType, String transactionId, BigDecimal cancelAmount, BigDecimal taxFree) {
+        PaymentProcessor paymentProcessor  = new PaymentProcessor(PayFactory.getPay(payType));
+        return paymentProcessor.cancel(RequestCancelPaymentDto.builder()
+                .cancelAmount(cancelAmount)
+                .cancelTaxFreeAmount(taxFree)
+                .transactionId(transactionId).build());
+    }
+
     @TransactionalEventListener(phase = TransactionPhase.BEFORE_COMMIT)
     public void handlePaymentCancelEvent(PaymentCancelEvent event) {
-        PaymentProcessor paymentProcessor  = new PaymentProcessor(PayFactory.getPay(event.getPayType()));
-        boolean result = paymentProcessor.cancel(RequestCancelPaymentDto.builder()
-                .cancelAmount(event.getCancelAmount())
-                .cancelTaxFreeAmount(event.getCancelTaxFreeAmount())
-                .transactionId(event.getTransactionId()).build());
+        boolean result = this.cancel(event.getPayType(),
+                event.getTransactionId(),
+                event.getCancelAmount(),
+                event.getCancelTaxFreeAmount());
 
         if (!result) {
             throw new RuntimeException("결제취소 과정에서 오류가 발생하였습니다.");
@@ -88,7 +98,9 @@ public class PaymentService {
     public void handleRequestCancelEvent(RequestCancelEvent event) {
         Payment payment = this.paymentRepository.findPayment(event.getOrderId());
 
-        assert payment.getPaymentStatus().equals(PaymentStatus.APPROVE.getValue()): "취소할 수 없는 결제상태입니다.";
+        if (!payment.getPaymentStatus().equals(PaymentStatus.APPROVE.getValue())) {
+            throw new RuntimeException("취소할 수 없는 주문상태입니다.");
+        }
 
         List<PaymentElement> paymentElements = payment.getPaymentElements();
 
@@ -97,11 +109,10 @@ public class PaymentService {
                 .findFirst().orElse(null);
 
         if(paymentGateWayElement != null) {
-            PaymentProcessor paymentProcessor  = new PaymentProcessor(PayFactory.getPay(payment.getPaymentType()));
-            boolean result = paymentProcessor.cancel(RequestCancelPaymentDto.builder()
-                    .cancelAmount(paymentGateWayElement.getAmount())
-                    .cancelTaxFreeAmount(paymentGateWayElement.getTaxFree())
-                    .transactionId(paymentGateWayElement.getTransactionId()).build());
+            boolean result = this.cancel(payment.getPaymentType(),
+                                        paymentGateWayElement.getTransactionId(),
+                                        paymentGateWayElement.getAmount(),
+                                        paymentGateWayElement.getTaxFree());
 
             if (!result) {
                 throw new RuntimeException("결제취소 과정에서 오류가 발생하였습니다.");

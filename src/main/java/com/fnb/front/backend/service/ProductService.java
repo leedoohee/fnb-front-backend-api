@@ -11,6 +11,8 @@ import com.fnb.front.backend.util.CommonUtil;
 import com.fnb.front.backend.util.ProductStatus;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+
+import javax.naming.InsufficientResourcesException;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
@@ -27,8 +29,6 @@ public class ProductService {
     public List<ProductResponse> getProducts() {
         List<ProductResponse> response  = new ArrayList<>();
         List<Product> products          = this.productRepository.findProducts(ProductStatus.SALE.getValue());
-
-        assert !products.isEmpty() : "상품이 존재하지 않습니다.";
 
         for (Product product : products) {
             response.add(ProductResponse.builder()
@@ -52,7 +52,9 @@ public class ProductService {
         Product product                                          = this.productRepository.findProduct(productId);
         int reviewCount                                          = this.reviewRepository.findReviews(productId).size();
 
-        assert product != null : "존재하지 않는 상품입니다.";
+        if (product == null) {
+            throw new NullPointerException("상품이 존재하지 않습니다.");
+        }
 
         for (ProductOption productOption : product.getProductOption()) {
             productOptionResponses.add(ProductOptionResponse.builder()
@@ -80,7 +82,13 @@ public class ProductService {
     public boolean validate(int productId, int quantity) {
         Product product = this.productRepository.findProduct(productId);
 
-        assert product != null : "존재하지 않는 상품입니다.";
+        if (product == null) {
+            throw new NullPointerException("상품이 존재하지 않습니다.");
+        }
+
+        if (quantity <= 0) {
+            throw new IllegalArgumentException("재고의 수는 0 이상이어야 합니다.");
+        }
 
         if (product.isInfiniteQty()) {
             return true;

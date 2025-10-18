@@ -53,13 +53,6 @@ public class OrderService {
         OrderProcessor orderProcessor       = new OrderProcessor(member, order, orderProducts, orderCoupons, new OrderValidator());
         CreateOrderDto createOrderDto       = orderProcessor.buildOrder();
 
-        if (createOrderDto.getErrorCode() != null) {
-           return OrderResponse.builder()
-                   .errorCode(createOrderDto.getErrorCode())
-                   .errorMessage(createOrderDto.getErrorMessage())
-                   .build();
-        }
-
         Order newOrder = Order.builder()
                 .orderId(createOrderDto.getOrderId())
                 .orderDate(createOrderDto.getOrderDate())
@@ -74,7 +67,6 @@ public class OrderService {
 
         for(CreateOrderProductDto element : createOrderDto.getOrderProducts()) {
             newOrderProducts.add(OrderProduct.builder()
-                    .orderProductId(Integer.parseInt(element.getOrderProductId()))
                     .productId(element.getProductId())
                     .quantity(element.getQuantity())
                     .couponAmount(BigDecimal.valueOf(element.getCouponPrice()))
@@ -184,5 +176,7 @@ public class OrderService {
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     private void handleOrderStatusEvent(OrderStatusUpdateEvent event) {
         this.orderRepository.updateOrderStatus(event.getOrderId(), event.getOrderStatus());
+
+        //exception 주문 상태 업데이트 과정에서 실패하였습니다. 결제상태 확인하여 업데이트 바랍니다.
     }
 }

@@ -43,11 +43,15 @@ public class CouponService {
     public boolean createMemberCoupon(String memberId, int couponId) {
         Member member               = this.memberRepository.findMember(memberId);
         Coupon coupon               = this.couponRepository.findCoupon(couponId);
-        MemberCoupon memberCoupon   = this.couponRepository.findMemberCoupon(member.getMemberId(), couponId, Used.NOTUSED.getValue());
+        MemberCoupon memberCoupon   = this.couponRepository.findMemberCoupon(member.getMemberId(), couponId);
 
-        assert memberCoupon == null : "이미 소유한 쿠폰입니다";
+        if (memberCoupon != null) {
+            throw new IllegalStateException("이미 소유하고 있거나 사용한 쿠폰입니다.");
+        }
 
-        assert (coupon != null && isUsableCoupon(coupon, member)): "소유할 수 없는 쿠폰입니다.";
+        if (coupon == null || !isUsableCoupon(coupon, member)) {
+            throw new IllegalStateException("소유할 수 없는 상태의 쿠폰입니다.");
+        }
 
         MemberCoupon mCoupon = MemberCoupon.builder()
                 .memberId(memberId)
@@ -63,7 +67,9 @@ public class CouponService {
     public boolean applyCouponToProduct(String memberId, int couponId, int productId) {
         MemberCoupon memberCoupon = this.couponRepository.findMemberCoupon(memberId, couponId, Used.NOTUSED.getValue());
 
-        assert memberCoupon != null : "보유하지 않은 쿠폰입니다.";
+        if (memberCoupon == null) {
+            throw new IllegalStateException("소유하지 않은 쿠폰입니다.");
+        }
 
         if(memberCoupon.getCoupon().isApplyToEntireProduct()) {
             return true;
@@ -73,12 +79,12 @@ public class CouponService {
             CouponProduct couponProduct = memberCoupon.getCoupon().getCouponProducts().stream()
                     .filter(element -> element.getProductId() == productId).findFirst().orElse(null);
 
-            assert couponProduct != null : "쿠폰적용이 불가능한 상품입니다.";
+            if (couponProduct == null) {
+                throw new IllegalStateException("쿠폰적용이 불가능한 상품입니다.");
+            }
         }
 
-        assert isUsableCoupon(memberCoupon.getCoupon(), memberCoupon.getMember()) : "적용불가능한 쿠폰입니다.";
-
-        return true;
+        return isUsableCoupon(memberCoupon.getCoupon(), memberCoupon.getMember());
     }
 
     public boolean afterApproveForCoupon(Member member, List<OrderProduct> orderProducts) {

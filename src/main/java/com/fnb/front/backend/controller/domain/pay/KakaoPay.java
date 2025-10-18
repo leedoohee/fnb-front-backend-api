@@ -116,7 +116,6 @@ public class KakaoPay implements IPay {
 
     @Override
     public boolean cancel(RequestCancelPaymentDto cancelPaymentDto) {
-        CancelPaymentDto cancelPaymentResponse = null;
         RestTemplate restTemplate = new RestTemplate();
         KakaoPayCancelDto requestBody = KakaoPayCancelDto.builder()
                 .cid("kakao")

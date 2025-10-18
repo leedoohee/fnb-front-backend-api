@@ -26,25 +26,31 @@ public class AuthService {
 
         Member member = this.memberRepository.findMember(memberId);
 
-        assert member != null : "사용자가 존재하지 않습니다.";
+        if (member == null) {
+            throw new NullPointerException("사용자가 존재하지 않습니다.");
+        }
 
-        assert passwordEncoder.matches(password, member.getPassword()) : "비밀번호가 일치하지 않습니다.";
+        if (!this.passwordEncoder.matches(password, member.getPassword())) {
+            throw new IllegalArgumentException("비밀번호가 일치하지 않습니다.");
+        }
 
         this.memberRepository.updateLastLoginDate(memberId);
 
-        return jwtUtil.createAccessToken(member);
+        return this.jwtUtil.createAccessToken(member);
     }
 
     public boolean signUp(SignUpRequest signUpRequest) {
         Member member = this.memberRepository.findMember(signUpRequest.getMemberId());
 
-        assert member == null : "이미 가입된 회원아이디 입니다";
+        if (member != null) {
+            throw new IllegalArgumentException("이미 사용중인 아이디입니다.");
+        }
 
         this.memberRepository.insertMember(Member.builder()
                                     .memberId(signUpRequest.getMemberId())
                                     .name(signUpRequest.getName())
                                     .email(signUpRequest.getEmail())
-                                    .password(passwordEncoder.encode(signUpRequest.getPassword()))
+                                    .password(this.passwordEncoder.encode(signUpRequest.getPassword()))
                                     .phoneNumber(signUpRequest.getPhone())
                                     .address(signUpRequest.getAddress())
                                     .status(MemberStatus.ACTIVE.getValue())

@@ -26,7 +26,7 @@ public class MyPageService {
         int lastPageNumber                              = (int) (Math.ceil((double) totalCount / myPageRequest.getPageLimit()));
         List<Order> orders                              = this.orderRepository.findOrders(myPageRequest);
         List<MyOrderResponse>   orderResponses          = new ArrayList<>();
-
+        
         for (Order order : orders) {
             List<MyOrderProductResponse> orderProductResponse = new ArrayList<>();;
             List<OrderProduct> products = order.getOrderProducts();

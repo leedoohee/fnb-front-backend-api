@@ -6,6 +6,7 @@ import com.fnb.front.backend.controller.domain.implement.Calculator;
 import com.fnb.front.backend.controller.domain.validator.OrderValidator;
 import com.fnb.front.backend.controller.dto.CreateOrderDto;
 import com.fnb.front.backend.controller.dto.CreateOrderProductDto;
+import com.fnb.front.backend.util.CommonUtil;
 import com.fnb.front.backend.util.OptionType;
 
 import java.math.BigDecimal;
@@ -30,34 +31,34 @@ public class OrderProcessor {
 
     public CreateOrderDto buildOrder() {
 
-        if(!this.orderValidator.isCanPurchaseMember(member)) {
-            return new CreateOrderDto("400", "구매 불가능한 회원입니다");
+        if (!this.orderValidator.isCanPurchaseMember(member)) {
+            throw new IllegalStateException("구매 불가능한 회원입니다.");
         }
 
-        if(!this.orderValidator.isCanUsePoint(this.order.getUsePoint(), this.member.getPoints())) {
-            return new CreateOrderDto("400", "사용 가능한 포인트를 초과하였습니다");
+        if (!this.orderValidator.isCanUsePoint(this.order.getUsePoint(), this.member.getPoints())) {
+            throw new IllegalStateException("사용 가능한 포인트를 초과하였습니다.");
         }
 
-        if(!this.orderValidator.isOwnedCoupons(this.member, this.coupons)) {
-            return new CreateOrderDto("400", "소유하지 않은 쿠폰을 사용하였습니다");
+        if (!this.orderValidator.isOwnedCoupons(this.member, this.coupons)) {
+            throw new IllegalStateException("소유하지 않은 쿠폰을 사용하였습니다.");
         }
 
-        if(!this.orderValidator.isCanUseCoupons(this.coupons, this.member)) {
-            return new CreateOrderDto("400", "사용 불가능한 쿠폰이 포함되어 있습니다");
+        if (!this.orderValidator.isCanUseCoupons(this.coupons, this.member)) {
+            throw new IllegalStateException("사용 불가능한 쿠폰이 포함되어 있습니다.");
         }
 
-        if(!this.orderValidator.isCanOrderProducts(this.products)) {
-            return new CreateOrderDto("400", "구매 불가능한 상품이 포함되어 있습니다");
+        if (!this.orderValidator.isCanOrderProducts(this.products)) {
+            throw new IllegalStateException("구매 불가능한 상품이 포함되어 있습니다.");
         }
 
         List<CreateOrderProductDto> createOrderProductDtos = this.buildOrderProducts(this.member, this.products, this.coupons);
 
-        int totalCouponPrice        = this.calcTotalCouponPrice(Objects.requireNonNull(createOrderProductDtos));
+        int totalCouponPrice        = this.calcTotalCouponPrice(createOrderProductDtos);
         int totalMemberShipPrice    = this.calcTotalMemberShipPrice(createOrderProductDtos);
         int totalOriginPrice        = this.calcTotalOriginPrice(createOrderProductDtos);
 
         return CreateOrderDto.builder()
-                .orderId(this.generateOrderId())
+                .orderId(CommonUtil.generateOrderId())
                 .orderDate(LocalDateTime.now())
                 .memberName(this.member.getName())
                 .discountAmount(BigDecimal.valueOf(totalCouponPrice + totalMemberShipPrice).add(this.order.getUsePoint()))
@@ -80,8 +81,7 @@ public class OrderProcessor {
             int couponPrice = this.calcCouponPriceToProduct(product, coupons);
 
             CreateOrderProductDto orderProduct = CreateOrderProductDto.builder()
-                    .orderId(this.generateOrderId())
-                    .orderProductId(this.generateOrderProductId())
+                    .orderId(CommonUtil.generateOrderId())
                     .productId(product.getProductId())
                     .name(product.getName())
                     .couponId(this.applyCouponToProduct(product, coupons))
@@ -106,32 +106,36 @@ public class OrderProcessor {
 
     private int calcCouponPriceToProduct(Product product, List<Coupon> coupons) {
         return coupons.stream()
-            .filter(coupon -> Objects.equals(coupon.getApplyProductId(), product.getProductId() ))
-            .map(coupon -> {
+                .filter(coupon -> Objects.equals(coupon.getApplyProductId(), product.getProductId() ))
+                .map(coupon -> {
+                    BigDecimal price = BigDecimal.valueOf(0);
 
-                DiscountPolicy couponPolicy = DiscountFactory.getPolicy(coupon.getDiscountType());
-                CouponCalculator couponPriceCalculator = null;
+                    DiscountPolicy couponPolicy = DiscountFactory.getPolicy(coupon.getDiscountType());
 
-                if (couponPolicy != null) {
-                    couponPriceCalculator = new CouponCalculator(coupon, this.calcPriceWithQuantity(product), couponPolicy);
-                }
+                    if (couponPolicy != null) {
+                        CouponCalculator couponPriceCalculator = new CouponCalculator(coupon, this.calcPriceWithQuantity(product), couponPolicy);
+                        price = couponPriceCalculator.calculate();
+                    }
 
-                return Objects.requireNonNull(couponPriceCalculator).calculate();
-            }).mapToInt(BigDecimal::intValue).findFirst().orElse(0);
+                    return price;
+
+                }).mapToInt(BigDecimal::intValue).findFirst().orElse(0);
     }
 
     private int calcMemberShipPriceToProduct(Product product, Member member) {
-        Calculator memberShipCalculator = null;
+        int price = 0;
 
         DiscountPolicy memberShipPolicy = DiscountFactory.getPolicy(product.getApplyMemberGradeDisType());
 
         if (memberShipPolicy != null) {
-            memberShipCalculator = new MemberShipCalculator(member,
-                                        this.calcPriceWithQuantity(product),
-                                        product.getApplyMemberGradeDisAmt().intValue(), memberShipPolicy);
+            Calculator memberShipCalculator = new MemberShipCalculator(member,
+                                                    this.calcPriceWithQuantity(product),
+                                                    product.getApplyMemberGradeDisAmt().intValue(), memberShipPolicy);
+
+            price = memberShipCalculator.calculate().intValue();
         }
 
-        return Objects.requireNonNull(memberShipCalculator).calculate().intValue();
+        return price;
     }
 
     private int calcTotalCouponPrice(List<CreateOrderProductDto> createOrderProductDtos) {
@@ -153,12 +157,17 @@ public class OrderProcessor {
     }
 
     private int calcPriceWithQuantity(Product product) {
+        int basicOptionPrice = 0;
         List<ProductOption> productOptions  = product.getProductOption();
-        ProductOption singleOption          = productOptions.stream()
+        ProductOption basicOption           = productOptions.stream()
                                                 .filter(productOption -> productOption.getOptionType().equals(OptionType.BASIC.getValue()))
                                                 .findFirst().orElse(null);
 
-        return (product.getPrice().intValue() + Objects.requireNonNull(singleOption).getPrice()) * product.getQuantity();
+        if (basicOption != null) {
+            basicOptionPrice = basicOption.getPrice();
+        }
+
+        return (product.getPrice().intValue() + basicOptionPrice) * product.getQuantity();
     }
 
     private int calcPriceWithOptions(int optionPrice, Product product) {
@@ -168,13 +177,5 @@ public class OrderProcessor {
                             .mapToInt(Integer::intValue).sum();
 
         return optionPrice + sumPrice;
-    }
-
-    public String generateOrderId() {
-        return "ORDER_" + new Date().getTime();
-    }
-
-    public String generateOrderProductId() {
-        return "ORDER_PRODUCT" + new Date().getTime();
     }
 }

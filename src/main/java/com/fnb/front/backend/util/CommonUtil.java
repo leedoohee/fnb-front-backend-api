@@ -1,5 +1,7 @@
 package com.fnb.front.backend.util;
 
+import java.util.Date;
+
 public class CommonUtil {
 
     public static boolean isMinAndMaxBetween(int min, int max, int amount) {
@@ -12,5 +14,9 @@ public class CommonUtil {
 
     public static boolean isPaymentAmountPolicyType(String type) {
         return type.equals("PAYMENT");
+    }
+
+    public static String generateOrderId() {
+        return "ORDER_" + new Date().getTime();
     }
 }

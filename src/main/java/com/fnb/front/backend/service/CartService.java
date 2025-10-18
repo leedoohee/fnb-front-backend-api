@@ -52,7 +52,9 @@ public class CartService {
     public boolean update(CartUpdateRequest cartUpdateRequest) {
         Cart cart = this.cartRepository.findCart(cartUpdateRequest.getCartId());
 
-        assert cart != null : "장바구니가 존재하지 않습니다.";
+        if (cart == null) {
+            throw new IllegalArgumentException("장바구니가 존재하지 않습니다.");
+        }
 
         this.cartRepository.updateCart(cartUpdateRequest.getCartId(), cartUpdateRequest.getQuantity());
 

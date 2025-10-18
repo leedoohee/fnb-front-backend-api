@@ -74,6 +74,24 @@ public class CouponRepository {
         return !typedQuery.getResultList().isEmpty() ? typedQuery.getResultList().get(0) : null;
     }
 
+    public MemberCoupon findMemberCoupon(String memberId, int couponId) {
+        List<Predicate> searchConditions = new ArrayList<>();
+        CriteriaBuilder cb               = this.em.getCriteriaBuilder();
+        CriteriaQuery<MemberCoupon> cq   = cb.createQuery(MemberCoupon.class);
+        Root<MemberCoupon> root          = cq.from(MemberCoupon.class);
+        root.fetch("member", JoinType.INNER);
+
+        searchConditions.add(cb.equal(root.get("memberId"), memberId));
+        searchConditions.add(cb.equal(root.get("couponId"), couponId));
+
+        cq = cq.where(cb.and(searchConditions.toArray(new Predicate[0])));
+
+        TypedQuery<MemberCoupon> typedQuery = this.em.createQuery(cq);
+        typedQuery.setMaxResults(1);
+
+        return !typedQuery.getResultList().isEmpty() ? typedQuery.getResultList().get(0) : null;
+    }
+
     public MemberCoupon findMemberCoupon(String memberId, int couponId, String isUsed) {
         List<Predicate> searchConditions = new ArrayList<>();
         CriteriaBuilder cb               = this.em.getCriteriaBuilder();
