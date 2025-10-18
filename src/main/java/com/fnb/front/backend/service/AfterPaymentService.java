@@ -1,15 +1,15 @@
 package com.fnb.front.backend.service;
 
 import com.fnb.front.backend.controller.domain.*;
-import com.fnb.front.backend.controller.domain.processor.PaymentProcessor;
+import com.fnb.front.backend.controller.domain.event.OrderStatusUpdateEvent;
+import com.fnb.front.backend.controller.domain.event.PaymentCancelEvent;
 import com.fnb.front.backend.controller.domain.response.ApprovePaymentResponse;
-import com.fnb.front.backend.controller.domain.response.KakaoPayCancelResponse;
 import com.fnb.front.backend.controller.dto.CancelPaymentDto;
-import com.fnb.front.backend.controller.dto.RequestCancelPaymentDto;
 import com.fnb.front.backend.repository.*;
 import com.fnb.front.backend.util.*;
 import com.fnb.front.backend.util.PaymentStatus;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,14 +17,11 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
 public class AfterPaymentService {
     private final PaymentRepository paymentRepository;
-
-    private final OrderRepository orderRepository;
 
     private final ProductService productService;
 
@@ -32,11 +29,15 @@ public class AfterPaymentService {
 
     private final PointService pointService;
 
-    @Transactional
-    public boolean callPaymentProcess(String orderId, ApprovePaymentResponse approvePaymentResponse, String payType) {
-        try {
-            Order order = this.orderRepository.findOrder(orderId);
+    private final ApplicationEventPublisher paymentCancelEvent;
 
+    private final ApplicationEventPublisher orderStatusUpdateEvent;
+
+    @Transactional
+    public boolean callPaymentProcess(Order order, ApprovePaymentResponse approvePaymentResponse, String payType) {
+        try {
+            int couponAmount      = order.getCouponAmount();
+            int pointAmount       = order.getUsePoint().intValue();
             boolean productResult = this.productService.afterApproveForProduct(order.getOrderProducts());
             boolean couponResult  = this.couponService.afterApproveForCoupon(order.getMember(), order.getOrderProducts());
             boolean pointResult   = this.pointService.afterApproveForPoint(order, order.getMember(),
@@ -44,21 +45,16 @@ public class AfterPaymentService {
 
             if (!(productResult && couponResult && pointResult)) {
                 if (approvePaymentResponse != null) {
-                    PaymentProcessor paymentProcessor  = new PaymentProcessor(PayFactory.getPay(payType));
-                    boolean result = paymentProcessor.cancel(RequestCancelPaymentDto.builder()
-                            .cancelAmount(approvePaymentResponse.getTotalAmount())
-                            .cancelTaxFreeAmount(approvePaymentResponse.getTaxFree())
-                            .transactionId(approvePaymentResponse.getTransactionId()).build());
-
-                    //TODO 실패 로그 추가
-                    throw new RuntimeException("결제 취소과정에서 오류가 발생하였습니다.");
+                    this.paymentCancelEvent.publishEvent(PaymentCancelEvent.builder()
+                                                    .cancelAmount(approvePaymentResponse.getTotalAmount())
+                                                    .payType(payType)
+                                                    .cancelTaxFreeAmount(approvePaymentResponse.getTaxFree())
+                                                    .transactionId(approvePaymentResponse.getTransactionId())
+                                                    .build());
                 }
 
                 return false;
             }
-
-            int couponAmount = order.getCouponAmount();
-            int pointAmount  = order.getUsePoint().intValue();
 
             //TODO 금액 비교 로직
 
@@ -115,35 +111,13 @@ public class AfterPaymentService {
                         .build());
             }
 
-            this.finishOrder(orderId, OrderStatus.ORDERED.getValue());
+            this.orderStatusUpdateEvent.publishEvent(OrderStatusUpdateEvent.builder()
+                    .orderId(order.getOrderId())
+                    .orderStatus(OrderStatus.ORDERED.getValue())
+                    .build());
+
         } catch (Exception e) {
             throw new DataAccessResourceFailureException("데이터베이스 처리과정중 오류가 발생하였습니다.");
-        }
-
-        return true;
-    }
-
-    @Transactional
-    public boolean requestPaymentCancel(String orderId) {
-        Payment payment = this.paymentRepository.findPayment(orderId);
-
-        assert payment.getPaymentStatus().equals(PaymentStatus.APPROVE.getValue()): "취소할 수 없는 결제상태입니다.";
-
-        List<PaymentElement> paymentElements = payment.getPaymentElements();
-        PaymentElement paymentGateWayElement = paymentElements.stream()
-                                                .filter(paymentElement -> !paymentElement.getTransactionId().isEmpty())
-                                                .findFirst().orElse(null);
-
-        if(paymentGateWayElement != null) {
-            PaymentProcessor paymentProcessor  = new PaymentProcessor(PayFactory.getPay(payment.getPaymentType()));
-            boolean result = paymentProcessor.cancel(RequestCancelPaymentDto.builder()
-                    .cancelAmount(payment.getTotalAmount())
-                    .cancelTaxFreeAmount(paymentGateWayElement.getTaxFree())
-                    .transactionId(paymentGateWayElement.getTransactionId()).build());
-
-            assert result : "결제취소 과정에서 문제가 발생하였습니다.";
-        } else {
-            this.callCancelProcess(null, payment.getPaymentId());
         }
 
         return true;
@@ -187,15 +161,15 @@ public class AfterPaymentService {
                 this.paymentRepository.insertPaymentElement(paymentElement);
             }
 
-            this.finishOrder(payment.getOrder().getOrderId(), OrderStatus.CANCELED.getValue());
+            this.orderStatusUpdateEvent.publishEvent(OrderStatusUpdateEvent.builder()
+                    .orderId(payment.getOrderId())
+                    .orderStatus(OrderStatus.CANCELED.getValue())
+                    .build());
+
         } catch (Exception e) {
             throw new DataAccessResourceFailureException("데이터베이스 처리과정중 오류가 발생하였습니다.");
         }
 
         return true;
-    }
-
-    private void finishOrder(String orderId, String orderStatus) {
-        this.orderRepository.updateOrderStatus(orderId, orderStatus);
     }
 }

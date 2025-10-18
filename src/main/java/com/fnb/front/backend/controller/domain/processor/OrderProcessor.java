@@ -3,6 +3,7 @@ package com.fnb.front.backend.controller.domain.processor;
 import com.fnb.front.backend.controller.domain.*;
 import com.fnb.front.backend.controller.domain.implement.DiscountPolicy;
 import com.fnb.front.backend.controller.domain.implement.Calculator;
+import com.fnb.front.backend.controller.domain.validator.OrderValidator;
 import com.fnb.front.backend.controller.dto.CreateOrderDto;
 import com.fnb.front.backend.controller.dto.CreateOrderProductDto;
 import com.fnb.front.backend.util.OptionType;
@@ -17,32 +18,35 @@ public class OrderProcessor {
     private final List<Product> products;
     private final List<Coupon> coupons;
 
-    public OrderProcessor(Member member, Order order, List<Product> products, List<Coupon> coupons) {
+    private final OrderValidator orderValidator;
+
+    public OrderProcessor(Member member, Order order, List<Product> products, List<Coupon> coupons, OrderValidator orderValidator) {
         this.member = member;
         this.order = order;
         this.products = products;
         this.coupons = coupons;
+        this.orderValidator = orderValidator;
     }
 
     public CreateOrderDto buildOrder() {
 
-        if(!this.member.isCanPurchase()) {
+        if(!this.orderValidator.isCanPurchaseMember(member)) {
             return new CreateOrderDto("400", "구매 불가능한 회원입니다");
         }
 
-        if(!this.isCanUsePoint(this.order.getUsePoint(), this.member.getPoints())) {
+        if(!this.orderValidator.isCanUsePoint(this.order.getUsePoint(), this.member.getPoints())) {
             return new CreateOrderDto("400", "사용 가능한 포인트를 초과하였습니다");
         }
 
-        if(!this.isOwnedCoupons(this.member, this.coupons)) {
+        if(!this.orderValidator.isOwnedCoupons(this.member, this.coupons)) {
             return new CreateOrderDto("400", "소유하지 않은 쿠폰을 사용하였습니다");
         }
 
-        if(!this.isCanUseCoupons(this.coupons, this.member)) {
+        if(!this.orderValidator.isCanUseCoupons(this.coupons, this.member)) {
             return new CreateOrderDto("400", "사용 불가능한 쿠폰이 포함되어 있습니다");
         }
 
-        if(!this.isCanOrderProducts(this.products)) {
+        if(!this.orderValidator.isCanOrderProducts(this.products)) {
             return new CreateOrderDto("400", "구매 불가능한 상품이 포함되어 있습니다");
         }
 
@@ -61,72 +65,6 @@ public class OrderProcessor {
                 .orderAmount(BigDecimal.valueOf(totalOriginPrice))
                 .orderProducts(createOrderProductDtos)
                 .build();
-    }
-
-    private boolean isCanUsePoint(BigDecimal usedPoint, int ownedPoint) {
-        return usedPoint.intValue() <= ownedPoint;
-    }
-
-    private boolean isCanUseCoupons(List<Coupon> coupons, Member member) {
-        for(Coupon coupon : coupons) {
-            if(!coupon.isAvailableStatus()) {
-                return false;
-            }
-
-            if(!coupon.isCanApplyDuring()) {
-                return false;
-            }
-
-            if(!coupon.isBelongToAvailableGrade(member)) {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    private boolean isOwnedCoupons(Member member, List<Coupon> coupons) {
-        List<MemberCoupon> ownedCoupons = member.getOwnedCoupon();
-        List<Integer> ownedCouponIds = ownedCoupons.stream().map(MemberCoupon::getCouponId).toList();
-
-        for (Coupon coupon : coupons) {
-            if(!ownedCouponIds.contains(coupon.getCouponId())) {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    private boolean isCanOrderProducts(List<Product> products) {
-
-        if(products.isEmpty()) {
-            return false;
-        }
-
-        for (Product product : products) {
-            if (product.isInfiniteQty()) {
-                continue;
-            }
-
-            if (!product.isAvailablePurchase()) {
-                return false;
-            }
-
-            if (!product.isAvailableUseCoupon()) {
-                return false;
-            }
-
-            if(product.isLessMinPurchaseQuantity()) {
-                return false;
-            }
-
-            if(product.isOverMaxPurchaseQuantity()) {
-                return false;
-            }
-        }
-
-        return true;
     }
 
     private List<CreateOrderProductDto> buildOrderProducts(Member member, List<Product> products, List<Coupon> coupons) {

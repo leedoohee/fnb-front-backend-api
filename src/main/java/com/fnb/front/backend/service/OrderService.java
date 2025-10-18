@@ -1,7 +1,11 @@
 package com.fnb.front.backend.service;
 
 import com.fnb.front.backend.controller.domain.*;
+import com.fnb.front.backend.controller.domain.event.OrderStatusUpdateEvent;
+import com.fnb.front.backend.controller.domain.event.RequestCancelEvent;
+import com.fnb.front.backend.controller.domain.event.RequestPaymentEvent;
 import com.fnb.front.backend.controller.domain.response.OrderResponse;
+import com.fnb.front.backend.controller.domain.validator.OrderValidator;
 import com.fnb.front.backend.repository.*;
 import com.fnb.front.backend.controller.domain.processor.OrderProcessor;
 import com.fnb.front.backend.controller.dto.CreateOrderDto;
@@ -13,8 +17,11 @@ import com.fnb.front.backend.util.OrderStatus;
 import com.fnb.front.backend.util.OrderType;
 import com.fnb.front.backend.util.Used;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.event.TransactionPhase;
+import org.springframework.transaction.event.TransactionalEventListener;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -32,7 +39,9 @@ public class OrderService {
 
     private final OrderRepository orderRepository;
 
-    private final AfterPaymentService afterPaymentService;
+    private final ApplicationEventPublisher requestCancelEvent;
+
+    private final ApplicationEventPublisher ApprovePaymentEvent;
 
     @Transactional
     public OrderResponse create(OrderRequest orderRequest) {
@@ -41,7 +50,7 @@ public class OrderService {
         Member member                       = this.createMember(orderRequest);
         List<Product> orderProducts         = this.createOrderProduct(orderRequest);
         List<Coupon> orderCoupons           = this.createOrderCoupon(orderRequest);
-        OrderProcessor orderProcessor       = new OrderProcessor(member, order, orderProducts, orderCoupons);
+        OrderProcessor orderProcessor       = new OrderProcessor(member, order, orderProducts, orderCoupons, new OrderValidator());
         CreateOrderDto createOrderDto       = orderProcessor.buildOrder();
 
         if (createOrderDto.getErrorCode() != null) {
@@ -79,7 +88,8 @@ public class OrderService {
         this.insertOrderProducts(newOrderProducts);
 
         if (this.isNonExecutePaymentGateWay(createOrderDto.getOrderProducts())) {
-            this.afterPaymentService.callPaymentProcess(createOrderDto.getOrderId(), null, null);
+            this.ApprovePaymentEvent.publishEvent(RequestPaymentEvent.builder()
+                                        .order(this.findOrder(createOrderDto.getOrderId())));
         }
 
         return OrderResponse.builder()
@@ -95,7 +105,13 @@ public class OrderService {
     }
 
     public boolean cancel(String orderId) {
-        return this.afterPaymentService.requestPaymentCancel(orderId);
+        this.requestCancelEvent.publishEvent(RequestCancelEvent.builder()
+                                .orderId(orderId).build());
+        return true;
+    }
+
+    public Order findOrder(String orderId) {
+        return this.orderRepository.findOrder(orderId);
     }
 
     private boolean isNonExecutePaymentGateWay(List<CreateOrderProductDto> orderProductRequests) {
@@ -111,7 +127,6 @@ public class OrderService {
                 .orderDate(LocalDateTime.now())
                 .build();
     }
-
 
     private List<Product> createOrderProduct(OrderRequest orderRequest) {
         List<Product> orderProducts         = new ArrayList<>();
@@ -164,5 +179,10 @@ public class OrderService {
 
     private void insertOrderProducts(List<OrderProduct> orderProducts) {
         this.orderRepository.insertOrderProducts(orderProducts);
+    }
+
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    private void handleOrderStatusEvent(OrderStatusUpdateEvent event) {
+        this.orderRepository.updateOrderStatus(event.getOrderId(), event.getOrderStatus());
     }
 }
