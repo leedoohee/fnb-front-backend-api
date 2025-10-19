@@ -3,7 +3,9 @@ package com.fnb.front.backend.repository;
 import com.fnb.front.backend.controller.domain.Member;
 import com.fnb.front.backend.controller.domain.MemberCoupon;
 import com.fnb.front.backend.controller.domain.MemberPoint;
+import com.fnb.front.backend.controller.dto.MemberAggregatesDto;
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.NoResultException;
 import jakarta.persistence.TypedQuery;
 import jakarta.persistence.criteria.*;
 import lombok.RequiredArgsConstructor;
@@ -93,6 +95,40 @@ public class MemberRepository {
         TypedQuery<MemberCoupon> typedQuery = this.em.createQuery(cq);
 
         return typedQuery.getResultList();
+    }
+
+    public MemberAggregatesDto getMemberAggregates(String memberId, String isUsed) {
+
+        CriteriaBuilder cb = this.em.getCriteriaBuilder();
+        CriteriaQuery<MemberAggregatesDto> cq = cb.createQuery(MemberAggregatesDto.class);
+
+        Root<Member> root = cq.from(Member.class);
+
+        Join<Member, Order> orderJoin = root.join("orders", JoinType.LEFT);
+
+        Join<Member, MemberCoupon> couponJoin = root.join("memberCoupons", JoinType.LEFT);
+        couponJoin.on(cb.equal(couponJoin.get("isUsed"), isUsed));
+
+        Join<Member, MemberPoint> pointJoin = root.join("memberPoints", JoinType.LEFT);
+        pointJoin.on(cb.equal(pointJoin.get("isUsed"), isUsed));
+
+        cq.where(cb.equal(root.get("memberId"), memberId));
+
+        cq.select(cb.construct(
+                MemberAggregatesDto.class,
+                cb.countDistinct(orderJoin),
+                cb.count(couponJoin),
+                cb.sum(pointJoin.get("amount"))
+        ));
+
+        cq.groupBy(root.get("memberId"));
+
+        try {
+            return this.em.createQuery(cq).getSingleResult();
+        } catch (NoResultException e) {
+            // 결과가 없으면 모든 카운트/합계를 0으로 반환
+            return new MemberAggregatesDto(0L, 0L, 0L);
+        }
     }
 
     public void updateMinusPoint(String memberId, int point) {

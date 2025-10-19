@@ -4,6 +4,7 @@ import com.fnb.front.backend.controller.domain.*;
 import com.fnb.front.backend.controller.domain.response.CouponResponse;
 import com.fnb.front.backend.repository.CouponRepository;
 import com.fnb.front.backend.repository.MemberRepository;
+import com.fnb.front.backend.repository.OrderRepository;
 import com.fnb.front.backend.util.CouponStatus;
 import com.fnb.front.backend.util.Used;
 import lombok.RequiredArgsConstructor;
@@ -20,6 +21,8 @@ public class CouponService {
     private final CouponRepository couponRepository;
 
     private final MemberRepository memberRepository;
+
+    private final OrderRepository orderRepository;
 
     public List<CouponResponse> getCoupons() {
         List<CouponResponse> responses  = new ArrayList<>();
@@ -87,9 +90,10 @@ public class CouponService {
         return isUsableCoupon(memberCoupon.getCoupon(), memberCoupon.getMember());
     }
 
-    public boolean afterApproveForCoupon(Member member, List<OrderProduct> orderProducts) {
+    public boolean afterApproveForCoupon(String memberId, String orderId) {
+        List<OrderProduct> orderProducts = this.orderRepository.findOrderProducts(orderId);
         List<Integer> couponIdList       = orderProducts.stream().map(OrderProduct::getCouponId).toList();
-        List<MemberCoupon> memberCoupons = this.memberRepository.findMemberCoupons(member.getMemberId(), couponIdList);
+        List<MemberCoupon> memberCoupons = this.memberRepository.findMemberCoupons(memberId, couponIdList);
 
         for (OrderProduct orderProduct : orderProducts) {
             int couponId = orderProduct.getCouponId();
@@ -101,7 +105,7 @@ public class CouponService {
                 return false;
             }
 
-            this.couponRepository.updateUsedMemberCoupon(member.getMemberId(), couponId, Used.NOTUSED.getValue());
+            this.couponRepository.updateUsedMemberCoupon(memberId, couponId, Used.NOTUSED.getValue());
         }
 
         return true;
@@ -111,7 +115,9 @@ public class CouponService {
         return coupon.isAvailableStatus() && coupon.isBelongToAvailableGrade(member) && coupon.isCanApplyDuring();
     }
 
-    public void afterCancelForCoupon(List<OrderProduct> orderProducts) {
+    public void afterCancelForCoupon(String orderId) {
+        List<OrderProduct> orderProducts = this.orderRepository.findOrderProducts(orderId);
+
         for (OrderProduct orderProduct : orderProducts) {
 
             if (orderProduct.getCoupon() == null) {

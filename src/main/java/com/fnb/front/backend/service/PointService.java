@@ -53,6 +53,12 @@ public class PointService {
         return true;
     }
 
+    public void afterCancelForPoint(String orderId) {
+        MemberPoint memberPoint = this.memberRepository.findMemberPoint(orderId);
+        this.memberRepository.updateMinusPoint(memberPoint.getMemberId(), memberPoint.getAmount());
+        this.pointRepository.deleteMemberPoint(orderId);
+    }
+
     private int applyGradePointForOrder(Member member, BigDecimal totalProductAmount, BigDecimal paymentAmount) {
         MemberPointRule rule = member.getMemberGrade().getMemberPointRule();
         int point = 0;
@@ -75,11 +81,5 @@ public class PointService {
         }
 
         return point;
-    }
-
-    public void afterCancelForPoint(String orderId) {
-        MemberPoint memberPoint = this.memberRepository.findMemberPoint(orderId);
-        this.memberRepository.updateMinusPoint(memberPoint.getMemberId(), memberPoint.getAmount());
-        this.pointRepository.deleteMemberPoint(orderId);
     }
 }

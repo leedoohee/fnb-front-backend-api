@@ -37,10 +37,10 @@ public class AfterPaymentService {
         int couponAmount      = order.getCouponAmount();
         int pointAmount       = order.getUsePoint().intValue();
 
-        boolean productResult = this.productService.afterApproveForProduct(order.getOrderProducts());
-        boolean couponResult  = this.couponService.afterApproveForCoupon(order.getMember(), order.getOrderProducts());
+        boolean productResult = this.productService.afterApproveForProduct(order.getOrderId());
+        boolean couponResult  = this.couponService.afterApproveForCoupon(order.getMember().getMemberId(), order.getOrderId());
         boolean pointResult   = this.pointService.afterApproveForPoint(order, order.getMember(),
-                order.getTotalAmount(), BigDecimal.valueOf(order.getTotalAmount().intValue() - order.getCouponAmount() - order.getUsePoint().intValue()));
+                order.getTotalAmount(), BigDecimal.valueOf(order.getTotalAmount().intValue() - order.getDiscountAmount().intValue()));
 
         if (!(productResult && couponResult && pointResult)) {
             if (approvePaymentResponse != null) {
@@ -123,9 +123,9 @@ public class AfterPaymentService {
                 .filter(paymentElement -> !paymentElement.getTransactionId().isEmpty())
                 .toList();
 
-        this.pointService.afterCancelForPoint(payment.getOrder().getOrderId());
-        this.productService.afterCancelForProduct(payment.getOrder().getOrderProducts());
-        this.couponService.afterCancelForCoupon(payment.getOrder().getOrderProducts());
+        this.pointService.afterCancelForPoint(payment.getOrderId());
+        this.productService.afterCancelForProduct(payment.getOrderId());
+        this.couponService.afterCancelForCoupon(payment.getOrderId());
 
         int cancelId = this.paymentRepository.insertPaymentCancel(PaymentCancel.builder()
                 .cancelAmount(payment.getTotalAmount())

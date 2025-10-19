@@ -66,11 +66,6 @@ public class PaymentRepository {
         Root<Payment> root                  = cq.from(Payment.class);
 
         root.fetch("paymentElements", JoinType.INNER);
-        Fetch<Payment, Order> orderFetch = root.fetch("order", JoinType.INNER);
-        Fetch<Order, OrderProduct> orderProductFetch = orderFetch.fetch("orderProduct", JoinType.INNER);
-        orderProductFetch.fetch("product", JoinType.INNER);
-        Fetch<OrderProduct, Coupon> couponFetch      = orderProductFetch.fetch("coupon", JoinType.LEFT);
-        couponFetch.fetch("memberCoupon", JoinType.INNER);
 
         cq = cq.select(root)
                 .where(cb.and(cb.equal(root.get("paymentId"), paymentId)))

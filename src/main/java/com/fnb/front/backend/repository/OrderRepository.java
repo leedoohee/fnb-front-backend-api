@@ -55,22 +55,38 @@ public class OrderRepository {
         return this.em.createQuery(cq).getSingleResult();
     }
 
+    public List<OrderProduct> findOrderProducts(String orderId) {
+        CriteriaBuilder cb               = this.em.getCriteriaBuilder();
+        CriteriaQuery<OrderProduct> cq   = cb.createQuery(OrderProduct.class);
+        Root<OrderProduct> root          = cq.from(OrderProduct.class);
+
+        root.join("product", JoinType.INNER);
+        root.join("coupon", JoinType.LEFT);
+
+        cq = cq.select(root)
+                .where(cb.and(cb.equal(root.get("orderId"), orderId)))
+                .distinct(true);
+
+        TypedQuery<OrderProduct> typedQuery = this.em.createQuery(cq);
+
+        return typedQuery.getResultList();
+    }
+
     public Order findOrder(String orderId) {
         CriteriaBuilder cb        = this.em.getCriteriaBuilder();
         CriteriaQuery<Order> cq   = cb.createQuery(Order.class);
         Root<Order> root          = cq.from(Order.class);
 
-        root.fetch("member", JoinType.INNER);
-        Fetch<Order, OrderProduct> orderProductFetch = root.fetch("orderProduct", JoinType.INNER);
-        orderProductFetch.fetch("product", JoinType.INNER);
+        root.join("member", JoinType.INNER);
 
         cq = cq.select(root)
                 .where(cb.and(cb.equal(root.get("orderId"), orderId)))
                 .distinct(true);
 
         TypedQuery<Order> typedQuery = this.em.createQuery(cq);
+        typedQuery.setMaxResults(1);
 
-        return typedQuery.getSingleResult();
+        return !typedQuery.getResultList().isEmpty() ? typedQuery.getSingleResult() : null;
     }
 
     public List<Order> findOrders(MyPageRequest myPageRequest) {
@@ -78,10 +94,6 @@ public class OrderRepository {
         CriteriaBuilder cb         = this.em.getCriteriaBuilder();
         CriteriaQuery<Order> cq    = cb.createQuery(Order.class);
         Root<Order> root           = cq.from(Order.class);
-
-        Fetch<Order, OrderProduct> orderProductFetch = root.fetch("orderProduct", JoinType.INNER);
-
-        orderProductFetch.fetch("orderOption", JoinType.INNER);
 
         cq = cq.select(root)
                 .where(cb.and(this.buildConditions(myPageRequest, cb, root).toArray(new Predicate[0])))

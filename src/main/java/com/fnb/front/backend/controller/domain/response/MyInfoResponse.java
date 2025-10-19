@@ -11,6 +11,7 @@ public class MyInfoResponse {
     private int memberId;
     private String memberName;
     private String address;
-    private int ownedCouponCount;
-    private int ownedPoint;
+    private Long ownedCouponCount;
+    private Long ownedPoint;
+    private Long orderCount;
 }

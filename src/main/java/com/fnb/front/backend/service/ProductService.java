@@ -5,6 +5,7 @@ import com.fnb.front.backend.controller.domain.Product;
 import com.fnb.front.backend.controller.domain.ProductOption;
 import com.fnb.front.backend.controller.domain.response.ProductOptionResponse;
 import com.fnb.front.backend.controller.domain.response.ProductResponse;
+import com.fnb.front.backend.repository.OrderRepository;
 import com.fnb.front.backend.repository.ProductRepository;
 import com.fnb.front.backend.repository.ReviewRepository;
 import com.fnb.front.backend.util.CommonUtil;
@@ -21,6 +22,8 @@ import java.util.Objects;
 @Service
 @RequiredArgsConstructor
 public class ProductService {
+
+    private final OrderRepository orderRepository;
 
     private final ProductRepository productRepository;
 
@@ -99,7 +102,9 @@ public class ProductService {
         return true;
     }
 
-    public boolean afterApproveForProduct(List<OrderProduct> orderProducts) {
+    public boolean afterApproveForProduct(String orderId) {
+        List<OrderProduct> orderProducts = this.orderRepository.findOrderProducts(orderId);
+
         for (OrderProduct orderProduct : orderProducts) {
             if(orderProduct.getProduct() != null && orderProduct.getProduct().isInfiniteQty()) {
                 continue;
@@ -117,7 +122,9 @@ public class ProductService {
         return true;
     }
 
-    public void afterCancelForProduct(List<OrderProduct> orderProducts) {
+    public void afterCancelForProduct(String orderId) {
+        List<OrderProduct> orderProducts = this.orderRepository.findOrderProducts(orderId);
+
         for (OrderProduct orderProduct : orderProducts) {
             this.productRepository.updatePlusQuantity(orderProduct.getProduct().getProductId(), orderProduct.getQuantity());
         }
