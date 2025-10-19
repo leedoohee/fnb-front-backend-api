@@ -3,9 +3,9 @@ package com.fnb.front.backend.controller.domain.pay;
 import com.fnb.front.backend.controller.domain.implement.IPay;
 import com.fnb.front.backend.controller.domain.response.ApprovePaymentResponse;
 import com.fnb.front.backend.controller.domain.response.RequestPaymentResponse;
-import com.fnb.front.backend.controller.dto.KakaoPaymentApproveDto;
+import com.fnb.front.backend.controller.dto.KakaoPayApproveDto;
 import com.fnb.front.backend.controller.domain.request.RequestPayment;
-import com.fnb.front.backend.controller.dto.RequestCancelPaymentDto;
+import com.fnb.front.backend.controller.dto.RequestCancelPayDto;
 
 public class TossPay implements IPay {
 
@@ -24,12 +24,12 @@ public class TossPay implements IPay {
     }
 
     @Override
-    public ApprovePaymentResponse approve(KakaoPaymentApproveDto kakaoPaymentApproveDto) {
+    public ApprovePaymentResponse approve(KakaoPayApproveDto kakaoPaymentApproveDto) {
         return null;
     }
 
     @Override
-    public boolean cancel(RequestCancelPaymentDto cancelPaymentDto) {
+    public boolean cancel(RequestCancelPayDto cancelPaymentDto) {
         return false;
     }
 }

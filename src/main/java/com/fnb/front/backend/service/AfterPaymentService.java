@@ -4,13 +4,12 @@ import com.fnb.front.backend.controller.domain.*;
 import com.fnb.front.backend.controller.domain.event.OrderStatusUpdateEvent;
 import com.fnb.front.backend.controller.domain.event.PaymentCancelEvent;
 import com.fnb.front.backend.controller.domain.response.ApprovePaymentResponse;
-import com.fnb.front.backend.controller.dto.CancelPaymentDto;
+import com.fnb.front.backend.controller.dto.CancelPayDto;
 import com.fnb.front.backend.repository.*;
 import com.fnb.front.backend.util.*;
 import com.fnb.front.backend.util.PaymentStatus;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -117,7 +116,7 @@ public class AfterPaymentService {
     }
 
     @Transactional
-    public void callCancelProcess(CancelPaymentDto cancelPaymentDto, int paymentId) {
+    public void callCancelProcess(CancelPayDto cancelPaymentDto, int paymentId) {
         Payment payment = this.paymentRepository.findPayment(paymentId);
         List<PaymentElement> notInPgElements = payment.getPaymentElements().stream()
                 .filter(paymentElement -> !paymentElement.getTransactionId().isEmpty())

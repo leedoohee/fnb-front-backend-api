@@ -6,12 +6,12 @@ import com.fnb.front.backend.controller.domain.event.RequestCancelEvent;
 import com.fnb.front.backend.controller.domain.event.RequestPaymentEvent;
 import com.fnb.front.backend.controller.domain.processor.PaymentProcessor;
 import com.fnb.front.backend.controller.domain.response.ApprovePaymentResponse;
-import com.fnb.front.backend.controller.dto.KakaoPaymentCancelDto;
-import com.fnb.front.backend.controller.dto.CancelPaymentDto;
+import com.fnb.front.backend.controller.dto.KakaoPayCancelDto;
+import com.fnb.front.backend.controller.dto.CancelPayDto;
 import com.fnb.front.backend.controller.domain.response.RequestPaymentResponse;
-import com.fnb.front.backend.controller.dto.KakaoPaymentApproveDto;
+import com.fnb.front.backend.controller.dto.KakaoPayApproveDto;
 import com.fnb.front.backend.controller.domain.request.RequestPayment;
-import com.fnb.front.backend.controller.dto.RequestCancelPaymentDto;
+import com.fnb.front.backend.controller.dto.RequestCancelPayDto;
 import com.fnb.front.backend.repository.*;
 import com.fnb.front.backend.util.PayType;
 import com.fnb.front.backend.util.PaymentStatus;
@@ -39,7 +39,7 @@ public class PaymentService {
         return paymentProcessor.request(requestPayment);
     }
 
-    public void approveKakaoResult(KakaoPaymentApproveDto kakaoPaymentApproveDto) {
+    public void approveKakaoResult(KakaoPayApproveDto kakaoPaymentApproveDto) {
         PaymentProcessor paymentProcessor   = new PaymentProcessor(PayFactory.getPay(PayType.KAKAO.getValue()));
         ApprovePaymentResponse response     = paymentProcessor.approve(kakaoPaymentApproveDto);
 
@@ -51,14 +51,14 @@ public class PaymentService {
         this.afterPaymentService.callPaymentProcess(order, response, PayType.KAKAO.getValue());
     }
 
-    public void cancelKakaoResult(KakaoPaymentCancelDto response) {
+    public void cancelKakaoResult(KakaoPayCancelDto response) {
         PaymentElement paymentElement = this.paymentRepository.findPaymentElement(response.getTid());
 
         if (paymentElement == null) {
             throw new IllegalStateException("결제정보를 찾을 수 없습니다.");
         }
 
-        this.afterPaymentService.callCancelProcess(CancelPaymentDto.builder()
+        this.afterPaymentService.callCancelProcess(CancelPayDto.builder()
                 .approvalId(Objects.requireNonNull(response).getAid())
                 .transactionId(response.getTid())
                 .productName(response.getItemName())
@@ -76,7 +76,7 @@ public class PaymentService {
 
     private boolean cancel(String payType, String transactionId, BigDecimal cancelAmount, BigDecimal taxFree) {
         PaymentProcessor paymentProcessor  = new PaymentProcessor(PayFactory.getPay(payType));
-        return paymentProcessor.cancel(RequestCancelPaymentDto.builder()
+        return paymentProcessor.cancel(RequestCancelPayDto.builder()
                 .cancelAmount(cancelAmount)
                 .cancelTaxFreeAmount(taxFree)
                 .transactionId(transactionId).build());

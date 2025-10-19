@@ -11,7 +11,7 @@ import java.math.BigDecimal;
 @Getter
 @Setter
 @Builder
-public class RequestCancelPaymentDto {
+public class RequestCancelPayDto {
 
     @NotNull
     private BigDecimal cancelAmount;
