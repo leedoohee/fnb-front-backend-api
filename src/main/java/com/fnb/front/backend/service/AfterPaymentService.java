@@ -34,7 +34,7 @@ public class AfterPaymentService {
     private final ApplicationEventPublisher orderStatusUpdateEvent;
 
     @Transactional
-    public boolean callPaymentProcess(Order order, ApprovePaymentResponse approvePaymentResponse, String payType) {
+    public void callPaymentProcess(Order order, ApprovePaymentResponse approvePaymentResponse, String payType) {
         int couponAmount      = order.getCouponAmount();
         int pointAmount       = order.getUsePoint().intValue();
         boolean productResult = this.productService.afterApproveForProduct(order.getOrderProducts());
@@ -114,12 +114,10 @@ public class AfterPaymentService {
                 .orderId(order.getOrderId())
                 .orderStatus(OrderStatus.ORDERED.getValue())
                 .build());
-
-        return true;
     }
 
     @Transactional
-    public boolean callCancelProcess(CancelPaymentDto cancelPaymentDto, int paymentId) {
+    public void callCancelProcess(CancelPaymentDto cancelPaymentDto, int paymentId) {
         Payment payment = this.paymentRepository.findPayment(paymentId);
         List<PaymentElement> notInPgElements = payment.getPaymentElements().stream()
                 .filter(paymentElement -> !paymentElement.getTransactionId().isEmpty())
@@ -159,7 +157,5 @@ public class AfterPaymentService {
                 .orderId(payment.getOrderId())
                 .orderStatus(OrderStatus.CANCELED.getValue())
                 .build());
-
-        return true;
     }
 }

@@ -39,7 +39,7 @@ public class PaymentService {
         return paymentProcessor.request(requestPayment);
     }
 
-    public boolean approveKakaoResult(ApprovePaymentDto approvePaymentDto) {
+    public void approveKakaoResult(ApprovePaymentDto approvePaymentDto) {
         PaymentProcessor paymentProcessor   = new PaymentProcessor(PayFactory.getPay(PayType.KAKAO.getValue()));
         ApprovePaymentResponse response     = paymentProcessor.approve(approvePaymentDto);
 
@@ -48,30 +48,30 @@ public class PaymentService {
         }
 
         Order order = this.orderService.findOrder(response.getOrderId());
-        return this.afterPaymentService.callPaymentProcess(order, response, PayType.KAKAO.getValue());
+        this.afterPaymentService.callPaymentProcess(order, response, PayType.KAKAO.getValue());
     }
 
-    public boolean cancelKakaoResult(KakaoPayCancelResponse response) {
+    public void cancelKakaoResult(KakaoPayCancelResponse response) {
         PaymentElement paymentElement = this.paymentRepository.findPaymentElement(response.getTid());
 
-        if (paymentElement == null) {
-            return true;
-        }
+        if (paymentElement != null) {
+            this.afterPaymentService.callCancelProcess(CancelPaymentDto.builder()
+                    .approvalId(Objects.requireNonNull(response).getAid())
+                    .transactionId(response.getTid())
+                    .productName(response.getItemName())
+                    .quantity(response.getQuantity())
+                    .totalAmount(response.getCancelAmount().getTotal())
+                    .taxFree(response.getCancelAmount().getTaxFree())
+                    .vat(response.getCancelAmount().getVat())
+                    .point(response.getCancelAmount().getPoint())
+                    .discount(response.getCancelAmount().getDiscount())
+                    .greenDeposit(response.getCancelAmount().getGreenDeposit())
+                    .approvedAt(LocalDateTime.parse(response.getApprovedAt()))
+                    .cancelAt(LocalDateTime.parse(response.getCancelAt()))
+                    .build(), paymentElement.getPaymentId());
+        } else {
 
-        return this.afterPaymentService.callCancelProcess(CancelPaymentDto.builder()
-                .approvalId(Objects.requireNonNull(response).getAid())
-                .transactionId(response.getTid())
-                .productName(response.getItemName())
-                .quantity(response.getQuantity())
-                .totalAmount(response.getCancelAmount().getTotal())
-                .taxFree(response.getCancelAmount().getTaxFree())
-                .vat(response.getCancelAmount().getVat())
-                .point(response.getCancelAmount().getPoint())
-                .discount(response.getCancelAmount().getDiscount())
-                .greenDeposit(response.getCancelAmount().getGreenDeposit())
-                .approvedAt(LocalDateTime.parse(response.getApprovedAt()))
-                .cancelAt(LocalDateTime.parse(response.getCancelAt()))
-                .build(), paymentElement.getPaymentId());
+        }
     }
 
     private boolean cancel(String payType, String transactionId, BigDecimal cancelAmount, BigDecimal taxFree) {

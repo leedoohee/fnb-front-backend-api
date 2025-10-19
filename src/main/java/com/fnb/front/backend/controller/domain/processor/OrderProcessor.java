@@ -53,9 +53,9 @@ public class OrderProcessor {
 
         List<CreateOrderProductDto> createOrderProductDtos = this.buildOrderProducts(this.member, this.products, this.coupons);
 
-        int totalCouponPrice        = this.calcTotalCouponPrice(createOrderProductDtos);
-        int totalMemberShipPrice    = this.calcTotalMemberShipPrice(createOrderProductDtos);
-        int totalOriginPrice        = this.calcTotalOriginPrice(createOrderProductDtos);
+        int totalCouponPrice        = this.calcTotalCouponPrice(this.products, this.coupons);
+        int totalMemberShipPrice    = this.calcTotalMemberShipPrice(this.member, this.products);
+        int totalOriginPrice        = this.calcTotalOriginPrice(this.products);
 
         return CreateOrderDto.builder()
                 .orderId(CommonUtil.generateOrderId())
@@ -138,22 +138,36 @@ public class OrderProcessor {
         return price;
     }
 
-    private int calcTotalCouponPrice(List<CreateOrderProductDto> createOrderProductDtos) {
-        return createOrderProductDtos.stream()
-                .map(CreateOrderProductDto::getCouponPrice)
-                .mapToInt(Integer::intValue).sum();
+    private int calcTotalCouponPrice(List<Product> products, List<Coupon> coupons) {
+        int couponPrice = 0;
+
+        for (Product product : products) {
+            couponPrice += this.calcCouponPriceToProduct(product, coupons);
+        }
+
+        return couponPrice;
     }
 
-    private int calcTotalMemberShipPrice(List<CreateOrderProductDto> createOrderProductDtos) {
-        return createOrderProductDtos.stream()
-                .map(CreateOrderProductDto::getMemberShipPrice)
-                .mapToInt(Integer::intValue).sum();
+    private int calcTotalMemberShipPrice(Member member, List<Product> products) {
+        int memberShipPrice = 0;
+
+        for (Product product : products) {
+            if (product.inMemberShipDiscount(member)) {
+                memberShipPrice += this.calcMemberShipPriceToProduct(product, member);
+            }
+        }
+
+        return memberShipPrice;
     }
 
-    private int calcTotalOriginPrice(List<CreateOrderProductDto> createOrderProductDtos) {
-        return createOrderProductDtos.stream()
-                .map(CreateOrderProductDto::getOriginPrice)
-                .mapToInt(Integer::intValue).sum();
+    private int calcTotalOriginPrice(List<Product> products) {
+        int originPrice = 0;
+
+        for (Product product : products) {
+            originPrice += this.calcPriceWithOptions(this.calcPriceWithQuantity(product), product);
+        }
+
+        return originPrice;
     }
 
     private int calcPriceWithQuantity(Product product) {

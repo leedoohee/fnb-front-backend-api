@@ -26,7 +26,8 @@ public class PaymentController {
 
     @PostMapping("/payment/kakao/approve")
     public ResponseEntity<Boolean> approveKakao(@RequestBody ApprovePaymentDto approvePaymentDto) {
-        return ResponseEntity.ok(this.paymentService.approveKakaoResult(approvePaymentDto));
+        this.paymentService.approveKakaoResult(approvePaymentDto);
+        return ResponseEntity.ok(true);
     }
 
     @PostMapping("/payment/kakao/cancel")
