@@ -7,7 +7,7 @@ import java.math.BigDecimal;
 
 @Data
 @Builder
-public class ApprovePaymentDto {
+public class KakaoPaymentApproveDto {
     private String paymentKey;
     private String paymentType;
     private String transactionId;

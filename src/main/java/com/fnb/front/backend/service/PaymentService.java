@@ -6,10 +6,10 @@ import com.fnb.front.backend.controller.domain.event.RequestCancelEvent;
 import com.fnb.front.backend.controller.domain.event.RequestPaymentEvent;
 import com.fnb.front.backend.controller.domain.processor.PaymentProcessor;
 import com.fnb.front.backend.controller.domain.response.ApprovePaymentResponse;
-import com.fnb.front.backend.controller.domain.response.KakaoPayCancelResponse;
+import com.fnb.front.backend.controller.dto.KakaoPaymentCancelDto;
 import com.fnb.front.backend.controller.dto.CancelPaymentDto;
 import com.fnb.front.backend.controller.domain.response.RequestPaymentResponse;
-import com.fnb.front.backend.controller.dto.ApprovePaymentDto;
+import com.fnb.front.backend.controller.dto.KakaoPaymentApproveDto;
 import com.fnb.front.backend.controller.domain.request.RequestPayment;
 import com.fnb.front.backend.controller.dto.RequestCancelPaymentDto;
 import com.fnb.front.backend.repository.*;
@@ -39,9 +39,9 @@ public class PaymentService {
         return paymentProcessor.request(requestPayment);
     }
 
-    public void approveKakaoResult(ApprovePaymentDto approvePaymentDto) {
+    public void approveKakaoResult(KakaoPaymentApproveDto kakaoPaymentApproveDto) {
         PaymentProcessor paymentProcessor   = new PaymentProcessor(PayFactory.getPay(PayType.KAKAO.getValue()));
-        ApprovePaymentResponse response     = paymentProcessor.approve(approvePaymentDto);
+        ApprovePaymentResponse response     = paymentProcessor.approve(kakaoPaymentApproveDto);
 
         if (response == null) {
             throw new RuntimeException("결제승인 과정에서 오류가 발생하였습니다");
@@ -51,27 +51,27 @@ public class PaymentService {
         this.afterPaymentService.callPaymentProcess(order, response, PayType.KAKAO.getValue());
     }
 
-    public void cancelKakaoResult(KakaoPayCancelResponse response) {
+    public void cancelKakaoResult(KakaoPaymentCancelDto response) {
         PaymentElement paymentElement = this.paymentRepository.findPaymentElement(response.getTid());
 
-        if (paymentElement != null) {
-            this.afterPaymentService.callCancelProcess(CancelPaymentDto.builder()
-                    .approvalId(Objects.requireNonNull(response).getAid())
-                    .transactionId(response.getTid())
-                    .productName(response.getItemName())
-                    .quantity(response.getQuantity())
-                    .totalAmount(response.getCancelAmount().getTotal())
-                    .taxFree(response.getCancelAmount().getTaxFree())
-                    .vat(response.getCancelAmount().getVat())
-                    .point(response.getCancelAmount().getPoint())
-                    .discount(response.getCancelAmount().getDiscount())
-                    .greenDeposit(response.getCancelAmount().getGreenDeposit())
-                    .approvedAt(LocalDateTime.parse(response.getApprovedAt()))
-                    .cancelAt(LocalDateTime.parse(response.getCancelAt()))
-                    .build(), paymentElement.getPaymentId());
-        } else {
-            //non pg 명시?
+        if (paymentElement == null) {
+            throw new IllegalStateException("결제정보를 찾을 수 없습니다.");
         }
+
+        this.afterPaymentService.callCancelProcess(CancelPaymentDto.builder()
+                .approvalId(Objects.requireNonNull(response).getAid())
+                .transactionId(response.getTid())
+                .productName(response.getItemName())
+                .quantity(response.getQuantity())
+                .totalAmount(response.getCancelAmount().getTotal())
+                .taxFree(response.getCancelAmount().getTaxFree())
+                .vat(response.getCancelAmount().getVat())
+                .point(response.getCancelAmount().getPoint())
+                .discount(response.getCancelAmount().getDiscount())
+                .greenDeposit(response.getCancelAmount().getGreenDeposit())
+                .approvedAt(LocalDateTime.parse(response.getApprovedAt()))
+                .cancelAt(LocalDateTime.parse(response.getCancelAt()))
+                .build(), paymentElement.getPaymentId());
     }
 
     private boolean cancel(String payType, String transactionId, BigDecimal cancelAmount, BigDecimal taxFree) {

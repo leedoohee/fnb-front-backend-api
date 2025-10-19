@@ -1,4 +1,4 @@
-package com.fnb.front.backend.controller.domain.response;
+package com.fnb.front.backend.controller.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
@@ -10,7 +10,7 @@ import java.math.BigDecimal;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class KakaoPayCancelResponse {
+public class KakaoPaymentCancelDto {
 
     @JsonProperty("aid")
     private String aid;

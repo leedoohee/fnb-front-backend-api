@@ -2,9 +2,8 @@ package com.fnb.front.backend.controller.domain.processor;
 
 import com.fnb.front.backend.controller.domain.implement.IPay;
 import com.fnb.front.backend.controller.domain.response.ApprovePaymentResponse;
-import com.fnb.front.backend.controller.dto.CancelPaymentDto;
 import com.fnb.front.backend.controller.domain.response.RequestPaymentResponse;
-import com.fnb.front.backend.controller.dto.ApprovePaymentDto;
+import com.fnb.front.backend.controller.dto.KakaoPaymentApproveDto;
 import com.fnb.front.backend.controller.domain.request.RequestPayment;
 import com.fnb.front.backend.controller.dto.RequestCancelPaymentDto;
 
@@ -20,8 +19,8 @@ public class PaymentProcessor {
         return this.IPay.request(requestPayment);
     }
 
-    public ApprovePaymentResponse approve(ApprovePaymentDto approvePaymentDto) {
-        return this.IPay.approve(approvePaymentDto);
+    public ApprovePaymentResponse approve(KakaoPaymentApproveDto kakaoPaymentApproveDto) {
+        return this.IPay.approve(kakaoPaymentApproveDto);
     }
 
     public boolean cancel(RequestCancelPaymentDto cancelPaymentDto) {

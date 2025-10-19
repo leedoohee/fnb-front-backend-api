@@ -96,10 +96,9 @@ public class OrderService {
                 .build();
     }
 
-    public boolean cancel(String orderId) {
+    public void cancel(String orderId) {
         this.requestCancelEvent.publishEvent(RequestCancelEvent.builder()
                                 .orderId(orderId).build());
-        return true;
     }
 
     public Order findOrder(String orderId) {
