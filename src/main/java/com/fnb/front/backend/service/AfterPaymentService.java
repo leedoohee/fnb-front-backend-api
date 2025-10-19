@@ -45,8 +45,8 @@ public class AfterPaymentService {
         if (!(productResult && couponResult && pointResult)) {
             if (approvePaymentResponse != null) {
                 this.paymentCancelEvent.publishEvent(PaymentCancelEvent.builder()
-                                                .cancelAmount(approvePaymentResponse.getTotalAmount())
                                                 .payType(payType)
+                                                .cancelAmount(approvePaymentResponse.getTotalAmount())
                                                 .cancelTaxFreeAmount(approvePaymentResponse.getTaxFree())
                                                 .transactionId(approvePaymentResponse.getTransactionId())
                                                 .build());
@@ -121,7 +121,7 @@ public class AfterPaymentService {
     @Transactional
     public boolean callCancelProcess(CancelPaymentDto cancelPaymentDto, int paymentId) {
         Payment payment = this.paymentRepository.findPayment(paymentId);
-        List<PaymentElement> exceptablePgElements = payment.getPaymentElements().stream()
+        List<PaymentElement> notInPgElements = payment.getPaymentElements().stream()
                 .filter(paymentElement -> !paymentElement.getTransactionId().isEmpty())
                 .toList();
 
@@ -149,7 +149,7 @@ public class AfterPaymentService {
                     .build());
         }
 
-        for (PaymentElement paymentElement : exceptablePgElements) {
+        for (PaymentElement paymentElement : notInPgElements) {
             paymentElement.setPaymentStatus(PaymentStatus.CANCEL.getValue());
             paymentElement.setPaymentElementId(0); //TODO 자동키 생성되는지 확인
             this.paymentRepository.insertPaymentElement(paymentElement);
