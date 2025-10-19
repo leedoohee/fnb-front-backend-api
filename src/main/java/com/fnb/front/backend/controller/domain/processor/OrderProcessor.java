@@ -51,14 +51,15 @@ public class OrderProcessor {
             throw new IllegalStateException("구매 불가능한 상품이 포함되어 있습니다.");
         }
 
-        List<CreateOrderProductDto> createOrderProductDtos = this.buildOrderProducts(this.member, this.products, this.coupons);
+        String orderId = CommonUtil.generateOrderId();
+        List<CreateOrderProductDto> createOrderProductDtos = this.buildOrderProducts(orderId, this.member, this.products, this.coupons);
 
         int totalCouponPrice        = this.calcTotalCouponPrice(this.products, this.coupons);
         int totalMemberShipPrice    = this.calcTotalMemberShipPrice(this.member, this.products);
         int totalOriginPrice        = this.calcTotalOriginPrice(this.products);
 
         return CreateOrderDto.builder()
-                .orderId(CommonUtil.generateOrderId())
+                .orderId(orderId)
                 .orderDate(LocalDateTime.now())
                 .memberName(this.member.getName())
                 .discountAmount(BigDecimal.valueOf(totalCouponPrice + totalMemberShipPrice).add(this.order.getUsePoint()))
@@ -68,7 +69,7 @@ public class OrderProcessor {
                 .build();
     }
 
-    private List<CreateOrderProductDto> buildOrderProducts(Member member, List<Product> products, List<Coupon> coupons) {
+    private List<CreateOrderProductDto> buildOrderProducts(String orderId, Member member, List<Product> products, List<Coupon> coupons) {
         List<CreateOrderProductDto> createOrderProductDtos = new ArrayList<>();
 
         for (Product product : products) {
@@ -81,7 +82,7 @@ public class OrderProcessor {
             int couponPrice = this.calcCouponPriceToProduct(product, coupons);
 
             CreateOrderProductDto orderProduct = CreateOrderProductDto.builder()
-                    .orderId(CommonUtil.generateOrderId())
+                    .orderId(orderId)
                     .productId(product.getProductId())
                     .name(product.getName())
                     .couponId(this.applyCouponToProduct(product, coupons))
