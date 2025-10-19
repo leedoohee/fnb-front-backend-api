@@ -87,7 +87,8 @@ public class OrderProcessor {
                     .name(product.getName())
                     .couponId(this.applyCouponToProduct(product, coupons))
                     .quantity(product.getQuantity())
-                    .originPrice(this.calcPriceWithQuantity(basicOptionWithPrice, product.getQuantity()) + this.getTotalAddOptionPrice(productOptions))
+                    .originPrice(this.calcPriceWithQuantity(basicOptionWithPrice, product.getQuantity())
+                                        + this.getTotalAddOptionPrice(productOptions))
                     .couponPrice(couponPrice)
                     .discountPrice(couponPrice + memberShipPrice)
                     .build();
@@ -141,38 +142,38 @@ public class OrderProcessor {
     }
 
     private int calcTotalCouponPrice(List<Product> products, List<Coupon> coupons) {
-        int couponPrice = 0;
+        int price = 0;
 
         for (Product product : products) {
-            couponPrice += this.calcCouponPriceToProduct(product, coupons);
+            price += this.calcCouponPriceToProduct(product, coupons);
         }
 
-        return couponPrice;
+        return price;
     }
 
     private int calcTotalMemberShipPrice(Member member, List<Product> products) {
-        int memberShipPrice = 0;
+        int price = 0;
 
         for (Product product : products) {
             if (product.inMemberShipDiscount(member)) {
-                memberShipPrice += this.calcMemberShipPriceToProduct(product, member);
+                price += this.calcMemberShipPriceToProduct(product, member);
             }
         }
 
-        return memberShipPrice;
+        return price;
     }
 
     private int calcTotalOriginPrice(List<Product> products) {
-        int originPrice = 0;
+        int price = 0;
 
         for (Product product : products) {
             List<ProductOption> productOptions = product.getProductOption();
             int basicOptionWithPrice = product.getPrice().intValue() + this.getBasicOptionPrice(productOptions);
-            originPrice += (this.calcPriceWithQuantity(basicOptionWithPrice, product.getQuantity())
+            price += (this.calcPriceWithQuantity(basicOptionWithPrice, product.getQuantity())
                                         + this.getTotalAddOptionPrice(productOptions));
         }
 
-        return originPrice;
+        return price;
     }
 
     private int calcPriceWithQuantity(int price, int quantity) {
@@ -180,17 +181,17 @@ public class OrderProcessor {
     }
 
     private int getBasicOptionPrice(List<ProductOption> options) {
-        int basicOptionPrice = 0;
+        int price = 0;
 
         ProductOption basicOption = options.stream()
                 .filter(productOption -> productOption.getOptionType().equals(OptionType.BASIC.getValue()))
                 .findFirst().orElse(null);
 
         if (basicOption != null) {
-            basicOptionPrice = basicOption.getPrice();
+            price = basicOption.getPrice();
         }
 
-        return basicOptionPrice;
+        return price;
     }
 
     private int getTotalAddOptionPrice(List<ProductOption> options) {
