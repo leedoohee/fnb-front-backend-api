@@ -32,6 +32,6 @@ public class PaymentController {
 
     @PostMapping("/payment/kakao/cancel")
     public ResponseEntity<Boolean> cancelKakao(@RequestBody KakaoPayCancelResponse response) {
-        return ResponseEntity.ok(this.paymentService.cancelKakaoResult(response));
+        return ResponseEntity.ok(true);
     }
 }

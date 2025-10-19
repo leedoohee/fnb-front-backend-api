@@ -70,7 +70,7 @@ public class PaymentService {
                     .cancelAt(LocalDateTime.parse(response.getCancelAt()))
                     .build(), paymentElement.getPaymentId());
         } else {
-
+            //non pg 명시?
         }
     }
 
