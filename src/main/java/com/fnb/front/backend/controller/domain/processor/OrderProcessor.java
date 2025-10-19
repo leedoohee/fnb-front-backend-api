@@ -18,7 +18,6 @@ public class OrderProcessor {
     private final Order order;
     private final List<Product> products;
     private final List<Coupon> coupons;
-
     private final OrderValidator orderValidator;
 
     public OrderProcessor(Member member, Order order, List<Product> products, List<Coupon> coupons, OrderValidator orderValidator) {
@@ -31,7 +30,7 @@ public class OrderProcessor {
 
     public CreateOrderDto buildOrder() {
 
-        if (!this.orderValidator.isCanPurchaseMember(member)) {
+        if (!this.orderValidator.isCanPurchaseMember(this.member)) {
             throw new IllegalStateException("구매 불가능한 회원입니다.");
         }
 
@@ -51,9 +50,7 @@ public class OrderProcessor {
             throw new IllegalStateException("구매 불가능한 상품이 포함되어 있습니다.");
         }
 
-        String orderId = CommonUtil.generateOrderId();
-        List<CreateOrderProductDto> createOrderProductDtos = this.buildOrderProducts(orderId, this.member, this.products, this.coupons);
-
+        String orderId              = CommonUtil.generateOrderId();
         int totalCouponPrice        = this.calcTotalCouponPrice(this.products, this.coupons);
         int totalMemberShipPrice    = this.calcTotalMemberShipPrice(this.member, this.products);
         int totalOriginPrice        = this.calcTotalOriginPrice(this.products);
@@ -65,7 +62,7 @@ public class OrderProcessor {
                 .discountAmount(BigDecimal.valueOf(totalCouponPrice + totalMemberShipPrice).add(this.order.getUsePoint()))
                 .couponAmount(totalCouponPrice)
                 .orderAmount(BigDecimal.valueOf(totalOriginPrice))
-                .orderProducts(createOrderProductDtos)
+                .orderProducts(this.buildOrderProducts(orderId, this.member, this.products, this.coupons))
                 .build();
     }
 
@@ -73,7 +70,10 @@ public class OrderProcessor {
         List<CreateOrderProductDto> createOrderProductDtos = new ArrayList<>();
 
         for (Product product : products) {
+            List<ProductOption> productOptions = product.getProductOption();
+
             int memberShipPrice = 0;
+            int basicOptionWithPrice = product.getPrice().intValue() + this.getBasicOptionPrice(productOptions);
 
             if (product.inMemberShipDiscount(member)) {
                 memberShipPrice = this.calcMemberShipPriceToProduct(product, member);
@@ -87,7 +87,7 @@ public class OrderProcessor {
                     .name(product.getName())
                     .couponId(this.applyCouponToProduct(product, coupons))
                     .quantity(product.getQuantity())
-                    .originPrice(this.calcPriceWithOptions(this.calcPriceWithQuantity(product), product))
+                    .originPrice(this.calcPriceWithQuantity(basicOptionWithPrice, product.getQuantity()) + this.getTotalAddOptionPrice(productOptions))
                     .couponPrice(couponPrice)
                     .discountPrice(couponPrice + memberShipPrice)
                     .build();
@@ -107,20 +107,21 @@ public class OrderProcessor {
 
     private int calcCouponPriceToProduct(Product product, List<Coupon> coupons) {
         return coupons.stream()
-                .filter(coupon -> Objects.equals(coupon.getApplyProductId(), product.getProductId() ))
-                .map(coupon -> {
-                    BigDecimal price = BigDecimal.valueOf(0);
+            .filter(coupon -> Objects.equals(coupon.getApplyProductId(), product.getProductId() ))
+            .map(coupon -> {
+                BigDecimal price = BigDecimal.valueOf(0);
 
-                    DiscountPolicy couponPolicy = DiscountFactory.getPolicy(coupon.getDiscountType());
+                DiscountPolicy couponPolicy = DiscountFactory.getPolicy(coupon.getDiscountType());
 
-                    if (couponPolicy != null) {
-                        CouponCalculator couponPriceCalculator = new CouponCalculator(coupon, this.calcPriceWithQuantity(product), couponPolicy);
-                        price = couponPriceCalculator.calculate();
-                    }
+                if (couponPolicy != null) {
+                    int priceWithQuantity = this.calcPriceWithQuantity(product.getPrice().intValue(), product.getQuantity());
+                    CouponCalculator couponPriceCalculator = new CouponCalculator(coupon, priceWithQuantity, couponPolicy);
+                    price = couponPriceCalculator.calculate();
+                }
 
-                    return price;
+                return price;
 
-                }).mapToInt(BigDecimal::intValue).findFirst().orElse(0);
+            }).mapToInt(BigDecimal::intValue).findFirst().orElse(0);
     }
 
     private int calcMemberShipPriceToProduct(Product product, Member member) {
@@ -130,7 +131,7 @@ public class OrderProcessor {
 
         if (memberShipPolicy != null) {
             Calculator memberShipCalculator = new MemberShipCalculator(member,
-                                                    this.calcPriceWithQuantity(product),
+                                                    this.calcPriceWithQuantity(product.getPrice().intValue(), product.getQuantity()),
                                                     product.getApplyMemberGradeDisAmt().intValue(), memberShipPolicy);
 
             price = memberShipCalculator.calculate().intValue();
@@ -165,32 +166,37 @@ public class OrderProcessor {
         int originPrice = 0;
 
         for (Product product : products) {
-            originPrice += this.calcPriceWithOptions(this.calcPriceWithQuantity(product), product);
+            List<ProductOption> productOptions = product.getProductOption();
+            int basicOptionWithPrice = product.getPrice().intValue() + this.getBasicOptionPrice(productOptions);
+            originPrice += (this.calcPriceWithQuantity(basicOptionWithPrice, product.getQuantity())
+                                        + this.getTotalAddOptionPrice(productOptions));
         }
 
         return originPrice;
     }
 
-    private int calcPriceWithQuantity(Product product) {
+    private int calcPriceWithQuantity(int price, int quantity) {
+        return price * quantity;
+    }
+
+    private int getBasicOptionPrice(List<ProductOption> options) {
         int basicOptionPrice = 0;
-        List<ProductOption> productOptions  = product.getProductOption();
-        ProductOption basicOption           = productOptions.stream()
-                                                .filter(productOption -> productOption.getOptionType().equals(OptionType.BASIC.getValue()))
-                                                .findFirst().orElse(null);
+
+        ProductOption basicOption = options.stream()
+                .filter(productOption -> productOption.getOptionType().equals(OptionType.BASIC.getValue()))
+                .findFirst().orElse(null);
 
         if (basicOption != null) {
             basicOptionPrice = basicOption.getPrice();
         }
 
-        return (product.getPrice().intValue() + basicOptionPrice) * product.getQuantity();
+        return basicOptionPrice;
     }
 
-    private int calcPriceWithOptions(int optionPrice, Product product) {
-        int sumPrice = product.getProductOption().stream()
-                            .filter(productOption -> productOption.getOptionType().equals(OptionType.ADDITIONAL.getValue()))
-                            .map(ProductOption::getPrice)
-                            .mapToInt(Integer::intValue).sum();
-
-        return optionPrice + sumPrice;
+    private int getTotalAddOptionPrice(List<ProductOption> options) {
+        return options.stream()
+                    .filter(productOption -> productOption.getOptionType().equals(OptionType.ADDITIONAL.getValue()))
+                    .map(ProductOption::getPrice)
+                    .mapToInt(Integer::intValue).sum();
     }
 }
