@@ -90,7 +90,7 @@ public class CouponService {
         return isUsableCoupon(memberCoupon.getCoupon(), memberCoupon.getMember());
     }
 
-    public boolean afterApproveForCoupon(String memberId, String orderId) {
+    public boolean subtractCoupon(String memberId, String orderId) {
         List<OrderProduct> orderProducts = this.orderRepository.findOrderProducts(orderId);
         List<Integer> couponIdList       = orderProducts.stream().map(OrderProduct::getCouponId).toList();
         List<MemberCoupon> memberCoupons = this.memberRepository.findMemberCoupons(memberId, couponIdList);
@@ -115,7 +115,7 @@ public class CouponService {
         return coupon.isAvailableStatus() && coupon.isBelongToAvailableGrade(member) && coupon.isCanApplyDuring();
     }
 
-    public void afterCancelForCoupon(String orderId) {
+    public void returnCoupon(String orderId) {
         List<OrderProduct> orderProducts = this.orderRepository.findOrderProducts(orderId);
 
         for (OrderProduct orderProduct : orderProducts) {

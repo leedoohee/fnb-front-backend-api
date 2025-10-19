@@ -102,7 +102,7 @@ public class ProductService {
         return true;
     }
 
-    public boolean afterApproveForProduct(String orderId) {
+    public boolean minusQuantity(String orderId) {
         List<OrderProduct> orderProducts = this.orderRepository.findOrderProducts(orderId);
 
         for (OrderProduct orderProduct : orderProducts) {
@@ -122,7 +122,7 @@ public class ProductService {
         return true;
     }
 
-    public void afterCancelForProduct(String orderId) {
+    public void returnProductQuantity(String orderId) {
         List<OrderProduct> orderProducts = this.orderRepository.findOrderProducts(orderId);
 
         for (OrderProduct orderProduct : orderProducts) {

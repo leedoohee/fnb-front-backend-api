@@ -19,7 +19,7 @@ public class PointService {
 
     private final MemberRepository memberRepository;
 
-    public boolean afterApproveForPoint(Order order, Member member, BigDecimal totalProductAmount, BigDecimal paymentAmount) {
+    public boolean givePoint(Order order, Member member, BigDecimal totalProductAmount, BigDecimal paymentAmount) {
         //TODO 페이에 따른 추가적립
 
         int usePoint = order.getUsePoint().intValue();
@@ -53,7 +53,7 @@ public class PointService {
         return true;
     }
 
-    public void afterCancelForPoint(String orderId) {
+    public void returnPoint(String orderId) {
         MemberPoint memberPoint = this.memberRepository.findMemberPoint(orderId);
         this.memberRepository.updateMinusPoint(memberPoint.getMemberId(), memberPoint.getAmount());
         this.pointRepository.deleteMemberPoint(orderId);
