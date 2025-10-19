@@ -36,6 +36,7 @@ public class AfterPaymentService {
     public void callPaymentProcess(Order order, ApprovePaymentResponse approvePaymentResponse, String payType) {
         int couponAmount      = order.getCouponAmount();
         int pointAmount       = order.getUsePoint().intValue();
+
         boolean productResult = this.productService.afterApproveForProduct(order.getOrderProducts());
         boolean couponResult  = this.couponService.afterApproveForCoupon(order.getMember(), order.getOrderProducts());
         boolean pointResult   = this.pointService.afterApproveForPoint(order, order.getMember(),

@@ -105,7 +105,7 @@ public class ProductService {
                 continue;
             }
 
-            if (!CommonUtil.isMinAndMaxBetween(Objects.requireNonNull(orderProduct.getProduct()).getMinQuantity(),
+            if (orderProduct.getProduct() != null && !CommonUtil.isMinAndMaxBetween(orderProduct.getProduct().getMinQuantity(),
                     orderProduct.getProduct().getMaxQuantity(), orderProduct.getQuantity())) {
                 return false;
             }
