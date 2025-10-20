@@ -90,10 +90,10 @@ public class CouponService {
         return isUsableCoupon(memberCoupon.getCoupon(), memberCoupon.getMember());
     }
 
-    public boolean subtractCoupon(String memberId, String orderId) {
-        List<OrderProduct> orderProducts = this.orderRepository.findOrderProducts(orderId);
+    public boolean subtractCoupon(Order order, Member member) {
+        List<OrderProduct> orderProducts = order.getOrderProducts();
         List<Integer> couponIdList       = orderProducts.stream().map(OrderProduct::getCouponId).toList();
-        List<MemberCoupon> memberCoupons = this.memberRepository.findMemberCoupons(memberId, couponIdList);
+        List<MemberCoupon> memberCoupons = this.memberRepository.findMemberCoupons(member.getMemberId(), couponIdList);
 
         for (OrderProduct orderProduct : orderProducts) {
             int couponId = orderProduct.getCouponId();
@@ -105,18 +105,14 @@ public class CouponService {
                 return false;
             }
 
-            this.couponRepository.updateUsedMemberCoupon(memberId, couponId, Used.NOTUSED.getValue());
+            this.couponRepository.updateUsedMemberCoupon(member.getMemberId(), couponId, Used.NOTUSED.getValue());
         }
 
         return true;
     }
 
-    private boolean isUsableCoupon(Coupon coupon, Member member) {
-        return coupon.isAvailableStatus() && coupon.isBelongToAvailableGrade(member) && coupon.isCanApplyDuring();
-    }
-
-    public void returnCoupon(String orderId) {
-        List<OrderProduct> orderProducts = this.orderRepository.findOrderProducts(orderId);
+    public void returnCoupon(Order order, Member member) {
+        List<OrderProduct> orderProducts = this.orderRepository.findOrderProducts(order.getOrderId());
 
         for (OrderProduct orderProduct : orderProducts) {
 
@@ -124,8 +120,11 @@ public class CouponService {
                 continue;
             }
 
-            this.couponRepository.updateUsedMemberCoupon(orderProduct.getCoupon().getMemberCoupon().getMemberId(),
-                    orderProduct.getCoupon().getMemberCoupon().getCouponId(), Used.NOTUSED.getValue());
+            this.couponRepository.updateUsedMemberCoupon(member.getMemberId(), orderProduct.getCoupon().getCouponId(), Used.NOTUSED.getValue());
         }
+    }
+
+    private boolean isUsableCoupon(Coupon coupon, Member member) {
+        return coupon.isAvailableStatus() && coupon.isBelongToAvailableGrade(member) && coupon.isCanApplyDuring();
     }
 }

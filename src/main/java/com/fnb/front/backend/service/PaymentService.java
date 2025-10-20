@@ -14,6 +14,7 @@ import com.fnb.front.backend.controller.domain.request.RequestPayment;
 import com.fnb.front.backend.controller.dto.RequestCancelPayDto;
 import com.fnb.front.backend.repository.*;
 import com.fnb.front.backend.util.PayType;
+import com.fnb.front.backend.util.PaymentMethod;
 import com.fnb.front.backend.util.PaymentStatus;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -52,11 +53,14 @@ public class PaymentService {
     }
 
     public void cancelKakaoResult(KakaoPayCancelDto response) {
-        PaymentElement paymentElement = this.paymentRepository.findPaymentElement(response.getTid());
+        PaymentElement paymentElement   = this.paymentRepository.findPaymentElement(response.getTid());
 
         if (paymentElement == null) {
             throw new IllegalStateException("결제정보를 찾을 수 없습니다.");
         }
+
+        Payment payment = this.paymentRepository.findPayment(paymentElement.getPaymentId());
+        Order order     = this.orderService.findOrder(payment.getOrderId());
 
         this.afterPaymentService.callCancelProcess(CancelPayDto.builder()
                 .approvalId(Objects.requireNonNull(response).getAid())
@@ -71,7 +75,8 @@ public class PaymentService {
                 .greenDeposit(response.getCancelAmount().getGreenDeposit())
                 .approvedAt(LocalDateTime.parse(response.getApprovedAt()))
                 .cancelAt(LocalDateTime.parse(response.getCancelAt()))
-                .build(), paymentElement.getPaymentId());
+                .build()
+                , order, payment);
     }
 
     private boolean cancel(String payType, String transactionId, BigDecimal cancelAmount, BigDecimal taxFree) {
@@ -80,6 +85,18 @@ public class PaymentService {
                 .cancelAmount(cancelAmount)
                 .cancelTaxFreeAmount(taxFree)
                 .transactionId(transactionId).build());
+    }
+
+    public int insertPayment(Payment payment) {
+        return this.paymentRepository.insertPayment(payment);
+    }
+
+    public void insertPaymentElement(PaymentElement paymentElement) {
+        this.paymentRepository.insertPaymentElement(paymentElement);
+    }
+
+    public int insertPaymentCancel(PaymentCancel paymentCancel) {
+        return this.paymentRepository.insertPaymentCancel(paymentCancel);
     }
 
     @TransactionalEventListener(phase = TransactionPhase.BEFORE_COMMIT)
@@ -97,6 +114,7 @@ public class PaymentService {
     @TransactionalEventListener
     public void handleRequestCancelEvent(RequestCancelEvent event) {
         Payment payment = this.paymentRepository.findPayment(event.getOrderId());
+        Order order     =  this.orderService.findOrder(event.getOrderId());
 
         if (!payment.getPaymentStatus().equals(PaymentStatus.APPROVE.getValue())) {
             throw new RuntimeException("취소할 수 없는 주문상태입니다.");
@@ -119,7 +137,7 @@ public class PaymentService {
             }
 
         } else {
-            this.afterPaymentService.callCancelProcess(null, payment.getPaymentId());
+            this.afterPaymentService.callCancelProcess(null, order, payment);
         }
     }
 

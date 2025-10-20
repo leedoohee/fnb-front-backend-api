@@ -1,5 +1,6 @@
 package com.fnb.front.backend.service;
 
+import com.fnb.front.backend.controller.domain.Order;
 import com.fnb.front.backend.controller.domain.OrderProduct;
 import com.fnb.front.backend.controller.domain.Product;
 import com.fnb.front.backend.controller.domain.ProductOption;
@@ -102,8 +103,7 @@ public class ProductService {
         return true;
     }
 
-    public boolean minusQuantity(String orderId) {
-        List<OrderProduct> orderProducts = this.orderRepository.findOrderProducts(orderId);
+    public boolean minusQuantity(List<OrderProduct> orderProducts) {
 
         for (OrderProduct orderProduct : orderProducts) {
             if(orderProduct.getProduct() != null && orderProduct.getProduct().isInfiniteQty()) {
@@ -122,9 +122,7 @@ public class ProductService {
         return true;
     }
 
-    public void returnProductQuantity(String orderId) {
-        List<OrderProduct> orderProducts = this.orderRepository.findOrderProducts(orderId);
-
+    public void returnQuantity(List<OrderProduct> orderProducts) {
         for (OrderProduct orderProduct : orderProducts) {
             this.productRepository.updatePlusQuantity(orderProduct.getProduct().getProductId(), orderProduct.getQuantity());
         }

@@ -53,10 +53,10 @@ public class PointService {
         return true;
     }
 
-    public void returnPoint(String orderId) {
-        MemberPoint memberPoint = this.memberRepository.findMemberPoint(orderId);
-        this.memberRepository.updateMinusPoint(memberPoint.getMemberId(), memberPoint.getAmount());
-        this.pointRepository.deleteMemberPoint(orderId);
+    public void returnPoint(Order order, Member member) {
+        MemberPoint memberPoint = this.memberRepository.findMemberPoint(order.getOrderId());
+        this.memberRepository.updateMinusPoint(member.getMemberId(), memberPoint.getAmount());
+        this.pointRepository.deleteMemberPoint(order.getOrderId());
     }
 
     private int applyGradePointForOrder(Member member, BigDecimal totalProductAmount, BigDecimal paymentAmount) {
