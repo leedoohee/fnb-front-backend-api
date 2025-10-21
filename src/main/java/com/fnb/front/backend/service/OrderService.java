@@ -24,6 +24,7 @@ import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.*;
 
@@ -58,9 +59,9 @@ public class OrderService {
                 .orderDate(createOrderDto.getOrderDate())
                 .orderStatus(OrderStatus.TEMP.getValue())
                 .orderType(orderRequest.getOrderType() == 0 ? OrderType.PICKUP.getValue() : OrderType.DELIVERY.getValue())
-                .discountAmount(createOrderDto.getDiscountAmount())
+                .discountAmount(BigDecimal.valueOf(createOrderDto.getDiscountAmount()))
                 .couponAmount(createOrderDto.getCouponAmount())
-                .totalAmount(createOrderDto.getOrderAmount())
+                .totalAmount(BigDecimal.valueOf(createOrderDto.getOrderAmount()))
                 .build();
 
         this.insertOrder(newOrder);
@@ -89,8 +90,8 @@ public class OrderService {
                 .memberName(member.getName())
                 .productName("PRD_"+createOrderDto.getOrderId())
                 .quantity(1)
-                .purchasePrice(createOrderDto.getOrderAmount())
-                .vatAmount(createOrderDto.getOrderAmount().multiply(BigDecimal.valueOf(1.1)))
+                .purchasePrice(BigDecimal.valueOf(createOrderDto.getOrderAmount()))
+                .vatAmount(BigDecimal.valueOf(createOrderDto.getOrderAmount()).divide(BigDecimal.valueOf(1.1), RoundingMode.HALF_EVEN))
                 .taxAmount(BigDecimal.valueOf(0))
                 .isNonPayment(this.isNonExecutePaymentGateWay(createOrderDto.getOrderProducts()))
                 .build();

@@ -101,14 +101,14 @@ public class OrderProcessor {
 
     private int applyCouponToProduct(Product product, List<Coupon> coupons) {
         return coupons.stream()
-                .filter(coupon -> Objects.equals(coupon.getApplyProductId(), product.getProductId()))
+                .filter(coupon -> coupon.getApplyProductId() == product.getProductId())
                 .map(Coupon::getCouponId)
                 .mapToInt(Integer::intValue).findFirst().orElse(0);
     }
 
     private int calcCouponPriceToProduct(Product product, List<Coupon> coupons) {
         return coupons.stream()
-            .filter(coupon -> Objects.equals(coupon.getApplyProductId(), product.getProductId() ))
+            .filter(coupon -> coupon.getApplyProductId() == product.getProductId())
             .map(coupon -> {
                 BigDecimal price = BigDecimal.valueOf(0);
 
@@ -132,8 +132,8 @@ public class OrderProcessor {
 
         if (memberShipPolicy != null) {
             Calculator memberShipCalculator = new MemberShipCalculator(member,
-                                                    this.calcPriceWithQuantity(product.getPrice().intValue(), product.getQuantity()),
-                                                    product.getApplyMemberGradeDisAmt().intValue(), memberShipPolicy);
+                                this.calcPriceWithQuantity(product.getPrice().intValue(), product.getQuantity()),
+                                product.getApplyMemberGradeDisAmt().intValue(), memberShipPolicy);
 
             price = memberShipCalculator.calculate().intValue();
         }
