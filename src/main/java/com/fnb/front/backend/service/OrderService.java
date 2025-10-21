@@ -124,6 +124,7 @@ public class OrderService {
         List<Product> products              = this.productRepository.findProducts(productIdList, optionIdList);
         
         //TODO 없는상품번호가 들어왔을 경우, exception을 날려야 하는가, 없는 그대로 나머지만 주문 완료해야 하는가
+        //TODO 주문페이지 진입 시, 상품 검증 로직을 추가로 방어한다.
         for (OrderProductRequest element : orderRequest.getOrderProductRequests()) {
             for (Product product : products) {
                 if(element.getProductId() == product.getProductId()) {
