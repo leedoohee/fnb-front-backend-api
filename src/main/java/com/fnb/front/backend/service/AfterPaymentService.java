@@ -28,8 +28,6 @@ public class AfterPaymentService {
 
     private final PointService pointService;
 
-    private final OrderService orderService;
-
     private final ApplicationEventPublisher paymentCancelEvent;
 
     private final ApplicationEventPublisher orderStatusUpdateEvent;
@@ -118,6 +116,8 @@ public class AfterPaymentService {
                         .cancelTaxFreeAmount(approvePaymentResponse.getTaxFree())
                         .transactionId(approvePaymentResponse.getTransactionId())
                         .build());
+
+                throw new RuntimeException("결제 처리과정에서 오류가 발생하였습니다.", e);
             }
         }
     }
@@ -128,39 +128,43 @@ public class AfterPaymentService {
                 .filter(paymentElement -> paymentElement.getTransactionId().isEmpty())
                 .toList();
 
-        this.pointService.returnPoint(order, order.getMember());
-        this.productService.returnQuantity(order.getOrderProducts());
-        this.couponService.returnCoupon(order, order.getMember());
+        try {
+            this.pointService.returnPoint(order, order.getMember());
+            this.productService.returnQuantity(order.getOrderProducts());
+            this.couponService.returnCoupon(order, order.getMember());
 
-        int cancelId = this.paymentService.insertPaymentCancel(PaymentCancel.builder()
-                .cancelAmount(payment.getTotalAmount())
-                .cancelAt(LocalDateTime.now())
-                .orderId(payment.getOrderId())
-                .build());
-
-        if (cancelPaymentDto != null) {
-            this.paymentService.insertPaymentElement(PaymentElement.builder()
-                    .paymentStatus(PaymentStatus.CANCEL.getValue())
-                    .paymentId(cancelId)
-                    .transactionId(cancelPaymentDto.getTransactionId())
-                    .amount(BigDecimal.valueOf(cancelPaymentDto.getTotalAmount()))
-                    .taxFree(BigDecimal.valueOf(cancelPaymentDto.getTaxFree()))
-                    .vat(BigDecimal.valueOf(cancelPaymentDto.getVat()))
-                    .approvedAt(cancelPaymentDto.getApprovedAt())
-                    .createdAt(LocalDateTime.now())
-                    .updatedAt(LocalDateTime.now())
+            int cancelId = this.paymentService.insertPaymentCancel(PaymentCancel.builder()
+                    .cancelAmount(payment.getTotalAmount())
+                    .cancelAt(LocalDateTime.now())
+                    .orderId(payment.getOrderId())
                     .build());
-        }
 
-        for (PaymentElement paymentElement : notInPgElements) {
-            paymentElement.setPaymentStatus(PaymentStatus.CANCEL.getValue());
-            paymentElement.setPaymentElementId(0); //TODO 자동키 생성되는지 확인
-            this.paymentService.insertPaymentElement(paymentElement);
-        }
+            if (cancelPaymentDto != null) {
+                this.paymentService.insertPaymentElement(PaymentElement.builder()
+                        .paymentStatus(PaymentStatus.CANCEL.getValue())
+                        .paymentId(cancelId)
+                        .transactionId(cancelPaymentDto.getTransactionId())
+                        .amount(BigDecimal.valueOf(cancelPaymentDto.getTotalAmount()))
+                        .taxFree(BigDecimal.valueOf(cancelPaymentDto.getTaxFree()))
+                        .vat(BigDecimal.valueOf(cancelPaymentDto.getVat()))
+                        .approvedAt(cancelPaymentDto.getApprovedAt())
+                        .createdAt(LocalDateTime.now())
+                        .updatedAt(LocalDateTime.now())
+                        .build());
+            }
 
-        this.orderStatusUpdateEvent.publishEvent(OrderStatusUpdateEvent.builder()
-                .orderId(payment.getOrderId())
-                .orderStatus(OrderStatus.CANCELED.getValue())
-                .build());
+            for (PaymentElement paymentElement : notInPgElements) {
+                paymentElement.setPaymentStatus(PaymentStatus.CANCEL.getValue());
+                paymentElement.setPaymentElementId(0); //TODO 자동키 생성되는지 확인
+                this.paymentService.insertPaymentElement(paymentElement);
+            }
+
+            this.orderStatusUpdateEvent.publishEvent(OrderStatusUpdateEvent.builder()
+                    .orderId(payment.getOrderId())
+                    .orderStatus(OrderStatus.CANCELED.getValue())
+                    .build());
+        } catch (Exception e) {
+            throw new RuntimeException("결제 취소 과정에서 오류가 발생하였습니다.", e);
+        }
     }
 }

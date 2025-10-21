@@ -99,7 +99,7 @@ public class PaymentService {
         return this.paymentRepository.insertPaymentCancel(paymentCancel);
     }
 
-    @TransactionalEventListener(phase = TransactionPhase.BEFORE_COMMIT)
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_ROLLBACK)
     public void handlePaymentCancelEvent(PaymentCancelEvent event) {
         boolean result = this.cancel(event.getPayType(),
                 event.getTransactionId(),
