@@ -19,7 +19,7 @@ public class CouponController {
         return ResponseEntity.ok(this.couponService.getCoupons());
     }
 
-    @PostMapping("/coupon/validate-apply/{memberId}/{couponId}")
+    @PostMapping("/coupon/valid-apply/{memberId}/{couponId}")
     public ResponseEntity<Boolean> validateMemberCoupon(@PathVariable String memberId, @PathVariable int couponId, @RequestParam int productId) {
         return ResponseEntity.ok(this.couponService.applyCouponToProduct(memberId, couponId, productId));
     }
