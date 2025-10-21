@@ -173,7 +173,8 @@ public class OrderService {
     private void insertOrderProducts(List<OrderProduct> orderProducts) {
         this.orderRepository.insertOrderProducts(orderProducts);
     }
-
+    
+    //TODO 주문상태는 원트랜잭션으로 명료하게 가야한다. afterpayment에 orderservice 주입으로 변경
     @EventListener
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void handleOrderStatusEvent(OrderStatusUpdateEvent event) {
