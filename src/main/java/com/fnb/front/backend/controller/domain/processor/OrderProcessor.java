@@ -67,7 +67,7 @@ public class OrderProcessor {
     }
 
     private List<CreateOrderProductDto> buildOrderProducts(String orderId, Member member, List<Product> products, List<Coupon> coupons) {
-        List<CreateOrderProductDto> createOrderProductDtos = new ArrayList<>();
+        List<CreateOrderProductDto> createOrderProductsDto = new ArrayList<>();
 
         for (Product product : products) {
             List<ProductOption> productOptions = product.getProductOption();
@@ -93,10 +93,10 @@ public class OrderProcessor {
                     .discountPrice(couponPrice + memberShipPrice)
                     .build();
 
-            createOrderProductDtos.add(orderProduct);
+            createOrderProductsDto.add(orderProduct);
         }
 
-        return createOrderProductDtos;
+        return createOrderProductsDto;
     }
 
     private int applyCouponToProduct(Product product, List<Coupon> coupons) {
