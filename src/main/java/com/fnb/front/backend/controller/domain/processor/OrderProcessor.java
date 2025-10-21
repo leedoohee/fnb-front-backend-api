@@ -59,9 +59,9 @@ public class OrderProcessor {
                 .orderId(orderId)
                 .orderDate(LocalDateTime.now())
                 .memberName(this.member.getName())
-                .discountAmount(BigDecimal.valueOf(totalCouponPrice + totalMemberShipPrice).add(this.order.getUsePoint()))
+                .discountAmount(totalCouponPrice + totalMemberShipPrice + this.order.getUsePoint().intValue())
                 .couponAmount(totalCouponPrice)
-                .orderAmount(BigDecimal.valueOf(totalOriginPrice))
+                .orderAmount(totalOriginPrice)
                 .orderProducts(this.buildOrderProducts(orderId, this.member, this.products, this.coupons))
                 .build();
     }

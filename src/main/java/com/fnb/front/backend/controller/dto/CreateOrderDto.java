@@ -15,9 +15,9 @@ public class CreateOrderDto {
     private String memberName;
     private String orderId;
     private LocalDateTime orderDate;
-    private BigDecimal orderAmount;
-    private BigDecimal discountAmount;
-    private BigDecimal shippingAmount;
+    private int orderAmount;
+    private int discountAmount;
+    private int shippingAmount;
     private int couponAmount;
     private String usePoint;
     private String orderType;
