@@ -38,7 +38,7 @@ public class OrderValidator {
 
     public boolean isOwnedCoupons(Member member, List<Coupon> coupons) {
         List<MemberCoupon> ownedCoupons = member.getOwnedCoupon();
-        List<Integer> ownedCouponIds = ownedCoupons.stream().map(MemberCoupon::getCouponId).toList();
+        List<Integer> ownedCouponIds    = ownedCoupons.stream().map(MemberCoupon::getCouponId).toList();
 
         for (Coupon coupon : coupons) {
             if(!ownedCouponIds.contains(coupon.getCouponId())) {

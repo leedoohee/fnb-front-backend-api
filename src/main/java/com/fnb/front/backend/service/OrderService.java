@@ -116,15 +116,18 @@ public class OrderService {
 
     private List<Product> createOrderProduct(OrderRequest orderRequest) {
         List<Product> orderProducts         = new ArrayList<>();
-        List<Integer> productIdList         = orderRequest.getOrderProductRequests()
+        List<Integer> reqProductIds         = orderRequest.getOrderProductRequests()
                 .stream().map(OrderProductRequest::getProductId).toList();
         List<List<Integer>> optionIdsArray  = orderRequest.getOrderProductRequests()
                 .stream().map(OrderProductRequest::getProductOptionIds).toList();
-        List<Integer> optionIdList          = optionIdsArray.stream().flatMap(List::stream).toList();
-        List<Product> products              = this.productRepository.findProducts(productIdList, optionIdList);
-        
-        //TODO 없는상품번호가 들어왔을 경우, exception을 날려야 하는가, 없는 그대로 나머지만 주문 완료해야 하는가
-        //TODO 주문페이지 진입 시, 상품 검증 로직을 추가로 방어한다.
+        List<Integer> optionIds             = optionIdsArray.stream().flatMap(List::stream).toList();
+        List<Product> products              = this.productRepository.findProducts(reqProductIds, optionIds);
+        List<Integer> existedProductIds     = products.stream().map(Product::getProductId).toList();
+
+        if (!isEntireContained(existedProductIds, reqProductIds)) {
+            return orderProducts;
+        }
+
         for (OrderProductRequest element : orderRequest.getOrderProductRequests()) {
             for (Product product : products) {
                 if(element.getProductId() == product.getProductId()) {
@@ -172,5 +175,12 @@ public class OrderService {
 
     public void updateStatus(String orderId, String orderStatus) {
         this.orderRepository.updateOrderStatus(orderId, orderStatus);
+    }
+
+    private boolean isEntireContained(List<Integer> origin, List<Integer> compare) {
+        HashSet<Integer> onlyOneCompares = new HashSet<>(compare);
+        HashSet<Integer> onlyOneOrigins  = new HashSet<>(origin);
+
+        return onlyOneOrigins.containsAll(onlyOneCompares);
     }
 }
