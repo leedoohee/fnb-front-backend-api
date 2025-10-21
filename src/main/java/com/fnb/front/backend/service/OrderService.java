@@ -18,7 +18,9 @@ import com.fnb.front.backend.util.OrderType;
 import com.fnb.front.backend.util.Used;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
@@ -46,28 +48,25 @@ public class OrderService {
 
     @Transactional
     public OrderResponse create(OrderRequest orderRequest) {
-        List<OrderProduct> newOrderProducts = new ArrayList<>();
-        Order order                         = this.createOrder(orderRequest);
-        Member member                       = this.createMember(orderRequest);
-        List<Product> orderProducts         = this.createOrderProduct(orderRequest);
-        List<Coupon> orderCoupons           = this.createOrderCoupon(orderRequest);
-        OrderProcessor orderProcessor       = new OrderProcessor(member, order, orderProducts, orderCoupons, new OrderValidator());
-        CreateOrderDto createOrderDto       = orderProcessor.buildOrder();
+        List<OrderProduct> orderProducts = new ArrayList<>();
+        Order order                      = this.createOrder(orderRequest);
+        Member member                    = this.createMember(orderRequest);
+        List<Product> product            = this.createOrderProduct(orderRequest);
+        List<Coupon> coupons             = this.createOrderCoupon(orderRequest);
+        OrderProcessor orderProcessor    = new OrderProcessor(member, order, product, coupons, new OrderValidator());
+        CreateOrderDto createOrderDto    = orderProcessor.buildOrder();
 
-        Order newOrder = Order.builder()
-                .orderId(createOrderDto.getOrderId())
-                .orderDate(createOrderDto.getOrderDate())
-                .orderStatus(OrderStatus.TEMP.getValue())
-                .orderType(orderRequest.getOrderType() == 0 ? OrderType.PICKUP.getValue() : OrderType.DELIVERY.getValue())
-                .discountAmount(BigDecimal.valueOf(createOrderDto.getDiscountAmount()))
-                .couponAmount(createOrderDto.getCouponAmount())
-                .totalAmount(BigDecimal.valueOf(createOrderDto.getOrderAmount()))
-                .build();
+        order.setOrderId(createOrderDto.getOrderId());
+        order.setOrderStatus(OrderStatus.TEMP.getValue());
+        order.setOrderType(orderRequest.getOrderType() == 0 ? OrderType.PICKUP.getValue() : OrderType.DELIVERY.getValue());
+        order.setDiscountAmount(BigDecimal.valueOf(createOrderDto.getDiscountAmount()));
+        order.setCouponAmount(createOrderDto.getCouponAmount());
+        order.setTotalAmount(BigDecimal.valueOf(createOrderDto.getOrderAmount()));
 
-        this.insertOrder(newOrder);
+        this.insertOrder(order);
 
         for(CreateOrderProductDto element : createOrderDto.getOrderProducts()) {
-            newOrderProducts.add(OrderProduct.builder()
+            orderProducts.add(OrderProduct.builder()
                     .productId(element.getProductId())
                     .quantity(element.getQuantity())
                     .couponAmount(BigDecimal.valueOf(element.getCouponPrice()))
@@ -78,11 +77,11 @@ public class OrderService {
                     .build());
         }
 
-        this.insertOrderProducts(newOrderProducts);
+        this.insertOrderProducts(orderProducts);
 
         if (this.isNonExecutePaymentGateWay(createOrderDto.getOrderProducts())) {
             this.ApprovePaymentEvent.publishEvent(RequestPaymentEvent.builder()
-                                        .order(this.findOrder(createOrderDto.getOrderId())));
+                    .order(this.findOrder(createOrderDto.getOrderId())));
         }
 
         return OrderResponse.builder()
@@ -99,7 +98,7 @@ public class OrderService {
 
     public void cancel(String orderId) {
         this.requestCancelEvent.publishEvent(RequestCancelEvent.builder()
-                                .orderId(orderId).build());
+                .orderId(orderId).build());
     }
 
     public Order findOrder(String orderId) {
@@ -123,27 +122,29 @@ public class OrderService {
     private List<Product> createOrderProduct(OrderRequest orderRequest) {
         List<Product> orderProducts         = new ArrayList<>();
         List<Integer> productIdList         = orderRequest.getOrderProductRequests()
-                                                .stream().map(OrderProductRequest::getProductId).toList();
+                .stream().map(OrderProductRequest::getProductId).toList();
         List<List<Integer>> optionIdsArray  = orderRequest.getOrderProductRequests()
-                                                .stream().map(OrderProductRequest::getProductOptionId).toList();
+                .stream().map(OrderProductRequest::getProductOptionIds).toList();
         List<Integer> optionIdList          = optionIdsArray.stream().flatMap(List::stream).toList();
         List<Product> products              = this.productRepository.findProducts(productIdList, optionIdList);
-
-        for (Product product : products) {
-            product.setQuantity(Objects.requireNonNull(orderRequest.getOrderProductRequests().stream()
-                    .filter(orderProductRequest -> orderProductRequest.getProductId() == product.getProductId())
-                    .findFirst().orElse(null)).getQuantity());
-
-            orderProducts.add(product);
+        
+        //TODO 없는상품번호가 들어왔을 경우, exception을 날려야 하는가, 없는 그대로 나머지만 주문 완료해야 하는가
+        for (OrderProductRequest element : orderRequest.getOrderProductRequests()) {
+            for (Product product : products) {
+                if(element.getProductId() == product.getProductId()) {
+                    product.setQuantity(element.getQuantity());
+                    orderProducts.add(product);
+                }
+            }
         }
-
+        
         return orderProducts;
     }
 
     private List<Coupon> createOrderCoupon(OrderRequest orderRequest) {
         List<Integer> couponIds = orderRequest.getOrderCouponRequests().stream()
-                            .map(OrderCouponRequest::getCouponId)
-                            .toList();
+                .map(OrderCouponRequest::getCouponId)
+                .toList();
 
         List<Coupon> coupons  = this.couponRepository.findCoupons(couponIds);
 
@@ -173,8 +174,9 @@ public class OrderService {
         this.orderRepository.insertOrderProducts(orderProducts);
     }
 
-    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-    private void handleOrderStatusEvent(OrderStatusUpdateEvent event) {
+    @EventListener
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void handleOrderStatusEvent(OrderStatusUpdateEvent event) {
         this.orderRepository.updateOrderStatus(event.getOrderId(), event.getOrderStatus());
 
         //exception 주문 상태 업데이트 과정에서 실패하였습니다. 결제상태 확인하여 업데이트 바랍니다.

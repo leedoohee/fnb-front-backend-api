@@ -15,7 +15,7 @@ public class OrderProductRequest {
     private int productId;
 
     @NotEmpty
-    private List<Integer> productOptionId;
+    private List<Integer> productOptionIds;
 
     @NotNull
     private int quantity;
