@@ -1,7 +1,6 @@
 package com.fnb.front.backend.service;
 
 import com.fnb.front.backend.controller.domain.*;
-import com.fnb.front.backend.controller.domain.event.OrderStatusUpdateEvent;
 import com.fnb.front.backend.controller.domain.event.RequestCancelEvent;
 import com.fnb.front.backend.controller.domain.event.RequestPaymentEvent;
 import com.fnb.front.backend.controller.domain.response.OrderResponse;
@@ -18,12 +17,8 @@ import com.fnb.front.backend.util.OrderType;
 import com.fnb.front.backend.util.Used;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.event.TransactionPhase;
-import org.springframework.transaction.event.TransactionalEventListener;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -173,13 +168,8 @@ public class OrderService {
     private void insertOrderProducts(List<OrderProduct> orderProducts) {
         this.orderRepository.insertOrderProducts(orderProducts);
     }
-    
-    //TODO 주문상태는 원트랜잭션으로 명료하게 가야한다. afterpayment에 orderservice 주입으로 변경
-    @EventListener
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void handleOrderStatusEvent(OrderStatusUpdateEvent event) {
-        this.orderRepository.updateOrderStatus(event.getOrderId(), event.getOrderStatus());
 
-        //exception 주문 상태 업데이트 과정에서 실패하였습니다. 결제상태 확인하여 업데이트 바랍니다.
+    public void updateStatus(String orderId, String orderStatus) {
+        this.orderRepository.updateOrderStatus(orderId, orderStatus);
     }
 }

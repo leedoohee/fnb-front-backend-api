@@ -1,11 +1,9 @@
 package com.fnb.front.backend.service;
 
 import com.fnb.front.backend.controller.domain.*;
-import com.fnb.front.backend.controller.domain.event.OrderStatusUpdateEvent;
 import com.fnb.front.backend.controller.domain.event.PaymentCancelEvent;
 import com.fnb.front.backend.controller.domain.response.ApprovePaymentResponse;
 import com.fnb.front.backend.controller.dto.CancelPayDto;
-import com.fnb.front.backend.repository.*;
 import com.fnb.front.backend.util.*;
 import com.fnb.front.backend.util.PaymentStatus;
 import lombok.RequiredArgsConstructor;
@@ -28,9 +26,9 @@ public class AfterPaymentService {
 
     private final PointService pointService;
 
-    private final ApplicationEventPublisher paymentCancelEvent;
+    private final OrderService orderService;
 
-    private final ApplicationEventPublisher orderStatusUpdateEvent;
+    private final ApplicationEventPublisher paymentCancelEvent;
 
     @Transactional
     public void callPaymentProcess(Order order, ApprovePaymentResponse approvePaymentResponse, String payType) {
@@ -103,10 +101,7 @@ public class AfterPaymentService {
                         .build());
             }
 
-            this.orderStatusUpdateEvent.publishEvent(OrderStatusUpdateEvent.builder()
-                    .orderId(order.getOrderId())
-                    .orderStatus(OrderStatus.ORDERED.getValue())
-                    .build());
+            this.orderService.updateStatus(order.getOrderId(), OrderStatus.ORDERED.getValue());
 
         } catch (Exception e) {
             if (approvePaymentResponse != null) {
@@ -159,10 +154,8 @@ public class AfterPaymentService {
                 this.paymentService.insertPaymentElement(paymentElement);
             }
 
-            this.orderStatusUpdateEvent.publishEvent(OrderStatusUpdateEvent.builder()
-                    .orderId(payment.getOrderId())
-                    .orderStatus(OrderStatus.CANCELED.getValue())
-                    .build());
+            this.orderService.updateStatus(order.getOrderId(), OrderStatus.CANCELED.getValue());
+
         } catch (Exception e) {
             throw new RuntimeException("결제 취소 과정에서 오류가 발생하였습니다.", e);
         }
