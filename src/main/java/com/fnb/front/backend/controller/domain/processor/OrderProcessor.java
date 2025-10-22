@@ -71,10 +71,8 @@ public class OrderProcessor {
         List<CreateOrderProductDto> createOrderProductsDto = new ArrayList<>();
 
         for (Product product : products) {
-            List<ProductOption> productOptions = product.getProductOption();
-
             int memberShipPrice = 0;
-            int basicOptionWithPrice = product.getPrice().intValue() + this.getBasicOptionPrice(productOptions);
+            int basicOptionWithPrice = product.getPrice().intValue() + product.getBasicOptionPrice();
 
             if (product.inMemberShipDiscount(member)) {
                 memberShipPrice = this.calcMemberShipPriceToProduct(product, member);
@@ -88,8 +86,7 @@ public class OrderProcessor {
                     .name(product.getName())
                     .couponId(this.applyCouponToProduct(product, coupons))
                     .quantity(product.getQuantity())
-                    .originPrice(this.calcPriceWithQuantity(basicOptionWithPrice, product.getQuantity())
-                                        + this.getTotalAddOptionPrice(productOptions))
+                    .originPrice(this.calcPriceWithQuantity(basicOptionWithPrice, product.getQuantity()) + product.calcTotalAddOptionPrice())
                     .couponPrice(couponPrice)
                     .discountPrice(couponPrice + memberShipPrice)
                     .build();
@@ -144,26 +141,5 @@ public class OrderProcessor {
 
     private int calcPriceWithQuantity(int price, int quantity) {
         return price * quantity;
-    }
-
-    private int getBasicOptionPrice(List<ProductOption> options) {
-        int price = 0;
-
-        ProductOption basicOption = options.stream()
-                .filter(productOption -> productOption.getOptionType().equals(OptionType.BASIC.getValue()))
-                .findFirst().orElse(null);
-
-        if (basicOption != null) {
-            price = basicOption.getPrice();
-        }
-
-        return price;
-    }
-
-    private int getTotalAddOptionPrice(List<ProductOption> options) {
-        return options.stream()
-                    .filter(productOption -> productOption.getOptionType().equals(OptionType.ADDITIONAL.getValue()))
-                    .map(ProductOption::getPrice)
-                    .mapToInt(Integer::intValue).sum();
     }
 }
