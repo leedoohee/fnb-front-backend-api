@@ -116,15 +116,15 @@ public class OrderService {
 
     private List<Product> createOrderProduct(OrderRequest orderRequest) {
         List<Product> orderProducts         = new ArrayList<>();
-        List<Integer> reqProductIds         = orderRequest.getOrderProductRequests()
+        List<Integer> orderProductIds       = orderRequest.getOrderProductRequests()
                 .stream().map(OrderProductRequest::getProductId).toList();
         List<List<Integer>> optionIdsArray  = orderRequest.getOrderProductRequests()
                 .stream().map(OrderProductRequest::getProductOptionIds).toList();
         List<Integer> optionIds             = optionIdsArray.stream().flatMap(List::stream).toList();
-        List<Product> products              = this.productRepository.findProducts(reqProductIds, optionIds);
+        List<Product> products              = this.productRepository.findProducts(orderProductIds, optionIds);
         List<Integer> existedProductIds     = products.stream().map(Product::getProductId).toList();
 
-        if (!isEntireContained(existedProductIds, reqProductIds)) {
+        if (!isEntireContained(existedProductIds, orderProductIds)) {
             return orderProducts;
         }
 
