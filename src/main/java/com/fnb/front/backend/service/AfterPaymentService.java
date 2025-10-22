@@ -38,8 +38,7 @@ public class AfterPaymentService {
         try {
             boolean productResult = this.productService.minusQuantity(order.getOrderProducts());
             boolean couponResult  = this.couponService.subtractCoupon(order, order.getMember());
-            boolean pointResult   = this.pointService.givePoint(order, order.getMember(),
-                    order.getTotalAmount(), BigDecimal.valueOf(order.getTotalAmount().intValue() - order.getDiscountAmount().intValue()));
+            boolean pointResult   = this.pointService.givePoint(order, order.getMember());
 
             if (!(productResult && couponResult && pointResult)) {
                 throw new RuntimeException("결제 후처리 과정에서 오류가 발생하였습니다.");

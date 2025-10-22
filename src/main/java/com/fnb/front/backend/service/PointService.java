@@ -19,16 +19,16 @@ public class PointService {
 
     private final MemberRepository memberRepository;
 
-    public boolean givePoint(Order order, Member member, BigDecimal totalProductAmount, BigDecimal paymentAmount) {
+    public boolean givePoint(Order order, Member member) {
         //TODO 페이에 따른 추가적립
-
         int usePoint = order.getUsePoint().intValue();
 
         if (!member.isUsablePoint(usePoint)) {
             return false;
         }
 
-        int applyPoint = this.applyGradePointForOrder(member, totalProductAmount, paymentAmount);
+        int applyPoint = this.applyGradePointForOrder(member, order.getTotalAmount(),
+                                BigDecimal.valueOf(order.getTotalAmount().intValue() - order.getDiscountAmount().intValue()));
 
         MemberPoint minusPoint = MemberPoint.builder()
                 .pointType(PointType.MINUS.getValue()) // 차감
