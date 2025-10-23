@@ -51,7 +51,7 @@ public class ProductRepository {
         return typedQuery.getResultList();
     }
 
-    public List<Product> findProducts(List<Integer> productIds, List<Integer> optionIds) {
+    public List<Product> findProducts(List<Integer> productIds) {
         List<Predicate> searchConditions    = new ArrayList<>();
         CriteriaBuilder cb                  = this.em.getCriteriaBuilder();
         CriteriaQuery<Product> cq           = cb.createQuery(Product.class);
@@ -60,7 +60,6 @@ public class ProductRepository {
         root.fetch("productOption", JoinType.LEFT);
 
         searchConditions.add(cb.equal(root.get("productId"), productIds));
-        searchConditions.add(cb.and(root.get("optionId").in(optionIds)));
 
         cq = cq.select(root)
                 .where(cb.and(searchConditions.toArray(new Predicate[0])))
