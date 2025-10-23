@@ -192,7 +192,7 @@ public class OrderService {
             OrderProductRequest orderProduct   = orderProductRequests.stream()
                                     .filter(orderProductRequest -> orderProductRequest.getProductId() == product.getProductId())
                                     .findFirst().orElse(null);
-            ;
+
             product.setProductOption(productOptions.stream()
                     .filter(productOption ->
                             Objects.requireNonNull(orderProduct).getProductOptionIds().contains(productOption.getProductOptionId()))
