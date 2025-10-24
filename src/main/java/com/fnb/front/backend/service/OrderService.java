@@ -46,8 +46,8 @@ public class OrderService {
         List<OrderProduct> orderProducts = new ArrayList<>();
         Order order                      = this.createOrder(orderRequest);
         Member member                    = this.createMember(orderRequest);
-        List<Product> product            = this.isCanOrderProducts(orderRequest.getOrderProductRequests())
-                                                ? this.createOrderProduct(orderRequest.getOrderProductRequests()): new ArrayList<>();
+        List<Product> product            = this.isExistedNonSellProducts(orderRequest.getOrderProductRequests())
+                                                ? new ArrayList<>() : this.createOrderProduct(orderRequest.getOrderProductRequests());
         List<Coupon> coupons             = this.createOrderCoupon(orderRequest);
         OrderProcessor orderProcessor    = new OrderProcessor(member, order, product, coupons, new OrderValidator());
         CreateOrderDto createOrderDto    = orderProcessor.buildOrder();
@@ -115,7 +115,7 @@ public class OrderService {
                 .build();
     }
 
-    private boolean isCanOrderProducts(List<OrderProductRequest> orderProductRequests) {
+    private boolean isExistedNonSellProducts(List<OrderProductRequest> orderProductRequests) {
         List<Integer> orderProductIds       = orderProductRequests.stream().map(OrderProductRequest::getProductId).toList();
         List<Product> products              = this.productRepository.findProducts(orderProductIds);
         List<Integer> existedProductIds     = products.stream().map(Product::getProductId).toList();

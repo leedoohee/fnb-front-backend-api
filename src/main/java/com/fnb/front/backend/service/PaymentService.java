@@ -114,7 +114,7 @@ public class PaymentService {
     @TransactionalEventListener
     public void handleRequestCancelEvent(RequestCancelEvent event) {
         Payment payment = this.paymentRepository.findPayment(event.getOrderId());
-        Order order     =  this.orderService.findOrder(event.getOrderId());
+        Order order     = this.orderService.findOrder(event.getOrderId());
 
         if (!payment.getPaymentStatus().equals(PaymentStatus.APPROVE.getValue())) {
             throw new RuntimeException("취소할 수 없는 주문상태입니다.");

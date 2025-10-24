@@ -119,7 +119,9 @@ public class AfterPaymentService {
     @Transactional
     public void callCancelProcess(CancelPayDto cancelPaymentDto, Order order, Payment payment) {
         List<PaymentElement> notInPgElements = payment.getPaymentElements().stream()
-                .filter(paymentElement -> paymentElement.getTransactionId().isEmpty())
+                .filter(paymentElement ->
+                        paymentElement.getPaymentMethod().contains(PaymentMethod.COUPON.getValue()) ||
+                                        paymentElement.getPaymentMethod().contains(PaymentMethod.POINT.getValue()))
                 .toList();
 
         try {
