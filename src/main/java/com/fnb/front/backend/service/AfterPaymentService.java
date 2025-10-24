@@ -118,7 +118,7 @@ public class AfterPaymentService {
 
     @Transactional
     public void callCancelProcess(CancelPayDto cancelPaymentDto, Order order, Payment payment) {
-        List<PaymentElement> notInPgElements = payment.getPaymentElements().stream()
+        List<PaymentElement> mustBeReturnedElements = payment.getPaymentElements().stream()
                 .filter(paymentElement ->
                         paymentElement.getPaymentMethod().contains(PaymentMethod.COUPON.getValue()) ||
                                         paymentElement.getPaymentMethod().contains(PaymentMethod.POINT.getValue()))
@@ -149,7 +149,7 @@ public class AfterPaymentService {
                         .build());
             }
 
-            for (PaymentElement paymentElement : notInPgElements) {
+            for (PaymentElement paymentElement : mustBeReturnedElements) {
                 paymentElement.setPaymentStatus(PaymentStatus.CANCEL.getValue());
                 paymentElement.setPaymentElementId(0); //TODO 자동키 생성되는지 확인
                 this.paymentService.insertPaymentElement(paymentElement);
