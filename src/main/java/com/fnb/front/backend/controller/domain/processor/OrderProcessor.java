@@ -86,7 +86,7 @@ public class OrderProcessor {
                     .name(product.getName())
                     .couponId(this.applyCouponToProduct(product, coupons))
                     .quantity(product.getQuantity())
-                    .originPrice(this.calcPriceWithQuantity(basicOptionWithPrice, product.getQuantity()) + product.calcTotalAddOptionPrice())
+                    .originPrice(this.calcPriceWithQuantity(basicOptionWithPrice, product.getQuantity()) + product.calcTotalAddOptionPrice())  //TODO calcTotalAddOptionPrice calculator 별도로 빼기
                     .couponPrice(couponPrice)
                     .discountPrice(couponPrice + memberShipPrice)
                     .build();
