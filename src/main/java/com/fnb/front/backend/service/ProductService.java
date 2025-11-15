@@ -1,20 +1,16 @@
 package com.fnb.front.backend.service;
 
-import com.fnb.front.backend.controller.domain.Order;
 import com.fnb.front.backend.controller.domain.OrderProduct;
 import com.fnb.front.backend.controller.domain.Product;
 import com.fnb.front.backend.controller.domain.ProductOption;
 import com.fnb.front.backend.controller.domain.response.ProductOptionResponse;
 import com.fnb.front.backend.controller.domain.response.ProductResponse;
-import com.fnb.front.backend.repository.OrderRepository;
 import com.fnb.front.backend.repository.ProductRepository;
 import com.fnb.front.backend.repository.ReviewRepository;
 import com.fnb.front.backend.util.CommonUtil;
 import com.fnb.front.backend.util.ProductStatus;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-
-import javax.naming.InsufficientResourcesException;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
@@ -23,8 +19,6 @@ import java.util.Objects;
 @Service
 @RequiredArgsConstructor
 public class ProductService {
-
-    private final OrderRepository orderRepository;
 
     private final ProductRepository productRepository;
 
