@@ -75,7 +75,7 @@ public class OrderService {
 
         this.insertOrderProducts(orderProducts);
 
-        if (this.isNonExecutePaymentGateWay(createOrderDto.getOrderProducts())) {
+        if (this.isZeroPayment(createOrderDto.getOrderProducts())) {
             this.ApprovePaymentEvent.publishEvent(RequestPaymentEvent.builder()
                     .order(this.findOrder(createOrderDto.getOrderId())));
         }
@@ -88,7 +88,7 @@ public class OrderService {
                 .purchasePrice(BigDecimal.valueOf(createOrderDto.getOrderAmount()))
                 .vatAmount(BigDecimal.valueOf(createOrderDto.getOrderAmount()).divide(BigDecimal.valueOf(1.1), RoundingMode.HALF_EVEN))
                 .taxAmount(BigDecimal.valueOf(0))
-                .isNonPayment(this.isNonExecutePaymentGateWay(createOrderDto.getOrderProducts()))
+                .isNonPayment(this.isZeroPayment(createOrderDto.getOrderProducts()))
                 .build();
     }
 
@@ -101,7 +101,7 @@ public class OrderService {
         return this.orderRepository.findOrder(orderId);
     }
 
-    private boolean isNonExecutePaymentGateWay(List<CreateOrderProductDto> orderProductRequests) {
+    private boolean isZeroPayment(List<CreateOrderProductDto> orderProductRequests) {
         return orderProductRequests.stream()
                 .map(CreateOrderProductDto::getPurchasePrice)
                 .mapToInt(Integer::intValue).sum() == BigDecimal.ZERO.intValue();
