@@ -76,9 +76,7 @@ public class CouponService {
 
         if(memberCoupon.getCoupon().isApplyToEntireProduct()) {
             return true;
-        }
-
-        if (!memberCoupon.getCoupon().isApplyToEntireProduct()) {
+        } else {
             CouponProduct couponProduct = memberCoupon.getCoupon().getCouponProducts().stream()
                     .filter(element -> element.getProductId() == productId).findFirst().orElse(null);
 
