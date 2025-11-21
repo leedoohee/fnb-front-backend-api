@@ -29,11 +29,11 @@ import java.util.*;
 @RequiredArgsConstructor
 public class OrderService {
 
-    private final ProductRepository productRepository;
+    private final ProductService productService;
 
-    private final CouponRepository couponRepository;
+    private final CouponService couponService;
 
-    private final MemberRepository memberRepository;
+    private final MemberService memberService;
 
     private final OrderRepository orderRepository;
 
@@ -117,7 +117,7 @@ public class OrderService {
 
     private boolean isExistedNonSellProducts(List<OrderProductRequest> orderProductRequests) {
         List<Integer> orderProductIds       = orderProductRequests.stream().map(OrderProductRequest::getProductId).toList();
-        List<Product> products              = this.productRepository.findProducts(orderProductIds);
+        List<Product> products              = this.productService.findProducts(orderProductIds);
         List<Integer> existedProductIds     = products.stream().map(Product::getProductId).toList();
 
         return this.isEntireContained(existedProductIds, orderProductIds);
@@ -126,7 +126,7 @@ public class OrderService {
     private List<Product> createOrderProduct(List<OrderProductRequest> orderProductRequests) {
         List<Product> orderProducts      = new ArrayList<>();
         List<Integer> orderProductIds    = orderProductRequests.stream().map(OrderProductRequest::getProductId).toList();
-        List<Product> products           = this.productRepository.findProducts(orderProductIds);
+        List<Product> products           = this.productService.findProducts(orderProductIds);
 
         this.filterOnlyOrderOptions(orderProductRequests, products);
 
@@ -147,7 +147,7 @@ public class OrderService {
                 .map(OrderCouponRequest::getCouponId)
                 .toList();
 
-        List<Coupon> coupons  = this.couponRepository.findCoupons(couponIds);
+        List<Coupon> coupons  = this.couponService.findCoupons(couponIds);
 
         for (Coupon coupon : coupons) {
             orderRequest.getOrderCouponRequests().stream()
@@ -160,8 +160,8 @@ public class OrderService {
     }
 
     private Member createMember(OrderRequest orderRequest) {
-        Member member                       = this.memberRepository.findMember(orderRequest.getMemberId());
-        List<MemberCoupon> memberCoupons    = this.memberRepository.findMemberCoupons(member.getMemberId(), Used.NOTUSED.getValue());
+        Member member                       = this.memberService.findMember(orderRequest.getMemberId());
+        List<MemberCoupon> memberCoupons    = this.memberService.findMemberCoupons(member.getMemberId(), Used.NOTUSED.getValue());
         member.setOwnedCoupon(memberCoupons);
 
         return member;

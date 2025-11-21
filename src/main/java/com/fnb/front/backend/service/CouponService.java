@@ -24,6 +24,10 @@ public class CouponService {
 
     private final OrderRepository orderRepository;
 
+    public List<Coupon> findCoupons(List<Integer> couponIds) {
+        return this.couponRepository.findCoupons(couponIds);
+    }
+
     public List<CouponResponse> getCoupons() {
         List<CouponResponse> responses  = new ArrayList<>();
         List<Coupon> coupons            = this.couponRepository.findCoupons(CouponStatus.AVAILABLE.getValue());

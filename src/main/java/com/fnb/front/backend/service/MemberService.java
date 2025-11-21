@@ -1,20 +1,23 @@
 package com.fnb.front.backend.service;
 
 import com.fnb.front.backend.controller.domain.Member;
+import com.fnb.front.backend.controller.domain.MemberCoupon;
 import com.fnb.front.backend.controller.domain.request.SignInRequest;
 import com.fnb.front.backend.controller.domain.request.SignUpRequest;
 import com.fnb.front.backend.repository.MemberRepository;
 import com.fnb.front.backend.security.JwtUtil;
 import com.fnb.front.backend.util.MemberStatus;
+import com.fnb.front.backend.util.Used;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class AuthService {
+public class MemberService {
 
     private final JwtUtil jwtUtil;
     private final MemberRepository memberRepository;
@@ -61,5 +64,13 @@ public class AuthService {
                                     .build());
 
         return true;
+    }
+
+    public Member findMember(String memberId) {
+        return this.memberRepository.findMember(memberId);
+    }
+
+    public List<MemberCoupon> findMemberCoupons(String memberId, String status) {
+        return this.memberRepository.findMemberCoupons(memberId, status);
     }
 }

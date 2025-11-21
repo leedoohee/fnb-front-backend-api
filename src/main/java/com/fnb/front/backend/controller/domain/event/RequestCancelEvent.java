@@ -5,7 +5,12 @@ import lombok.Getter;
 import org.springframework.context.ApplicationEvent;
 
 @Getter
-@Builder
 public class RequestCancelEvent extends ApplicationEvent {
-    private String orderId;
+    private final String orderId;
+
+    @Builder
+    public RequestCancelEvent(Object source, String orderId) {
+        super(source);
+        this.orderId = orderId;
+    }
 }

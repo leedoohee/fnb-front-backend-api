@@ -1,6 +1,6 @@
 package com.fnb.front.backend.controller;
 
-import com.fnb.front.backend.service.AuthService;
+import com.fnb.front.backend.service.MemberService;
 import com.fnb.front.backend.controller.domain.request.SignInRequest;
 import com.fnb.front.backend.controller.domain.request.SignUpRequest;
 import jakarta.validation.Valid;
@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class AuthController {
 
-    private final AuthService authService;
+    private final MemberService authService;
 
     @PostMapping("/auth/sign-in")
     public ResponseEntity<String> login(@Valid @RequestBody SignInRequest request) {

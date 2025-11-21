@@ -24,6 +24,10 @@ public class ProductService {
 
     private final ReviewRepository reviewRepository;
 
+    public List<Product> findProducts(List<Integer> productIds) {
+        return this.productRepository.findProducts(productIds);
+    }
+
     public List<ProductResponse> getProducts() {
         List<ProductResponse> response  = new ArrayList<>();
         List<Product> products          = this.productRepository.findProducts(ProductStatus.SALE.getValue());

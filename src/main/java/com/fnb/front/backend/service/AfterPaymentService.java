@@ -4,6 +4,7 @@ import com.fnb.front.backend.controller.domain.*;
 import com.fnb.front.backend.controller.domain.event.PaymentCancelEvent;
 import com.fnb.front.backend.controller.domain.response.ApprovePaymentResponse;
 import com.fnb.front.backend.controller.dto.CancelPayDto;
+import com.fnb.front.backend.repository.PaymentRepository;
 import com.fnb.front.backend.util.*;
 import com.fnb.front.backend.util.PaymentStatus;
 import lombok.RequiredArgsConstructor;
@@ -18,7 +19,7 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class AfterPaymentService {
-    private final PaymentService paymentService;
+    private final PaymentRepository paymentRepository;
 
     private final ProductService productService;
 
@@ -45,7 +46,7 @@ public class AfterPaymentService {
             }
 
             //TODO 금액 비교 로직
-            int paymentId = this.paymentService.insertPayment(Payment.builder()
+            int paymentId = this.paymentRepository.insertPayment(Payment.builder()
                     .paymentAt(LocalDateTime.now())
                     .paymentType(payType)
                     .paymentStatus(PaymentStatus.APPROVE.getValue())
@@ -54,7 +55,7 @@ public class AfterPaymentService {
                     .build());
 
             if (couponAmount > 0) {
-                this.paymentService.insertPaymentElement(PaymentElement.builder()
+                this.paymentRepository.insertPaymentElement(PaymentElement.builder()
                         .paymentMethod(PaymentMethod.COUPON.getValue())
                         .amount(BigDecimal.valueOf(couponAmount))
                         .paymentId(paymentId)
@@ -62,7 +63,7 @@ public class AfterPaymentService {
             }
 
             if (pointAmount > 0) {
-                this.paymentService.insertPaymentElement(PaymentElement.builder()
+                this.paymentRepository.insertPaymentElement(PaymentElement.builder()
                         .paymentMethod(PaymentMethod.POINT.getValue())
                         .amount(BigDecimal.valueOf(pointAmount))
                         .paymentId(paymentId)
@@ -73,7 +74,7 @@ public class AfterPaymentService {
                 String cardNumber = "N/A";
                 String emptyField = null;
 
-                this.paymentService.insertPaymentElement(PaymentElement.builder()
+                this.paymentRepository.insertPaymentElement(PaymentElement.builder()
                         .paymentStatus(PaymentStatus.APPROVE.getValue())
                         .paymentId(paymentId)
                         .paymentMethod(approvePaymentResponse.getPaymentMethod()) // TODO 오는 값에 따라 분기처리
@@ -105,10 +106,10 @@ public class AfterPaymentService {
         } catch (Exception e) {
             if (approvePaymentResponse != null) {
                 this.paymentCancelEvent.publishEvent(PaymentCancelEvent.builder()
+                        .transactionId(approvePaymentResponse.getTransactionId())
                         .payType(payType)
                         .cancelAmount(approvePaymentResponse.getTotalAmount())
                         .cancelTaxFreeAmount(approvePaymentResponse.getTaxFree())
-                        .transactionId(approvePaymentResponse.getTransactionId())
                         .build());
 
                 throw new RuntimeException("결제 처리과정에서 오류가 발생하였습니다.", e);
@@ -129,14 +130,14 @@ public class AfterPaymentService {
             this.productService.returnQuantity(order.getOrderProducts());
             this.couponService.returnCoupon(order, order.getMember());
 
-            int cancelId = this.paymentService.insertPaymentCancel(PaymentCancel.builder()
+            int cancelId = this.paymentRepository.insertPaymentCancel(PaymentCancel.builder()
                     .cancelAmount(payment.getTotalAmount())
                     .cancelAt(LocalDateTime.now())
                     .orderId(payment.getOrderId())
                     .build());
 
             if (cancelPaymentDto != null) {
-                this.paymentService.insertPaymentElement(PaymentElement.builder()
+                this.paymentRepository.insertPaymentElement(PaymentElement.builder()
                         .paymentStatus(PaymentStatus.CANCEL.getValue())
                         .paymentId(cancelId)
                         .transactionId(cancelPaymentDto.getTransactionId())
@@ -152,7 +153,7 @@ public class AfterPaymentService {
             for (PaymentElement paymentElement : mustBeReturnedElements) {
                 paymentElement.setPaymentStatus(PaymentStatus.CANCEL.getValue());
                 paymentElement.setPaymentElementId(0); //TODO 자동키 생성되는지 확인
-                this.paymentService.insertPaymentElement(paymentElement);
+                this.paymentRepository.insertPaymentElement(paymentElement);
             }
 
             this.orderService.updateStatus(order.getOrderId(), OrderStatus.CANCELED.getValue());
