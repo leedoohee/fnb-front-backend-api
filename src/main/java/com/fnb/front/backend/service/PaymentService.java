@@ -87,18 +87,6 @@ public class PaymentService {
                 .transactionId(transactionId).build());
     }
 
-    public int insertPayment(Payment payment) {
-        return this.paymentRepository.insertPayment(payment);
-    }
-
-    public void insertPaymentElement(PaymentElement paymentElement) {
-        this.paymentRepository.insertPaymentElement(paymentElement);
-    }
-
-    public int insertPaymentCancel(PaymentCancel paymentCancel) {
-        return this.paymentRepository.insertPaymentCancel(paymentCancel);
-    }
-
     @TransactionalEventListener(phase = TransactionPhase.AFTER_ROLLBACK)
     public void handlePaymentCancelEvent(PaymentCancelEvent event) {
         boolean result = this.cancel(event.getPayType(),

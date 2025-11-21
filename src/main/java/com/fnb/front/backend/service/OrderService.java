@@ -18,6 +18,7 @@ import com.fnb.front.backend.util.Used;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
@@ -39,9 +40,9 @@ public class OrderService {
 
     private final ApplicationEventPublisher requestCancelEvent;
 
-    private final ApplicationEventPublisher ApprovePaymentEvent;
+    private final ApplicationEventPublisher processOrderEvent;
 
-    @Transactional
+    @Transactional(readOnly = true)
     public OrderResponse create(OrderRequest orderRequest) {
         List<OrderProduct> orderProducts = new ArrayList<>();
         Order order                      = this.createOrder(orderRequest);
@@ -76,7 +77,7 @@ public class OrderService {
         this.insertOrderProducts(orderProducts);
 
         if (this.isZeroPayment(createOrderDto.getOrderProducts())) {
-            this.ApprovePaymentEvent.publishEvent(RequestPaymentEvent.builder()
+            this.processOrderEvent.publishEvent(RequestPaymentEvent.builder()
                     .order(this.findOrder(createOrderDto.getOrderId())));
         }
 
@@ -167,11 +168,13 @@ public class OrderService {
         return member;
     }
 
-    private void insertOrder(Order order) {
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    protected void insertOrder(Order order) {
         this.orderRepository.insertOrder(order);
     }
 
-    private void insertOrderProducts(List<OrderProduct> orderProducts) {
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    protected void insertOrderProducts(List<OrderProduct> orderProducts) {
         this.orderRepository.insertOrderProducts(orderProducts);
     }
 
