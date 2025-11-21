@@ -140,11 +140,4 @@ public class Product {
 
         return price;
     }
-
-    public int calcTotalAddOptionPrice() {
-        return this.productOption.stream()
-                .filter(productOption -> productOption.getOptionType().equals(OptionType.ADDITIONAL.getValue()))
-                .map(ProductOption::getPrice)
-                .mapToInt(Integer::intValue).sum();
-    }
 }
