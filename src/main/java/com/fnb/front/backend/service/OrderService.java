@@ -179,11 +179,11 @@ public class OrderService {
         this.orderRepository.updateOrderStatus(orderId, orderStatus);
     }
 
-    private boolean isEntireContained(List<Integer> origin, List<Integer> compare) {
-        HashSet<Integer> onlyOneCompares = new HashSet<>(compare);
-        HashSet<Integer> onlyOneOrigins  = new HashSet<>(origin);
+    private boolean isEntireContained(List<Integer> aliveProducts, List<Integer> orderProducts) {
+        HashSet<Integer> onlyOneAliveSet  = new HashSet<>(aliveProducts);
+        HashSet<Integer> onlyOneOrderSet = new HashSet<>(orderProducts);
 
-        return onlyOneOrigins.containsAll(onlyOneCompares);
+        return onlyOneAliveSet.containsAll(onlyOneOrderSet);
     }
 
     private void filterOnlyOrderOptions(List<OrderProductRequest> orderProductRequests, List<Product> products) {
