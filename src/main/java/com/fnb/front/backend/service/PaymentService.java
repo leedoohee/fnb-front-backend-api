@@ -49,6 +49,7 @@ public class PaymentService {
         }
 
         Order order = this.orderService.findOrder(response.getOrderId());
+        //TODO 이벤트 패턴으로 바꾸기
         this.afterPaymentService.callPaymentProcess(order, response, PayType.KAKAO.getValue());
     }
 
@@ -62,6 +63,7 @@ public class PaymentService {
         Payment payment = this.paymentRepository.findPayment(paymentElement.getPaymentId());
         Order order     = this.orderService.findOrder(payment.getOrderId());
 
+        //TODO 이벤트 패턴으로 바꾸기
         this.afterPaymentService.callCancelProcess(CancelPayDto.builder()
                 .approvalId(Objects.requireNonNull(response).getAid())
                 .transactionId(response.getTid())
@@ -110,6 +112,7 @@ public class PaymentService {
 
         List<PaymentElement> paymentElements = payment.getPaymentElements();
 
+        //TODO payType으로 필터 ex)KAKAO, NAVER
         PaymentElement paymentGateWayElement = paymentElements.stream()
                 .filter(paymentElement -> !paymentElement.getTransactionId().isEmpty())
                 .findFirst().orElse(null);
