@@ -40,6 +40,7 @@ dependencies {
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     annotationProcessor 'jakarta.persistence:jakarta.persistence-api'
     runtimeOnly 'org.mariadb.jdbc:mariadb-java-client'
+    runtimeOnly 'com.mysql:mysql-connector-j'
     testAnnotationProcessor 'jakarta.persistence:jakarta.persistence-api'
 
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'

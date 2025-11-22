@@ -1,9 +1,7 @@
 package com.fnb.front.backend.service;
 
 import com.fnb.front.backend.controller.domain.*;
-import com.fnb.front.backend.controller.domain.event.PaymentCancelEvent;
-import com.fnb.front.backend.controller.domain.event.RequestCancelEvent;
-import com.fnb.front.backend.controller.domain.event.RequestPaymentEvent;
+import com.fnb.front.backend.controller.domain.event.*;
 import com.fnb.front.backend.controller.domain.processor.PaymentProcessor;
 import com.fnb.front.backend.controller.domain.response.ApprovePaymentResponse;
 import com.fnb.front.backend.controller.dto.KakaoPayCancelDto;
@@ -14,9 +12,9 @@ import com.fnb.front.backend.controller.domain.request.RequestPayment;
 import com.fnb.front.backend.controller.dto.RequestCancelPayDto;
 import com.fnb.front.backend.repository.*;
 import com.fnb.front.backend.util.PayType;
-import com.fnb.front.backend.util.PaymentMethod;
 import com.fnb.front.backend.util.PaymentStatus;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
@@ -33,7 +31,9 @@ public class PaymentService {
 
     private final OrderService orderService;
 
-    private final AfterPaymentService afterPaymentService;
+    private final ApplicationEventPublisher afterApproveEvent;
+
+    private final ApplicationEventPublisher afterCancelEvent;
 
     public RequestPaymentResponse request(RequestPayment requestPayment) {
         PaymentProcessor paymentProcessor = new PaymentProcessor(PayFactory.getPay(requestPayment.getPayType()));
@@ -49,8 +49,12 @@ public class PaymentService {
         }
 
         Order order = this.orderService.findOrder(response.getOrderId());
-        //TODO 이벤트 패턴으로 바꾸기
-        this.afterPaymentService.callPaymentProcess(order, response, PayType.KAKAO.getValue());
+
+        this.afterApproveEvent.publishEvent(PaymentApproveEvent
+                                        .builder()
+                                        .payType(PayType.KAKAO.getValue())
+                                        .order(order)
+                                        .response(response));
     }
 
     public void cancelKakaoResult(KakaoPayCancelDto response) {
@@ -63,22 +67,25 @@ public class PaymentService {
         Payment payment = this.paymentRepository.findPayment(paymentElement.getPaymentId());
         Order order     = this.orderService.findOrder(payment.getOrderId());
 
-        //TODO 이벤트 패턴으로 바꾸기
-        this.afterPaymentService.callCancelProcess(CancelPayDto.builder()
-                .approvalId(Objects.requireNonNull(response).getAid())
-                .transactionId(response.getTid())
-                .productName(response.getItemName())
-                .quantity(response.getQuantity())
-                .totalAmount(response.getCancelAmount().getTotal())
-                .taxFree(response.getCancelAmount().getTaxFree())
-                .vat(response.getCancelAmount().getVat())
-                .point(response.getCancelAmount().getPoint())
-                .discount(response.getCancelAmount().getDiscount())
-                .greenDeposit(response.getCancelAmount().getGreenDeposit())
-                .approvedAt(LocalDateTime.parse(response.getApprovedAt()))
-                .cancelAt(LocalDateTime.parse(response.getCancelAt()))
-                .build()
-                , order, payment);
+        this.afterCancelEvent.publishEvent(AfterPaymentCancelEvent
+                .builder()
+                .cancelPayDto(CancelPayDto.builder()
+                                .approvalId(Objects.requireNonNull(response).getAid())
+                                .transactionId(response.getTid())
+                                .productName(response.getItemName())
+                                .quantity(response.getQuantity())
+                                .totalAmount(response.getCancelAmount().getTotal())
+                                .taxFree(response.getCancelAmount().getTaxFree())
+                                .vat(response.getCancelAmount().getVat())
+                                .point(response.getCancelAmount().getPoint())
+                                .discount(response.getCancelAmount().getDiscount())
+                                .greenDeposit(response.getCancelAmount().getGreenDeposit())
+                                .approvedAt(LocalDateTime.parse(response.getApprovedAt()))
+                                .cancelAt(LocalDateTime.parse(response.getCancelAt()))
+                                .build())
+                .order(order)
+                .payment(payment)
+                .build());
     }
 
     private boolean cancel(String payType, String transactionId, BigDecimal cancelAmount, BigDecimal taxFree) {
@@ -87,6 +94,18 @@ public class PaymentService {
                 .cancelAmount(cancelAmount)
                 .cancelTaxFreeAmount(taxFree)
                 .transactionId(transactionId).build());
+    }
+
+    public int insertPaymentCancel(PaymentCancel paymentCancel) {
+        return this.paymentRepository.insertPaymentCancel(paymentCancel);
+    }
+
+    public void insertPaymentElement(PaymentElement paymentElement) {
+        this.paymentRepository.insertPaymentElement(paymentElement);
+    }
+
+    public int insertPayment(Payment payment) {
+        return this.paymentRepository.insertPayment(payment);
     }
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_ROLLBACK)
@@ -128,12 +147,21 @@ public class PaymentService {
             }
 
         } else {
-            this.afterPaymentService.callCancelProcess(null, order, payment);
+            this.afterCancelEvent.publishEvent(AfterPaymentCancelEvent
+                    .builder()
+                    .cancelPayDto(null)
+                    .order(order)
+                    .payment(payment)
+                    .build());
         }
     }
 
     @TransactionalEventListener
     public void handleRequestPaymentEvent(RequestPaymentEvent event) {
-        this.afterPaymentService.callPaymentProcess(event.getOrder(), null, null);
+        this.afterApproveEvent.publishEvent(PaymentApproveEvent
+                .builder()
+                .payType(null)
+                .order(event.getOrder())
+                .response(null));
     }
 }
