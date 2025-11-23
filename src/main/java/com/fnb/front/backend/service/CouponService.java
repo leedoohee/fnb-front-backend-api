@@ -60,13 +60,13 @@ public class CouponService {
             throw new IllegalStateException("소유할 수 없는 상태의 쿠폰입니다.");
         }
 
-        MemberCoupon mCoupon = MemberCoupon.builder()
+        MemberCoupon newCoupon = MemberCoupon.builder()
                 .memberId(memberId)
                 .isUsed(Used.NOTUSED.getValue())
                 .createdAt(LocalDateTime.now())
                 .couponId(couponId).build();
 
-        this.couponRepository.insertMemberCoupon(mCoupon);
+        this.couponRepository.insertMemberCoupon(newCoupon);
 
         return true;
     }
@@ -78,15 +78,11 @@ public class CouponService {
             throw new IllegalStateException("소유하지 않은 쿠폰입니다.");
         }
 
-        if(memberCoupon.getCoupon().isApplyToEntireProduct()) {
-            return true;
-        } else {
-            CouponProduct couponProduct = memberCoupon.getCoupon().getCouponProducts().stream()
-                    .filter(element -> element.getProductId() == productId).findFirst().orElse(null);
+        CouponProduct couponProduct = memberCoupon.getCoupon().getCouponProducts().stream()
+                .filter(element -> element.getProductId() == productId).findFirst().orElse(null);
 
-            if (couponProduct == null) {
-                throw new IllegalStateException("쿠폰적용이 불가능한 상품입니다.");
-            }
+        if (couponProduct == null) {
+            throw new IllegalStateException("쿠폰적용이 불가능한 상품입니다.");
         }
 
         return isUsableCoupon(memberCoupon.getCoupon(), memberCoupon.getMember());
