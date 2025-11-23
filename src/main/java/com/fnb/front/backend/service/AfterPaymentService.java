@@ -44,9 +44,7 @@ public class AfterPaymentService {
             boolean couponResult  = this.couponService.subtractCoupon(event.getOrder(), event.getOrder().getMember());
             boolean pointResult   = this.pointService.givePoint(event.getOrder(), event.getOrder().getMember());
 
-            if (!(productResult && couponResult && pointResult)) {
-                throw new RuntimeException("결제 후처리 과정에서 오류가 발생하였습니다.");
-            }
+            assert productResult && couponResult && pointResult : "결제 후처리 과정에서 오류가 발생하였습니다.";
 
             //TODO 금액 비교 로직
             int paymentId = this.paymentService.insertPayment(Payment.builder()
@@ -107,6 +105,7 @@ public class AfterPaymentService {
             this.orderService.updateStatus(event.getOrder().getOrderId(), OrderStatus.ORDERED.getValue());
 
         } catch (Exception e) {
+            //exception
             if (event.getResponse() != null) {
                 this.paymentCancelEvent.publishEvent(PaymentCancelEvent.builder()
                         .transactionId(event.getResponse().getTransactionId())
@@ -162,6 +161,7 @@ public class AfterPaymentService {
             this.orderService.updateStatus(event.getOrder().getOrderId(), OrderStatus.CANCELED.getValue());
 
         } catch (Exception e) {
+            //exception
             throw new RuntimeException("결제 취소 과정에서 오류가 발생하였습니다.", e);
         }
     }

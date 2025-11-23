@@ -44,6 +44,7 @@ public class PaymentService {
         PaymentProcessor paymentProcessor   = new PaymentProcessor(PayFactory.getPay(PayType.KAKAO.getValue()));
         ApprovePaymentResponse response     = paymentProcessor.approve(kakaoPaymentApproveDto);
 
+        //exception
         if (response == null) {
             throw new RuntimeException("결제승인 과정에서 오류가 발생하였습니다");
         }
@@ -60,9 +61,7 @@ public class PaymentService {
     public void cancelKakaoResult(KakaoPayCancelDto response) {
         PaymentElement paymentElement   = this.paymentRepository.findPaymentElement(response.getTid());
 
-        if (paymentElement == null) {
-            throw new IllegalStateException("결제정보를 찾을 수 없습니다.");
-        }
+        assert paymentElement != null : "결제정보를 찾을 수 없습니다.";
 
         Payment payment = this.paymentRepository.findPayment(paymentElement.getPaymentId());
         Order order     = this.orderService.findOrder(payment.getOrderId());

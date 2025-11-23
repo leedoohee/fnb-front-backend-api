@@ -29,10 +29,12 @@ public class MemberService {
 
         Member member = this.memberRepository.findMember(memberId);
 
+        //exception
         if (member == null) {
             throw new NullPointerException("사용자가 존재하지 않습니다.");
         }
 
+        //exception
         if (!this.passwordEncoder.matches(password, member.getPassword())) {
             throw new IllegalArgumentException("비밀번호가 일치하지 않습니다.");
         }
@@ -45,6 +47,7 @@ public class MemberService {
     public boolean signUp(SignUpRequest signUpRequest) {
         Member member = this.memberRepository.findMember(signUpRequest.getMemberId());
 
+        //exception
         if (member != null) {
             throw new IllegalArgumentException("이미 사용중인 아이디입니다.");
         }

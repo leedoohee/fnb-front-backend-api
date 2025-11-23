@@ -56,6 +56,7 @@ public class PointService {
     public void returnPoint(Order order, Member member) {
         MemberPoint memberPoint = this.memberRepository.findMemberPoint(order.getOrderId());
         this.memberRepository.updateMinusPoint(member.getMemberId(), memberPoint.getAmount());
+        //TODO 디비 관점에는 delete가 맞지만, 비지니스관점에는 minus로 남겨두는게 맞음. 추후 변경예정
         this.pointRepository.deleteMemberPoint(order.getOrderId());
     }
 
