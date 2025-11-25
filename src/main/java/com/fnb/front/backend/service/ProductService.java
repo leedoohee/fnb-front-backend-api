@@ -54,7 +54,7 @@ public class ProductService {
         Product product                                          = this.productRepository.findProduct(productId);
         int reviewCount                                          = this.reviewRepository.findReviews(productId).size();
 
-        //assert - 판매중인 상태만 내려줬는데 없는 상품번호가 들어왔다면, 프론트에서 버그상황을 배제할수 없다. => 버그의 신호로 본다.
+        //assert - 판매중인 상태만 내려줬는데 없는 상품번호가 들어왔다면, 프론트에서 버그상황을 배제할 수 없다. => 버그의 신호로 본다.
         assert product != null : "상품이 존재하지 않습니다.";
 
         for (ProductOption productOption : product.getProductOption()) {

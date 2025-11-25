@@ -52,12 +52,12 @@ public class CouponService {
         Coupon coupon               = this.couponRepository.findCoupon(couponId);
         MemberCoupon memberCoupon   = this.couponRepository.findMemberCoupon(member.getMemberId(), couponId);
 
+        assert coupon != null : "존재하지 않는 쿠폰입니다.";
+
+        assert isUsableCoupon(coupon, member) : "소유할 수 없는 상태의 쿠폰입니다.";
+
         if (memberCoupon != null) {
             throw new IllegalStateException("이미 소유하고 있거나 사용한 쿠폰입니다.");
-        }
-
-        if (coupon == null || !isUsableCoupon(coupon, member)) {
-            throw new IllegalStateException("소유할 수 없는 상태의 쿠폰입니다.");
         }
 
         MemberCoupon newCoupon = MemberCoupon.builder()
@@ -74,9 +74,7 @@ public class CouponService {
     public boolean applyCouponToProduct(String memberId, int couponId, int productId) {
         MemberCoupon memberCoupon = this.couponRepository.findMemberCoupon(memberId, couponId, Used.NOTUSED.getValue());
 
-        if (memberCoupon == null) {
-            throw new IllegalStateException("소유하지 않은 쿠폰입니다.");
-        }
+        assert memberCoupon != null : "소유하지 않았거나 사용한 쿠폰입니다.";
 
         CouponProduct couponProduct = memberCoupon.getCoupon().getCouponProducts().stream()
                 .filter(element -> element.getProductId() == productId).findFirst().orElse(null);

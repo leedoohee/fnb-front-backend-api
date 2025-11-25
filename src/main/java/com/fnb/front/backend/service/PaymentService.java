@@ -44,11 +44,6 @@ public class PaymentService {
         PaymentProcessor paymentProcessor   = new PaymentProcessor(PayFactory.getPay(PayType.KAKAO.getValue()));
         ApprovePaymentResponse response     = paymentProcessor.approve(kakaoPaymentApproveDto);
 
-        //exception
-        if (response == null) {
-            throw new RuntimeException("결제승인 과정에서 오류가 발생하였습니다");
-        }
-
         Order order = this.orderService.findOrder(response.getOrderId());
 
         this.afterApproveEvent.publishEvent(PaymentApproveEvent
@@ -57,6 +52,8 @@ public class PaymentService {
                                         .order(order)
                                         .response(response));
     }
+
+    //TODO 카카오는 실패시 , 콜백url로 온다. 콜백 함수 처리 필요.
 
     public void cancelKakaoResult(KakaoPayCancelDto response) {
         PaymentElement paymentElement   = this.paymentRepository.findPaymentElement(response.getTid());
