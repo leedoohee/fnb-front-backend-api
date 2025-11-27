@@ -92,7 +92,7 @@ public class Member {
         return status.equals(MemberStatus.ACTIVE.getValue());
     }
 
-    public boolean isUsablePoint(int usePoint) {
-        return this.points >= usePoint;
+    public boolean isUsablePoint(int point) {
+        return this.points >= point;
     }
 }

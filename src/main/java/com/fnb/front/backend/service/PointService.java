@@ -21,9 +21,9 @@ public class PointService {
 
     public boolean givePoint(Order order, Member member) {
         //TODO 페이에 따른 추가적립
-        int usePoint = order.getUsePoint().intValue();
+        int point = order.getUsePoint().intValue();
 
-        if (!member.isUsablePoint(usePoint)) {
+        if (!member.isUsablePoint(point)) {
             return false;
         }
 
@@ -34,7 +34,7 @@ public class PointService {
                 .pointType(PointType.MINUS.getValue()) // 차감
                 .orderId(order.getOrderId())
                 .memberId(member.getMemberId())
-                .amount(usePoint)
+                .amount(point)
                 .isUsed(Used.USED.getValue())
                 .build();
 
