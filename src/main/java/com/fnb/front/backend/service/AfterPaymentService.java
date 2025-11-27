@@ -4,15 +4,11 @@ import com.fnb.front.backend.controller.domain.*;
 import com.fnb.front.backend.controller.domain.event.AfterPaymentCancelEvent;
 import com.fnb.front.backend.controller.domain.event.PaymentApproveEvent;
 import com.fnb.front.backend.controller.domain.event.PaymentCancelEvent;
-import com.fnb.front.backend.controller.domain.response.ApprovePaymentResponse;
-import com.fnb.front.backend.controller.dto.CancelPayDto;
-import com.fnb.front.backend.repository.PaymentRepository;
 import com.fnb.front.backend.util.*;
 import com.fnb.front.backend.util.PaymentStatus;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.event.TransactionalEventListener;
 
 import java.math.BigDecimal;
