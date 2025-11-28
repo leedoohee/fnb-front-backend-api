@@ -35,14 +35,17 @@ public class OrderProcessor {
         }
 
         if (!this.orderValidator.isCanUsePoint(this.order.getUsePoint(), this.member.getPoints())) {
+            // 동시적 요청으로 인해 존재가 확인되지 않음은 exception 처리
             throw new IllegalStateException("사용 가능한 포인트를 초과하였습니다.");
         }
 
         if (!this.orderValidator.isOwnedCoupons(this.member, this.coupons)) {
+            // 동시적 요청으로 인해 존재가 확인되지 않음은 exception 처리
             throw new IllegalStateException("소유하지 않은 쿠폰을 사용하였습니다.");
         }
 
         if (!this.orderValidator.isCanUseCoupons(this.coupons, this.member)) {
+            // 동시적 요청으로 인해 존재가 확인되지 않음은 exception 처리
             throw new IllegalStateException("사용 불가능한 쿠폰이 포함되어 있습니다.");
         }
 
