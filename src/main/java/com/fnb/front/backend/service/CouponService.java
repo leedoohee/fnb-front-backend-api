@@ -29,20 +29,19 @@ public class CouponService {
     }
 
     public List<CouponResponse> getCoupons() {
-        List<CouponResponse> responses  = new ArrayList<>();
-        List<Coupon> coupons            = this.couponRepository.findCoupons(CouponStatus.AVAILABLE.getValue());
-
-        for (Coupon coupon : coupons) {
-            responses.add(CouponResponse.builder()
-                            .couponType(coupon.getCouponType())
-                            .applyStartAt(coupon.getApplyStartAt())
-                            .couponName(coupon.getName())
-                            .description(coupon.getDescription())
-                            .couponId(coupon.getCouponId())
-                            .status(coupon.getStatus())
-                            .applyEndAt(coupon.getApplyEndAt())
-                            .build());
-        }
+        List<CouponResponse> responses = this.couponRepository.findCoupons(CouponStatus.AVAILABLE.getValue())
+            .stream()
+            .map(coupon -> CouponResponse.builder()
+                    .couponType(coupon.getCouponType())
+                    .applyStartAt(coupon.getApplyStartAt())
+                    .couponName(coupon.getName())
+                    .description(coupon.getDescription())
+                    .couponId(coupon.getCouponId())
+                    .status(coupon.getStatus())
+                    .applyEndAt(coupon.getApplyEndAt())
+                    .build()
+            )
+            .collect(Collectors.toList());
 
         return responses;
     }
