@@ -51,7 +51,7 @@ public class CouponService {
 
         assert coupon != null : "존재하지 않는 쿠폰입니다.";
 
-        boolean couponResult = isUsableCoupon(coupon, member);
+        boolean couponResult = this.isUsableCoupon(coupon, member);
 
         assert couponResult : "소유할 수 없는 상태의 쿠폰입니다.";
 

@@ -119,9 +119,9 @@ public class OrderService {
     private boolean isExistedNonSellProducts(List<OrderProductRequest> orderProductRequests) {
         List<Integer> orderProductIds       = orderProductRequests.stream().map(OrderProductRequest::getProductId).toList();
         List<Product> products              = this.productService.findProducts(orderProductIds);
-        List<Integer> existedProductIds     = products.stream().map(Product::getProductId).toList();
+        List<Integer> aliveProductIds     = products.stream().map(Product::getProductId).toList();
 
-        return this.isEntireContained(existedProductIds, orderProductIds);
+        return this.isEntireContained(aliveProductIds, orderProductIds);
     }
 
     private List<Product> createOrderProduct(List<OrderProductRequest> orderProductRequests) {
