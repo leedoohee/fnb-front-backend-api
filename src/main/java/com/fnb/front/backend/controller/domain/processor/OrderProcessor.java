@@ -46,7 +46,9 @@ public class OrderProcessor {
             throw new IllegalStateException("사용 불가능한 쿠폰이 포함되어 있습니다.");
         }
 
-        assert this.orderValidator.isCanOrderProducts(this.products) : "구매 불가능한 상품이 포함되어 있습니다.";
+        boolean productResult = this.orderValidator.isCanOrderProducts(this.products);
+
+        assert productResult : "구매 불가능한 상품이 포함되어 있습니다.";
 
         String orderId = CommonUtil.generateOrderId();
         List<CreateOrderProductDto> orderProductsDto = this.buildOrderProducts(orderId, this.member, this.products, this.coupons);
