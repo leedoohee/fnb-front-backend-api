@@ -11,8 +11,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -29,7 +29,7 @@ public class CouponService {
     }
 
     public List<CouponResponse> getCoupons() {
-        List<CouponResponse> responses = this.couponRepository.findCoupons(CouponStatus.AVAILABLE.getValue())
+        return this.couponRepository.findCoupons(CouponStatus.AVAILABLE.getValue())
             .stream()
             .map(coupon -> CouponResponse.builder()
                     .couponType(coupon.getCouponType())
@@ -42,8 +42,6 @@ public class CouponService {
                     .build()
             )
             .collect(Collectors.toList());
-
-        return responses;
     }
 
     public boolean createMemberCoupon(String memberId, int couponId) {
