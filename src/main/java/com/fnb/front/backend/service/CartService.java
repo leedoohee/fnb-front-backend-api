@@ -53,6 +53,7 @@ public class CartService {
         Cart cart = this.cartRepository.findCart(cartUpdateRequest.getCartId());
 
         //exception
+        // 동시적 요청으로 인해 존재가 확인되지 않음은 exception 처리
         if (cart == null) {
             throw new IllegalArgumentException("장바구니가 존재하지 않습니다.");
         }
