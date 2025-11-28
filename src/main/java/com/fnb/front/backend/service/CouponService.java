@@ -54,7 +54,9 @@ public class CouponService {
 
         assert coupon != null : "존재하지 않는 쿠폰입니다.";
 
-        assert isUsableCoupon(coupon, member) : "소유할 수 없는 상태의 쿠폰입니다.";
+        boolean couponResult = isUsableCoupon(coupon, member);
+
+        assert couponResult : "소유할 수 없는 상태의 쿠폰입니다.";
 
         if (memberCoupon != null) {
             throw new IllegalStateException("이미 소유하고 있거나 사용한 쿠폰입니다.");

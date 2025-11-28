@@ -9,7 +9,6 @@ import com.fnb.front.backend.repository.OrderRepository;
 import com.fnb.front.backend.util.Used;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 
@@ -28,7 +27,7 @@ public class MyPageService {
         List<MyOrderResponse>   orderResponses          = new ArrayList<>();
         
         for (Order order : orders) {
-            List<MyOrderProductResponse> orderProductResponse = new ArrayList<>();;
+            List<MyOrderProductResponse> orderProductResponse = new ArrayList<>();
             List<OrderProduct> products = order.getOrderProducts();
 
             for (OrderProduct product : products) {
