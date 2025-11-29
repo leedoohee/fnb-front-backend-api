@@ -131,12 +131,14 @@ public class OrderService {
 
         this.filterOnlyOrderOptions(orderProductRequests, products);
 
-        for (OrderProductRequest element : orderProductRequests) {
-            for (Product product : products) {
-                if(element.getProductId() == product.getProductId()) {
-                    product.setQuantity(element.getQuantity());
-                    orderProducts.add(product);
-                }
+        for (OrderProductRequest orderProduct : orderProductRequests) {
+            Product product = products.stream()
+                                .filter(p -> p.getProductId() == orderProduct.getProductId())
+                                .findFirst().orElse(null);
+
+            if(product != null) {
+                product.setQuantity(orderProduct.getQuantity());
+                orderProducts.add(product);
             }
         }
 
