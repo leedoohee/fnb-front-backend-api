@@ -25,6 +25,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -128,31 +129,26 @@ public class OrderService {
             return true;
         }
 
-        if (orderOptionIds.size() > aliveProducts.size()) {
-            return true;
-        }
-
-        return false;
+        return orderOptionIds.size() > aliveProducts.size();
     }
 
     private List<Product> buildOrderProduct(List<OrderProductRequest> orderProductRequests) {
-        List<Product> orderProducts   = new ArrayList<>();
-        List<Integer> orderProductIds = orderProductRequests.stream().map(OrderProductRequest::getProductId).toList();
-        List<Product> products        = this.productService.findProducts(orderProductIds);
+        List<Integer> orderProductIds = orderProductRequests.stream()
+                .map(OrderProductRequest::getProductId)
+                .toList();
 
-        for (OrderProductRequest orderProduct : orderProductRequests) {
-            Product product = products.stream()
-                                .filter(p -> p.getProductId() == orderProduct.getProductId())
-                                .findFirst().orElse(null);
+        Map<Integer, Product> productMap = this.productService.findProducts(orderProductIds)
+                .stream()
+                .collect(Collectors.toMap(Product::getProductId, p -> p));
 
-            if(product != null) {
-                product.setQuantity(orderProduct.getQuantity());
-                product.setProductOption(product.getProductOption());
-                orderProducts.add(product);
-            }
-        }
-
-        return orderProducts;
+        return orderProductRequests.stream()
+                .map(request -> {
+                    Product product = productMap.get(request.getProductId());
+                    product.setQuantity(request.getQuantity());
+                    product.setProductOption(product.getProductOption());
+                    return product;
+                })
+                .toList();
     }
 
     private List<Coupon> buildOrderCoupon(OrderRequest orderRequest) {
