@@ -121,9 +121,9 @@ public class OrderService {
         List<Integer> orderProductIds       = orderProductRequests.stream().map(OrderProductRequest::getProductId).toList();
         List<Integer> orderOptionIds        = orderProductRequests.stream()
                                                 .flatMap(OrderProductRequest -> OrderProductRequest.getProductOptionIds().stream())
-                                                .toList();
+                                                .distinct().toList();
         List<Product> aliveProducts         = this.productService.findProductWithOptions(orderProductIds, orderOptionIds);
-        List<Integer> aliveProductIds       = aliveProducts.stream().map(Product::getProductId).toList();
+        List<Integer> aliveProductIds       = aliveProducts.stream().map(Product::getProductId).distinct().toList();
 
         if (!this.isEntireContained(aliveProductIds, orderProductIds)) {
             return true;

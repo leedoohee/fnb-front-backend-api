@@ -51,7 +51,7 @@ public class OrderValidator {
 
     public boolean isCanOrderProducts(List<Product> products) {
 
-        if(products.isEmpty()) {
+        if(products == null) {
             return false;
         }
 
