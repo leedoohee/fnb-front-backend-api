@@ -57,8 +57,25 @@ public class ProductRepository {
         CriteriaQuery<Product> cq           = cb.createQuery(Product.class);
         Root<Product> root                  = cq.from(Product.class);
 
-        root.fetch("productOption", JoinType.LEFT);
+        searchConditions.add(cb.equal(root.get("productId"), productIds));
 
+        cq = cq.select(root)
+                .where(cb.and(searchConditions.toArray(new Predicate[0])))
+                .distinct(true);
+
+        TypedQuery<Product> typedQuery = this.em.createQuery(cq);
+
+        return typedQuery.getResultList();
+    }
+
+    public List<Product> findProducts(List<Integer> productIds, List<Integer> optionIds) {
+        List<Predicate> searchConditions    = new ArrayList<>();
+        CriteriaBuilder cb                  = this.em.getCriteriaBuilder();
+        CriteriaQuery<Product> cq           = cb.createQuery(Product.class);
+        Root<Product> root                  = cq.from(Product.class);
+
+        searchConditions.add(root.join("productOption", JoinType.INNER).get("orderOptionId").in(optionIds));
+        //TODO 옵션의 상태값 조건 추가
         searchConditions.add(cb.equal(root.get("productId"), productIds));
 
         cq = cq.select(root)

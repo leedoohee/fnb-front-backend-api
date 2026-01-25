@@ -24,6 +24,10 @@ public class ProductService {
 
     private final ReviewRepository reviewRepository;
 
+    public List<Product> findProductWithOptions(List<Integer> productIds, List<Integer> optionIds) {
+        return this.productRepository.findProducts(productIds, optionIds);
+    }
+
     public List<Product> findProducts(List<Integer> productIds) {
         return this.productRepository.findProducts(productIds);
     }
@@ -52,6 +56,8 @@ public class ProductService {
     public ProductResponse getInfo(int productId) {
         List<ProductOptionResponse>  productOptionResponses      = new ArrayList<>();
         Product product                                          = this.productRepository.findProduct(productId);
+
+        //TODO service단에서 처리
         int reviewCount                                          = this.reviewRepository.findReviews(productId).size();
 
         //assert - 판매중인 상태만 내려줬는데 없는 상품번호가 들어왔다면, 프론트에서 버그상황을 배제할 수 없다. => 버그의 신호로 본다.

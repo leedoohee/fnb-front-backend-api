@@ -48,8 +48,8 @@ public class OrderService {
         Order order                      = this.createOrder(orderRequest);
         Member member                    = this.createMember(orderRequest);
         List<Product> product            = this.isExistedNonSellProducts(orderRequest.getOrderProductRequests())
-                                                ? new ArrayList<>() : this.createOrderProduct(orderRequest.getOrderProductRequests());
-        List<Coupon> coupons             = this.createOrderCoupon(orderRequest);
+                                                ? null : this.buildOrderProduct(orderRequest.getOrderProductRequests());
+        List<Coupon> coupons             = this.buildOrderCoupon(orderRequest);
         OrderProcessor orderProcessor    = new OrderProcessor(member, order, product, coupons, new OrderValidator());
         CreateOrderDto createOrderDto    = orderProcessor.buildOrder();
 
@@ -118,18 +118,27 @@ public class OrderService {
 
     private boolean isExistedNonSellProducts(List<OrderProductRequest> orderProductRequests) {
         List<Integer> orderProductIds       = orderProductRequests.stream().map(OrderProductRequest::getProductId).toList();
-        List<Product> products              = this.productService.findProducts(orderProductIds);
-        List<Integer> aliveProductIds     = products.stream().map(Product::getProductId).toList();
+        List<Integer> orderOptionIds        = orderProductRequests.stream()
+                                                .flatMap(OrderProductRequest -> OrderProductRequest.getProductOptionIds().stream())
+                                                .toList();
+        List<Product> aliveProducts         = this.productService.findProductWithOptions(orderProductIds, orderOptionIds);
+        List<Integer> aliveProductIds       = aliveProducts.stream().map(Product::getProductId).toList();
 
-        return this.isEntireContained(aliveProductIds, orderProductIds);
+        if (!this.isEntireContained(aliveProductIds, orderProductIds)) {
+            return true;
+        }
+
+        if (orderOptionIds.size() > aliveProducts.size()) {
+            return true;
+        }
+
+        return false;
     }
 
-    private List<Product> createOrderProduct(List<OrderProductRequest> orderProductRequests) {
-        List<Product> orderProducts      = new ArrayList<>();
-        List<Integer> orderProductIds    = orderProductRequests.stream().map(OrderProductRequest::getProductId).toList();
-        List<Product> products           = this.productService.findProducts(orderProductIds);
-
-        this.filterOnlyOrderOptions(orderProductRequests, products);
+    private List<Product> buildOrderProduct(List<OrderProductRequest> orderProductRequests) {
+        List<Product> orderProducts   = new ArrayList<>();
+        List<Integer> orderProductIds = orderProductRequests.stream().map(OrderProductRequest::getProductId).toList();
+        List<Product> products        = this.productService.findProducts(orderProductIds);
 
         for (OrderProductRequest orderProduct : orderProductRequests) {
             Product product = products.stream()
@@ -138,6 +147,7 @@ public class OrderService {
 
             if(product != null) {
                 product.setQuantity(orderProduct.getQuantity());
+                product.setProductOption(product.getProductOption());
                 orderProducts.add(product);
             }
         }
@@ -145,7 +155,7 @@ public class OrderService {
         return orderProducts;
     }
 
-    private List<Coupon> createOrderCoupon(OrderRequest orderRequest) {
+    private List<Coupon> buildOrderCoupon(OrderRequest orderRequest) {
         List<Integer> couponIds = orderRequest.getOrderCouponRequests().stream()
                 .map(OrderCouponRequest::getCouponId)
                 .toList();
@@ -189,19 +199,5 @@ public class OrderService {
         HashSet<Integer> onlyOneOrderSet = new HashSet<>(orderProducts);
 
         return onlyOneAliveSet.containsAll(onlyOneOrderSet);
-    }
-
-    private void filterOnlyOrderOptions(List<OrderProductRequest> orderProductRequests, List<Product> products) {
-        for (Product product : products) {
-            List<ProductOption> productOptions = product.getProductOption();
-            OrderProductRequest orderProduct   = orderProductRequests.stream()
-                                    .filter(orderProductRequest -> orderProductRequest.getProductId() == product.getProductId())
-                                    .findFirst().orElse(null);
-
-            product.setProductOption(productOptions.stream()
-                    .filter(productOption ->
-                            Objects.requireNonNull(orderProduct).getProductOptionIds().contains(productOption.getProductOptionId()))
-                    .toList());
-        }
     }
 }
