@@ -112,17 +112,12 @@ public class OrderProcessor {
         return coupons.stream()
             .filter(coupon -> coupon.getApplyProductId() == product.getProductId())
             .map(coupon -> {
-                BigDecimal price = BigDecimal.valueOf(0);
-
                 DiscountPolicy couponPolicy = DiscountFactory.getPolicy(coupon.getDiscountType());
 
-                if (couponPolicy != null) {
-                    int priceWithQuantity = this.calcPriceWithQuantity(product.getPrice().intValue(), product.getQuantity());
-                    CouponCalculator couponPriceCalculator = new CouponCalculator(coupon, priceWithQuantity, couponPolicy);
-                    price = couponPriceCalculator.calculate();
-                }
+                int priceWithQuantity = this.calcPriceWithQuantity(product.getPrice().intValue(), product.getQuantity());
+                CouponCalculator couponPriceCalculator = new CouponCalculator(coupon, priceWithQuantity, couponPolicy);
 
-                return price;
+                return couponPriceCalculator.calculate();
 
             }).mapToInt(BigDecimal::intValue).findFirst().orElse(0);
     }
