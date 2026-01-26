@@ -118,18 +118,21 @@ public class OrderService {
     }
 
     private boolean isExistedNonSellProducts(List<OrderProductRequest> orderProductRequests) {
-        List<Integer> orderProductIds       = orderProductRequests.stream().map(OrderProductRequest::getProductId).toList();
-        List<Integer> orderOptionIds        = orderProductRequests.stream()
+        List<Integer> orderProductIds     = orderProductRequests.stream().map(OrderProductRequest::getProductId).toList();
+        List<Integer> orderOptionIds      = orderProductRequests.stream()
                                                 .flatMap(OrderProductRequest -> OrderProductRequest.getProductOptionIds().stream())
                                                 .distinct().toList();
-        List<Product> aliveProducts         = this.productService.findProductWithOptions(orderProductIds, orderOptionIds);
-        List<Integer> aliveProductIds       = aliveProducts.stream().map(Product::getProductId).distinct().toList();
+        List<ProductOption> aliveOptions  = this.productService.findProductWithOptions(orderProductIds, orderOptionIds);
+        List<Integer> aliveProductIds     = aliveOptions.stream().map(ProductOption::getProductId).distinct().toList();
+        List<Integer> aliveOptionIds      = aliveOptions.stream().map(ProductOption::getProductOptionId).distinct().toList();
+        HashSet<Integer> onlyOneAliveSet  = new HashSet<>(aliveProductIds);
+        HashSet<Integer> onlyOneOrderSet  = new HashSet<>(aliveOptionIds);
 
-        if (!this.isEntireContained(aliveProductIds, orderProductIds)) {
+        if (!onlyOneAliveSet.containsAll(onlyOneOrderSet)) {
             return true;
         }
 
-        return orderOptionIds.size() > aliveProducts.size();
+        return orderOptionIds.size() > aliveOptionIds.size();
     }
 
     private List<Product> buildOrderProduct(List<OrderProductRequest> orderProductRequests) {
@@ -188,12 +191,5 @@ public class OrderService {
 
     public void updateStatus(String orderId, String orderStatus) {
         this.orderRepository.updateOrderStatus(orderId, orderStatus);
-    }
-
-    private boolean isEntireContained(List<Integer> aliveProducts, List<Integer> orderProducts) {
-        HashSet<Integer> onlyOneAliveSet  = new HashSet<>(aliveProducts);
-        HashSet<Integer> onlyOneOrderSet = new HashSet<>(orderProducts);
-
-        return onlyOneAliveSet.containsAll(onlyOneOrderSet);
     }
 }

@@ -1,6 +1,7 @@
 package com.fnb.front.backend.repository;
 
 import com.fnb.front.backend.controller.domain.Product;
+import com.fnb.front.backend.controller.domain.ProductOption;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.TypedQuery;
 import jakarta.persistence.criteria.*;
@@ -68,21 +69,22 @@ public class ProductRepository {
         return typedQuery.getResultList();
     }
 
-    public List<Product> findProducts(List<Integer> productIds, List<Integer> optionIds) {
+    public List<ProductOption> findProductOptions(List<Integer> productIds, List<Integer> optionIds) {
         List<Predicate> searchConditions    = new ArrayList<>();
         CriteriaBuilder cb                  = this.em.getCriteriaBuilder();
-        CriteriaQuery<Product> cq           = cb.createQuery(Product.class);
-        Root<Product> root                  = cq.from(Product.class);
+        CriteriaQuery<ProductOption> cq     = cb.createQuery(ProductOption.class);
+        Root<ProductOption> root            = cq.from(ProductOption.class);
 
-        searchConditions.add(root.join("productOption", JoinType.INNER).get("orderOptionId").in(optionIds));
+        searchConditions.add(root.join("product", JoinType.INNER).get("productId").in(productIds));
         //TODO 옵션의 상태값 조건 추가
-        searchConditions.add(cb.equal(root.get("productId"), productIds));
+        searchConditions.add(cb.equal(root.get("productOptionId"), optionIds));
+        searchConditions.add(cb.equal(root.get("isUse"), 1));
 
         cq = cq.select(root)
                 .where(cb.and(searchConditions.toArray(new Predicate[0])))
                 .distinct(true);
 
-        TypedQuery<Product> typedQuery = this.em.createQuery(cq);
+        TypedQuery<ProductOption> typedQuery = this.em.createQuery(cq);
 
         return typedQuery.getResultList();
     }

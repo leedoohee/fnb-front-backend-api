@@ -24,8 +24,8 @@ public class ProductService {
 
     private final ReviewRepository reviewRepository;
 
-    public List<Product> findProductWithOptions(List<Integer> productIds, List<Integer> optionIds) {
-        return this.productRepository.findProducts(productIds, optionIds);
+    public List<ProductOption> findProductWithOptions(List<Integer> productIds, List<Integer> optionIds) {
+        return this.productRepository.findProductOptions(productIds, optionIds);
     }
 
     public List<Product> findProducts(List<Integer> productIds) {
