@@ -125,10 +125,10 @@ public class OrderService {
         List<ProductOption> aliveOptions  = this.productService.findProductWithOptions(orderProductIds, orderOptionIds);
         List<Integer> aliveProductIds     = aliveOptions.stream().map(ProductOption::getProductId).distinct().toList();
         List<Integer> aliveOptionIds      = aliveOptions.stream().map(ProductOption::getProductOptionId).distinct().toList();
-        HashSet<Integer> onlyOneAliveSet  = new HashSet<>(aliveProductIds);
-        HashSet<Integer> onlyOneOrderSet  = new HashSet<>(aliveOptionIds);
+        HashSet<Integer> aliveSet         = new HashSet<>(aliveProductIds);
+        HashSet<Integer> orderSet         = new HashSet<>(orderProductIds);
 
-        if (!onlyOneAliveSet.containsAll(onlyOneOrderSet)) {
+        if (!aliveSet.containsAll(orderSet)) {
             return true;
         }
 
