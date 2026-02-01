@@ -54,7 +54,7 @@ public class OrderService {
         this.insertOrder(order);
         this.insertOrderProducts(orderProducts);
 
-        if (this.isZeroPayment(order.getOrderProducts())) {
+        if (order.getTotalAmount().compareTo(BigDecimal.ZERO) > 0) {
             this.processOrderEvent.publishEvent(RequestPaymentEvent.builder()
                     .order(this.findOrder(order.getOrderId())));
         }
@@ -65,9 +65,9 @@ public class OrderService {
                 .productName("PRD_"+order.getOrderId())
                 .quantity(1)
                 .purchasePrice(order.getTotalAmount())
-                .vatAmount(order.getTotalAmount().divide(BigDecimal.valueOf(1.1), RoundingMode.HALF_EVEN))
+                .vatAmount(order.getTotalAmount().divide(BigDecimal.valueOf(1.1), RoundingMode.HALF_EVEN)) //TODO 부가세를 포함하지 않을 경우를 미계산하는 로직필요
                 .taxAmount(BigDecimal.valueOf(0))
-                .isNonPayment(this.isZeroPayment(order.getOrderProducts()))
+                .isNonPayment(order.getTotalAmount().compareTo(BigDecimal.ZERO) > 0)
                 .build();
     }
 
@@ -78,12 +78,6 @@ public class OrderService {
 
     public Order findOrder(String orderId) {
         return this.orderRepository.findOrder(orderId);
-    }
-
-    private boolean isZeroPayment(List<OrderProduct> orderProducts) {
-        return orderProducts.stream()
-                .map(orderProduct -> orderProduct.getPaymentAmount().intValue())
-                .mapToInt(Integer::intValue).sum() == BigDecimal.ZERO.intValue();
     }
 
     private Order createOrder(OrderRequest orderRequest) {
