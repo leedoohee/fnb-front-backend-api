@@ -41,7 +41,6 @@ public class OrderService {
 
     @Transactional(readOnly = true)
     public OrderResponse create(OrderRequest orderRequest) {
-        List<OrderProduct> orderProducts = new ArrayList<>();
         Order order                      = this.createOrder(orderRequest);
         Member member                    = this.createMember(orderRequest);
         List<Product> product            = this.createProduct(orderRequest.getOrderProductRequests());
@@ -52,13 +51,14 @@ public class OrderService {
         orderProcessor.buildOrder();
 
         this.insertOrder(order);
-        this.insertOrderProducts(orderProducts);
+        this.insertOrderProducts(order.getOrderProducts());
 
         if (order.getTotalAmount().compareTo(BigDecimal.ZERO) > 0) {
             this.processOrderEvent.publishEvent(RequestPaymentEvent.builder()
                     .order(this.findOrder(order.getOrderId())));
         }
 
+        //TODO 함수로 빼기?
         return OrderResponse.builder()
                 .orderId(order.getOrderId())
                 .memberName(member.getName())
@@ -115,11 +115,7 @@ public class OrderService {
                     Product product = productMap.get(request.getProductId());
                     product.setQuantity(request.getQuantity());
                     product.setProductOption(request.getProductOptionIds().stream()
-                            .map(optionId -> {
-                                ProductOption option = new ProductOption();
-                                option.setProductOptionId(optionId);
-                                return option;
-                            })
+                            .map(optionId -> ProductOption.builder().productOptionId(optionId).build())
                             .toList());
                     return product;
                 })

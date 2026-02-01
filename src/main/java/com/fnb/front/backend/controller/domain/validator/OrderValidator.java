@@ -54,11 +54,11 @@ public class OrderValidator {
         List<Integer> aliveOptionIds      = options.stream().map(ProductOption::getProductOptionId).distinct().toList();
         List<Integer> orderProductIds     = products.stream().map(Product::getProductId).distinct().toList();
         List<Integer> orderOptionIds      = products.stream().flatMap(product -> product.getProductOption()
-                                                    .stream().map(ProductOption::getProductOptionId)).toList();
-        HashSet<Integer> aliveSet         = new HashSet<>(aliveProductIds);
-        HashSet<Integer> orderSet         = new HashSet<>(orderProductIds);
+                                                    .stream().map(ProductOption::getProductOptionId)).distinct().toList();
+        HashSet<Integer> aliveProductSet  = new HashSet<>(aliveProductIds);
+        HashSet<Integer> orderProductSet  = new HashSet<>(orderProductIds);
 
-        if (!aliveSet.containsAll(orderSet)) {
+        if (!aliveProductSet.containsAll(orderProductSet)) {
             return false;
         }
 
