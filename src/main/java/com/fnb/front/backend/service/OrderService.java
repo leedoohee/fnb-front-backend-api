@@ -7,13 +7,9 @@ import com.fnb.front.backend.controller.domain.response.OrderResponse;
 import com.fnb.front.backend.controller.domain.validator.OrderValidator;
 import com.fnb.front.backend.repository.*;
 import com.fnb.front.backend.controller.domain.processor.OrderProcessor;
-import com.fnb.front.backend.controller.dto.CreateOrderDto;
-import com.fnb.front.backend.controller.dto.CreateOrderProductDto;
 import com.fnb.front.backend.controller.domain.request.OrderCouponRequest;
 import com.fnb.front.backend.controller.domain.request.OrderProductRequest;
 import com.fnb.front.backend.controller.domain.request.OrderRequest;
-import com.fnb.front.backend.util.OrderStatus;
-import com.fnb.front.backend.util.OrderType;
 import com.fnb.front.backend.util.Used;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
@@ -49,48 +45,29 @@ public class OrderService {
         Order order                      = this.createOrder(orderRequest);
         Member member                    = this.createMember(orderRequest);
         List<Product> product            = this.isExistedNonSellProducts(orderRequest.getOrderProductRequests())
-                                                ? null : this.buildOrderProduct(orderRequest.getOrderProductRequests());
-        List<Coupon> coupons             = this.buildOrderCoupon(orderRequest);
+                                                ? null : this.createProduct(orderRequest.getOrderProductRequests());
+        List<Coupon> coupons             = this.createOrderCoupon(orderRequest);
         OrderProcessor orderProcessor    = new OrderProcessor(member, order, product, coupons, new OrderValidator());
-        CreateOrderDto createOrderDto    = orderProcessor.buildOrder();
 
-        order.setOrderId(createOrderDto.getOrderId());
-        order.setOrderStatus(OrderStatus.TEMP.getValue());
-        order.setOrderType(orderRequest.getOrderType() == 0 ? OrderType.PICKUP.getValue() : OrderType.DELIVERY.getValue());
-        order.setDiscountAmount(BigDecimal.valueOf(createOrderDto.getDiscountAmount()));
-        order.setCouponAmount(createOrderDto.getCouponAmount());
-        order.setTotalAmount(BigDecimal.valueOf(createOrderDto.getOrderAmount()));
+        orderProcessor.buildOrder();
 
         this.insertOrder(order);
-
-        for(CreateOrderProductDto element : createOrderDto.getOrderProducts()) {
-            orderProducts.add(OrderProduct.builder()
-                    .productId(element.getProductId())
-                    .quantity(element.getQuantity())
-                    .couponAmount(BigDecimal.valueOf(element.getCouponPrice()))
-                    .couponId(element.getCouponId())
-                    .paymentAmount(BigDecimal.valueOf(element.getOriginPrice()))
-                    .discountAmount(BigDecimal.valueOf(element.getDiscountPrice()))
-                    .orderId(element.getOrderId())
-                    .build());
-        }
-
         this.insertOrderProducts(orderProducts);
 
-        if (this.isZeroPayment(createOrderDto.getOrderProducts())) {
+        if (this.isZeroPayment(order.getOrderProducts())) {
             this.processOrderEvent.publishEvent(RequestPaymentEvent.builder()
-                    .order(this.findOrder(createOrderDto.getOrderId())));
+                    .order(this.findOrder(order.getOrderId())));
         }
 
         return OrderResponse.builder()
-                .orderId(createOrderDto.getOrderId())
+                .orderId(order.getOrderId())
                 .memberName(member.getName())
-                .productName("PRD_"+createOrderDto.getOrderId())
+                .productName("PRD_"+order.getOrderId())
                 .quantity(1)
-                .purchasePrice(BigDecimal.valueOf(createOrderDto.getOrderAmount()))
-                .vatAmount(BigDecimal.valueOf(createOrderDto.getOrderAmount()).divide(BigDecimal.valueOf(1.1), RoundingMode.HALF_EVEN))
+                .purchasePrice(order.getTotalAmount())
+                .vatAmount(order.getTotalAmount().divide(BigDecimal.valueOf(1.1), RoundingMode.HALF_EVEN))
                 .taxAmount(BigDecimal.valueOf(0))
-                .isNonPayment(this.isZeroPayment(createOrderDto.getOrderProducts()))
+                .isNonPayment(this.isZeroPayment(order.getOrderProducts()))
                 .build();
     }
 
@@ -103,9 +80,9 @@ public class OrderService {
         return this.orderRepository.findOrder(orderId);
     }
 
-    private boolean isZeroPayment(List<CreateOrderProductDto> orderProductRequests) {
-        return orderProductRequests.stream()
-                .map(CreateOrderProductDto::getPurchasePrice)
+    private boolean isZeroPayment(List<OrderProduct> orderProducts) {
+        return orderProducts.stream()
+                .map(orderProduct -> orderProduct.getPaymentAmount().intValue())
                 .mapToInt(Integer::intValue).sum() == BigDecimal.ZERO.intValue();
     }
 
@@ -135,7 +112,7 @@ public class OrderService {
         return orderOptionIds.size() > aliveOptionIds.size();
     }
 
-    private List<Product> buildOrderProduct(List<OrderProductRequest> orderProductRequests) {
+    private List<Product> createProduct(List<OrderProductRequest> orderProductRequests) {
         List<Integer> orderProductIds = orderProductRequests.stream()
                 .map(OrderProductRequest::getProductId)
                 .toList();
@@ -148,13 +125,12 @@ public class OrderService {
                 .map(request -> {
                     Product product = productMap.get(request.getProductId());
                     product.setQuantity(request.getQuantity());
-                    product.setProductOption(product.getProductOption());
                     return product;
                 })
                 .toList();
     }
 
-    private List<Coupon> buildOrderCoupon(OrderRequest orderRequest) {
+    private List<Coupon> createOrderCoupon(OrderRequest orderRequest) {
         List<Integer> couponIds = orderRequest.getOrderCouponRequests().stream()
                 .map(OrderCouponRequest::getCouponId)
                 .toList();

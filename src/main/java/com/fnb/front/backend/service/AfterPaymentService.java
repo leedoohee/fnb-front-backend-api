@@ -99,6 +99,7 @@ public class AfterPaymentService {
             }
 
             this.orderService.updateStatus(event.getOrder().getOrderId(), OrderStatus.ORDERED.getValue());
+            //TODO 장바구니는 지우는게 맞나? DELYN 처리로 남겨두는게 맞나?
 
         } catch (Exception e) {
             //exception

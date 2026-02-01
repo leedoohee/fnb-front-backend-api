@@ -4,10 +4,11 @@ import com.fnb.front.backend.controller.domain.*;
 import com.fnb.front.backend.controller.domain.implement.DiscountPolicy;
 import com.fnb.front.backend.controller.domain.implement.Calculator;
 import com.fnb.front.backend.controller.domain.validator.OrderValidator;
-import com.fnb.front.backend.controller.dto.CreateOrderDto;
 import com.fnb.front.backend.controller.dto.CreateOrderProductDto;
 import com.fnb.front.backend.util.CommonUtil;
 import com.fnb.front.backend.util.OptionType;
+import com.fnb.front.backend.util.OrderStatus;
+import com.fnb.front.backend.util.OrderType;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -28,7 +29,7 @@ public class OrderProcessor {
         this.orderValidator = orderValidator;
     }
 
-    public CreateOrderDto buildOrder() {
+    public void buildOrder() {
 
         if (!this.orderValidator.isCanPurchaseMember(this.member)) {
             throw new IllegalStateException("구매 불가능한 회원입니다.");
@@ -59,15 +60,27 @@ public class OrderProcessor {
         int totalMemberShipPrice    = orderProductsDto.stream().mapToInt(CreateOrderProductDto::getMemberShipPrice).sum();
         int totalOriginPrice        = orderProductsDto.stream().mapToInt(CreateOrderProductDto::getOriginPrice).sum();
 
-        return CreateOrderDto.builder()
-                .orderId(orderId)
-                .orderDate(LocalDateTime.now())
-                .memberName(this.member.getName())
-                .discountAmount(totalCouponPrice + totalMemberShipPrice + this.order.getUsePoint().intValue())
-                .couponAmount(totalCouponPrice)
-                .orderAmount(totalOriginPrice)
-                .orderProducts(orderProductsDto)
-                .build();
+        this.order.setOrderId(orderId);
+        this.order.setOrderStatus(OrderStatus.TEMP.getValue());
+        this.order.setOrderType(order.getOrderType() == 0 ? OrderType.PICKUP.getValue() : OrderType.DELIVERY.getValue());
+        this.order.setDiscountAmount(BigDecimal.valueOf(totalCouponPrice + totalMemberShipPrice + this.order.getUsePoint().intValue()));
+        this.order.setCouponAmount(totalCouponPrice);
+        this.order.setTotalAmount(BigDecimal.valueOf(totalOriginPrice));
+        this.order.setOrderDate(LocalDateTime.now());
+        this.order.setMemberName(this.member.getName());
+        this.order.setTotalAmount(BigDecimal.valueOf(totalOriginPrice));
+
+        for(CreateOrderProductDto element : orderProductsDto) {
+            this.order.getOrderProducts().add(OrderProduct.builder()
+                    .productId(element.getProductId())
+                    .quantity(element.getQuantity())
+                    .couponAmount(BigDecimal.valueOf(element.getCouponPrice()))
+                    .couponId(element.getCouponId())
+                    .paymentAmount(BigDecimal.valueOf(element.getOriginPrice()))
+                    .discountAmount(BigDecimal.valueOf(element.getDiscountPrice()))
+                    .orderId(element.getOrderId())
+                    .build());
+        }
     }
 
     private List<CreateOrderProductDto> buildOrderProducts(String orderId, Member member, List<Product> products, List<Coupon> coupons) {
