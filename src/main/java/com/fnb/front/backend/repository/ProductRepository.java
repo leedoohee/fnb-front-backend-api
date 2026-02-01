@@ -58,8 +58,6 @@ public class ProductRepository {
         CriteriaQuery<Product> cq           = cb.createQuery(Product.class);
         Root<Product> root                  = cq.from(Product.class);
 
-        searchConditions.add(cb.equal(root.get("productId"), productIds));
-
         cq = cq.select(root)
                 .where(cb.and(searchConditions.toArray(new Predicate[0])))
                 .distinct(true);
@@ -76,7 +74,6 @@ public class ProductRepository {
         Root<ProductOption> root            = cq.from(ProductOption.class);
 
         searchConditions.add(root.join("product", JoinType.INNER).get("productId").in(productIds));
-        //TODO 옵션의 상태값 조건 추가
         searchConditions.add(cb.equal(root.get("productOptionId"), optionIds));
         searchConditions.add(cb.equal(root.get("isUse"), 1));
 

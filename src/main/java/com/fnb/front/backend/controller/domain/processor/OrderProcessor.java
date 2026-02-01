@@ -19,13 +19,15 @@ public class OrderProcessor {
     private final Order order;
     private final List<Product> products;
     private final List<Coupon> coupons;
+    private final List<ProductOption> aliveOptions;
     private final OrderValidator orderValidator;
 
-    public OrderProcessor(Member member, Order order, List<Product> products, List<Coupon> coupons, OrderValidator orderValidator) {
+    public OrderProcessor(Member member, Order order, List<Product> products, List<ProductOption> options, List<Coupon> coupons, OrderValidator orderValidator) {
         this.member = member;
         this.order = order;
         this.products = products;
         this.coupons = coupons;
+        this.aliveOptions = options;
         this.orderValidator = orderValidator;
     }
 
@@ -50,7 +52,7 @@ public class OrderProcessor {
             throw new IllegalStateException("사용 불가능한 쿠폰이 포함되어 있습니다.");
         }
 
-        boolean productResult = this.orderValidator.isCanOrderProducts(this.products);
+        boolean productResult = this.orderValidator.isCanOrderProducts(this.products, this.aliveOptions);
 
         assert productResult : "구매 불가능한 상품이 포함되어 있습니다.";
 
@@ -68,7 +70,6 @@ public class OrderProcessor {
         this.order.setTotalAmount(BigDecimal.valueOf(totalOriginPrice));
         this.order.setOrderDate(LocalDateTime.now());
         this.order.setMemberName(this.member.getName());
-        this.order.setTotalAmount(BigDecimal.valueOf(totalOriginPrice));
 
         for(CreateOrderProductDto element : orderProductsDto) {
             this.order.getOrderProducts().add(OrderProduct.builder()

@@ -28,7 +28,7 @@ public class ProductService {
         return this.productRepository.findProductOptions(productIds, optionIds);
     }
 
-    public List<Product> findProducts(List<Integer> productIds) {
+    public List<Product> findProducts(List<Integer> productIds, List<Integer> optionIds) {
         return this.productRepository.findProducts(productIds);
     }
 

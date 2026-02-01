@@ -1,11 +1,10 @@
 package com.fnb.front.backend.controller.domain.validator;
 
-import com.fnb.front.backend.controller.domain.Coupon;
-import com.fnb.front.backend.controller.domain.Member;
-import com.fnb.front.backend.controller.domain.MemberCoupon;
-import com.fnb.front.backend.controller.domain.Product;
+import com.fnb.front.backend.controller.domain.*;
+import com.fnb.front.backend.controller.domain.request.OrderProductRequest;
 
 import java.math.BigDecimal;
+import java.util.HashSet;
 import java.util.List;
 
 public class OrderValidator {
@@ -49,9 +48,21 @@ public class OrderValidator {
         return true;
     }
 
-    public boolean isCanOrderProducts(List<Product> products) {
+    public boolean isCanOrderProducts(List<Product> products, List<ProductOption> options) {
 
-        if(products == null) {
+        List<Integer> aliveProductIds     = options.stream().map(ProductOption::getProductId).distinct().toList();
+        List<Integer> aliveOptionIds      = options.stream().map(ProductOption::getProductOptionId).distinct().toList();
+        List<Integer> orderProductIds     = products.stream().map(Product::getProductId).distinct().toList();
+        List<Integer> orderOptionIds      = products.stream().flatMap(product -> product.getProductOption()
+                                                    .stream().map(ProductOption::getProductOptionId)).toList();
+        HashSet<Integer> aliveSet         = new HashSet<>(aliveProductIds);
+        HashSet<Integer> orderSet         = new HashSet<>(orderProductIds);
+
+        if (!aliveSet.containsAll(orderSet)) {
+            return false;
+        }
+
+        if(orderOptionIds.size() > aliveOptionIds.size()) {
             return false;
         }
 

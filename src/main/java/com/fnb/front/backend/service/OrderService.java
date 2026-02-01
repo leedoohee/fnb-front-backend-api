@@ -44,10 +44,10 @@ public class OrderService {
         List<OrderProduct> orderProducts = new ArrayList<>();
         Order order                      = this.createOrder(orderRequest);
         Member member                    = this.createMember(orderRequest);
-        List<Product> product            = this.isExistedNonSellProducts(orderRequest.getOrderProductRequests())
-                                                ? null : this.createProduct(orderRequest.getOrderProductRequests());
+        List<Product> product            = this.createProduct(orderRequest.getOrderProductRequests());
         List<Coupon> coupons             = this.createOrderCoupon(orderRequest);
-        OrderProcessor orderProcessor    = new OrderProcessor(member, order, product, coupons, new OrderValidator());
+        List<ProductOption> aliveOptions = this.createOptions(orderRequest.getOrderProductRequests());
+        OrderProcessor orderProcessor    = new OrderProcessor(member, order, product, aliveOptions, coupons, new OrderValidator());
 
         orderProcessor.buildOrder();
 
@@ -94,22 +94,13 @@ public class OrderService {
                 .build();
     }
 
-    private boolean isExistedNonSellProducts(List<OrderProductRequest> orderProductRequests) {
+    private List<ProductOption> createOptions(List<OrderProductRequest> orderProductRequests) {
         List<Integer> orderProductIds     = orderProductRequests.stream().map(OrderProductRequest::getProductId).toList();
         List<Integer> orderOptionIds      = orderProductRequests.stream()
-                                                .flatMap(OrderProductRequest -> OrderProductRequest.getProductOptionIds().stream())
-                                                .distinct().toList();
-        List<ProductOption> aliveOptions  = this.productService.findProductWithOptions(orderProductIds, orderOptionIds);
-        List<Integer> aliveProductIds     = aliveOptions.stream().map(ProductOption::getProductId).distinct().toList();
-        List<Integer> aliveOptionIds      = aliveOptions.stream().map(ProductOption::getProductOptionId).distinct().toList();
-        HashSet<Integer> aliveSet         = new HashSet<>(aliveProductIds);
-        HashSet<Integer> orderSet         = new HashSet<>(orderProductIds);
+                .flatMap(OrderProductRequest -> OrderProductRequest.getProductOptionIds().stream())
+                .distinct().toList();
 
-        if (!aliveSet.containsAll(orderSet)) {
-            return true;
-        }
-
-        return orderOptionIds.size() > aliveOptionIds.size();
+        return this.productService.findProductWithOptions(orderProductIds, orderOptionIds);
     }
 
     private List<Product> createProduct(List<OrderProductRequest> orderProductRequests) {
@@ -117,7 +108,11 @@ public class OrderService {
                 .map(OrderProductRequest::getProductId)
                 .toList();
 
-        Map<Integer, Product> productMap = this.productService.findProducts(orderProductIds)
+        List<Integer> orderOptionIds      = orderProductRequests.stream()
+                .flatMap(OrderProductRequest -> OrderProductRequest.getProductOptionIds().stream())
+                .toList();
+
+        Map<Integer, Product> productMap = this.productService.findProducts(orderProductIds, orderOptionIds)
                 .stream()
                 .collect(Collectors.toMap(Product::getProductId, p -> p));
 
@@ -125,6 +120,13 @@ public class OrderService {
                 .map(request -> {
                     Product product = productMap.get(request.getProductId());
                     product.setQuantity(request.getQuantity());
+                    product.setProductOption(request.getProductOptionIds().stream()
+                            .map(optionId -> {
+                                ProductOption option = new ProductOption();
+                                option.setProductOptionId(optionId);
+                                return option;
+                            })
+                            .toList());
                     return product;
                 })
                 .toList();
