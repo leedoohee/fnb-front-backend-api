@@ -1,5 +1,8 @@
 package com.fnb.front.backend.controller.domain;
 
+import com.fnb.front.backend.util.CommonUtil;
+import com.fnb.front.backend.util.OrderStatus;
+import com.fnb.front.backend.util.OrderType;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -62,5 +65,29 @@ public class Order {
 
     public Order() {
 
+    }
+
+    public void build(List<OrderProduct> orderProducts, String orderId) {
+        int totalCouponPrice = orderProducts.stream()
+                .map(orderProduct -> orderProduct.getCouponAmount().intValue())
+                .mapToInt(Integer::intValue).sum();
+
+        int discountPrice    = orderProducts.stream()
+                .map(orderProduct -> orderProduct.getDiscountAmount().intValue())
+                .mapToInt(Integer::intValue).sum();
+
+        int totalOriginPrice = orderProducts.stream()
+                .map(orderProduct -> orderProduct.getPaymentAmount().intValue())
+                .mapToInt(Integer::intValue).sum();
+
+        this.orderId        = orderId;
+        this.orderStatus    = OrderStatus.TEMP.getValue();
+        this.orderType      = this.orderType == 0 ? OrderType.PICKUP.getValue() : OrderType.DELIVERY.getValue();
+        this.discountAmount = BigDecimal.valueOf(discountPrice + this.usePoint.intValue());
+        this.couponAmount   = totalCouponPrice;
+        this.totalAmount    = BigDecimal.valueOf(totalOriginPrice);
+        this.orderDate      = LocalDateTime.now();
+        this.memberName     = this.member.getName();
+        this.orderProducts  = orderProducts;
     }
 }

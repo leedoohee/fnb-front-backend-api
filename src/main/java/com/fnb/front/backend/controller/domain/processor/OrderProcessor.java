@@ -4,7 +4,6 @@ import com.fnb.front.backend.controller.domain.*;
 import com.fnb.front.backend.controller.domain.implement.DiscountPolicy;
 import com.fnb.front.backend.controller.domain.implement.Calculator;
 import com.fnb.front.backend.controller.domain.validator.OrderValidator;
-import com.fnb.front.backend.controller.dto.CreateOrderProductDto;
 import com.fnb.front.backend.util.CommonUtil;
 import com.fnb.front.backend.util.OptionType;
 import com.fnb.front.backend.util.OrderStatus;
@@ -57,26 +56,7 @@ public class OrderProcessor {
         assert productResult : "구매 불가능한 상품이 포함되어 있습니다.";
 
         String orderId = CommonUtil.generateOrderId();
-        List<OrderProduct> orderProducts = this.buildOrderProducts(orderId, this.member, this.products, this.coupons);
-        int totalCouponPrice = orderProducts.stream()
-                                    .map(orderProduct -> orderProduct.getCouponAmount().intValue())
-                                    .mapToInt(Integer::intValue).sum();
-        int discountPrice    = orderProducts.stream()
-                                            .map(orderProduct -> orderProduct.getDiscountAmount().intValue())
-                                            .mapToInt(Integer::intValue).sum();
-        int totalOriginPrice = orderProducts.stream()
-                                            .map(orderProduct -> orderProduct.getPaymentAmount().intValue())
-                                            .mapToInt(Integer::intValue).sum();
-
-        this.order.setOrderId(orderId);
-        this.order.setOrderStatus(OrderStatus.TEMP.getValue());
-        this.order.setOrderType(order.getOrderType() == 0 ? OrderType.PICKUP.getValue() : OrderType.DELIVERY.getValue());
-        this.order.setDiscountAmount(BigDecimal.valueOf(discountPrice + this.order.getUsePoint().intValue()));
-        this.order.setCouponAmount(totalCouponPrice);
-        this.order.setTotalAmount(BigDecimal.valueOf(totalOriginPrice));
-        this.order.setOrderDate(LocalDateTime.now());
-        this.order.setMemberName(this.member.getName());
-        this.order.setOrderProducts(orderProducts);
+        this.order.build(this.buildOrderProducts(orderId, this.member, this.products, this.coupons), orderId);
     }
 
     private List<OrderProduct> buildOrderProducts(String orderId, Member member, List<Product> products, List<Coupon> coupons) {
