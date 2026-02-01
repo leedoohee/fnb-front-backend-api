@@ -57,35 +57,30 @@ public class OrderProcessor {
         assert productResult : "구매 불가능한 상품이 포함되어 있습니다.";
 
         String orderId = CommonUtil.generateOrderId();
-        List<CreateOrderProductDto> orderProductsDto = this.buildOrderProducts(orderId, this.member, this.products, this.coupons);
-        int totalCouponPrice        = orderProductsDto.stream().mapToInt(CreateOrderProductDto::getCouponPrice).sum();
-        int totalMemberShipPrice    = orderProductsDto.stream().mapToInt(CreateOrderProductDto::getMemberShipPrice).sum();
-        int totalOriginPrice        = orderProductsDto.stream().mapToInt(CreateOrderProductDto::getOriginPrice).sum();
+        List<OrderProduct> orderProducts = this.buildOrderProducts(orderId, this.member, this.products, this.coupons);
+        int totalCouponPrice = orderProducts.stream()
+                                    .map(orderProduct -> orderProduct.getCouponAmount().intValue())
+                                    .mapToInt(Integer::intValue).sum();
+        int discountPrice    = orderProducts.stream()
+                                            .map(orderProduct -> orderProduct.getDiscountAmount().intValue())
+                                            .mapToInt(Integer::intValue).sum();
+        int totalOriginPrice = orderProducts.stream()
+                                            .map(orderProduct -> orderProduct.getPaymentAmount().intValue())
+                                            .mapToInt(Integer::intValue).sum();
 
         this.order.setOrderId(orderId);
         this.order.setOrderStatus(OrderStatus.TEMP.getValue());
         this.order.setOrderType(order.getOrderType() == 0 ? OrderType.PICKUP.getValue() : OrderType.DELIVERY.getValue());
-        this.order.setDiscountAmount(BigDecimal.valueOf(totalCouponPrice + totalMemberShipPrice + this.order.getUsePoint().intValue()));
+        this.order.setDiscountAmount(BigDecimal.valueOf(discountPrice + this.order.getUsePoint().intValue()));
         this.order.setCouponAmount(totalCouponPrice);
         this.order.setTotalAmount(BigDecimal.valueOf(totalOriginPrice));
         this.order.setOrderDate(LocalDateTime.now());
         this.order.setMemberName(this.member.getName());
-
-        for(CreateOrderProductDto element : orderProductsDto) {
-            this.order.getOrderProducts().add(OrderProduct.builder()
-                    .productId(element.getProductId())
-                    .quantity(element.getQuantity())
-                    .couponAmount(BigDecimal.valueOf(element.getCouponPrice()))
-                    .couponId(element.getCouponId())
-                    .paymentAmount(BigDecimal.valueOf(element.getOriginPrice()))
-                    .discountAmount(BigDecimal.valueOf(element.getDiscountPrice()))
-                    .orderId(element.getOrderId())
-                    .build());
-        }
+        this.order.setOrderProducts(orderProducts);
     }
 
-    private List<CreateOrderProductDto> buildOrderProducts(String orderId, Member member, List<Product> products, List<Coupon> coupons) {
-        List<CreateOrderProductDto> createOrderProductsDto = new ArrayList<>();
+    private List<OrderProduct> buildOrderProducts(String orderId, Member member, List<Product> products, List<Coupon> coupons) {
+        List<OrderProduct> orderProducts = new ArrayList<>();
 
         for (Product product : products) {
             int memberShipPrice = 0;
@@ -97,22 +92,21 @@ public class OrderProcessor {
 
             int couponPrice = this.calcCouponPriceToProduct(product, coupons);
 
-            CreateOrderProductDto orderProduct = CreateOrderProductDto.builder()
+            OrderProduct orderProduct = OrderProduct.builder()
                     .orderId(orderId)
                     .productId(product.getProductId())
-                    .name(product.getName())
                     .couponId(this.applyCouponToProduct(product, coupons))
                     .quantity(product.getQuantity())
-                    .originPrice(this.calcPriceWithQuantity(basicOptionWithPrice, product.getQuantity())
-                                    + this.calcTotalAddOptionPrice(product.getProductOption()))
-                    .couponPrice(couponPrice)
-                    .discountPrice(couponPrice + memberShipPrice)
+                    .paymentAmount(BigDecimal.valueOf(this.calcPriceWithQuantity(basicOptionWithPrice, product.getQuantity())
+                                    + this.calcTotalAddOptionPrice(product.getProductOption())))
+                    .couponAmount(BigDecimal.valueOf(couponPrice))
+                    .discountAmount(BigDecimal.valueOf(couponPrice + memberShipPrice))
                     .build();
 
-            createOrderProductsDto.add(orderProduct);
+            orderProducts.add(orderProduct);
         }
 
-        return createOrderProductsDto;
+        return orderProducts;
     }
 
     private int applyCouponToProduct(Product product, List<Coupon> coupons) {
