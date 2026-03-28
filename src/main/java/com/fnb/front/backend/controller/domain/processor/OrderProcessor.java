@@ -53,7 +53,7 @@ public class OrderProcessor {
         assert productResult : "구매 불가능한 상품이 포함되어 있습니다.";
 
         String orderId = CommonUtil.generateOrderId();
-        this.order.build(this.buildOrderProducts(orderId, this.member, this.products, this.coupons), orderId);
+        this.order.build(this.buildOrderProducts(orderId, this.member, this.products, this.coupons), orderId, this.member);
     }
 
     private List<OrderProduct> buildOrderProducts(String orderId, Member member, List<Product> products, List<Coupon> coupons) {

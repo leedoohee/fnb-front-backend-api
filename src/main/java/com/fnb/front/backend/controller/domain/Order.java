@@ -66,7 +66,7 @@ public class Order {
 
     }
 
-    public void build(List<OrderProduct> orderProducts, String orderId) {
+    public void build(List<OrderProduct> orderProducts, String orderId, Member member) {
         int totalCouponPrice = orderProducts.stream()
                 .map(orderProduct -> orderProduct.getCouponAmount().intValue())
                 .mapToInt(Integer::intValue).sum();
@@ -87,6 +87,7 @@ public class Order {
         this.totalAmount    = BigDecimal.valueOf(totalOriginPrice);
         this.orderDate      = LocalDateTime.now();
         this.memberName     = this.member.getName();
+        this.memberId       = this.member.getMemberId();
         this.orderProducts  = orderProducts;
     }
 }
