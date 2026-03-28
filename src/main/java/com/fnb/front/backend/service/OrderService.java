@@ -39,7 +39,7 @@ public class OrderService {
 
     private final ApplicationEventPublisher processOrderEvent;
 
-    @Transactional(readOnly = true)
+    @Transactional
     public OrderResponse create(OrderRequest orderRequest) {
         Order order                      = this.createOrder(orderRequest);
         Member member                    = this.createMember(orderRequest);
@@ -106,7 +106,7 @@ public class OrderService {
                 .flatMap(OrderProductRequest -> OrderProductRequest.getProductOptionIds().stream())
                 .toList();
 
-        Map<Integer, Product> productMap = this.productService.findProducts(orderProductIds, orderOptionIds)
+        Map<Integer, Product> productMap = this.productService.findProducts(orderProductIds)
                 .stream()
                 .collect(Collectors.toMap(Product::getProductId, p -> p));
 
@@ -147,12 +147,10 @@ public class OrderService {
         return member;
     }
 
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     protected void insertOrder(Order order) {
         this.orderRepository.insertOrder(order);
     }
 
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     protected void insertOrderProducts(List<OrderProduct> orderProducts) {
         this.orderRepository.insertOrderProducts(orderProducts);
     }
