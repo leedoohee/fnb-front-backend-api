@@ -53,21 +53,12 @@ public class OrderService {
         this.insertOrderProducts(order.getOrderProducts());
 
         if (order.getTotalAmount().compareTo(BigDecimal.ZERO) > 0) {
+            //결제 금액 0원이면
             this.processOrderEvent.publishEvent(RequestPaymentEvent.builder()
                     .order(this.findOrder(order.getOrderId())));
         }
 
-        //TODO 함수로 빼기?
-        return OrderResponse.builder()
-                .orderId(order.getOrderId())
-                .memberName(member.getName())
-                .productName("PRD_"+order.getOrderId())
-                .quantity(1)
-                .purchasePrice(order.getTotalAmount())
-                .vatAmount(order.getTotalAmount().divide(BigDecimal.valueOf(1.1), RoundingMode.HALF_EVEN)) //TODO 부가세를 포함하지 않을 경우를 미계산하는 로직필요
-                .taxAmount(BigDecimal.valueOf(0))
-                .isNonPayment(order.getTotalAmount().compareTo(BigDecimal.ZERO) > 0)
-                .build();
+        return this.makePaymentResponse(order);
     }
 
     public void cancel(String orderId) {
@@ -140,6 +131,19 @@ public class OrderService {
         member.setOwnedCoupon(memberCoupons);
 
         return member;
+    }
+
+    private OrderResponse makePaymentResponse(Order order) {
+        return OrderResponse.builder()
+                .orderId(order.getOrderId())
+                .memberName(order.getMember().getName())
+                .productName("PRD_"+order.getOrderId())
+                .quantity(1)
+                .purchasePrice(order.getTotalAmount())
+                .vatAmount(order.getTotalAmount().divide(BigDecimal.valueOf(1.1), RoundingMode.HALF_EVEN)) //TODO 부가세를 포함하지 않을 경우를 미계산하는 로직필요
+                .taxAmount(BigDecimal.valueOf(0))
+                .isNonPayment(order.getTotalAmount().compareTo(BigDecimal.ZERO) > 0)
+                .build();
     }
 
     protected void insertOrder(Order order) {
