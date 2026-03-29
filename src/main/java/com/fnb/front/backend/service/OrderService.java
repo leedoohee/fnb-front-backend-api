@@ -40,12 +40,12 @@ public class OrderService {
 
     @Transactional
     public OrderResponse create(OrderRequest orderRequest) {
-        Order order                      = this.createOrder(orderRequest);
-        Member member                    = this.createMember(orderRequest);
-        List<Product> product            = this.createProduct(orderRequest.getOrderProductRequests());
-        List<Coupon> coupons             = this.createOrderCoupon(orderRequest);
-        List<ProductOption> aliveOptions = this.createOptions(orderRequest.getOrderProductRequests());
-        OrderProcessor orderProcessor    = new OrderProcessor(member, order, product, aliveOptions, coupons, new OrderValidator());
+        Order order                   = this.createOrder(orderRequest);
+        Member member                 = this.createMember(orderRequest);
+        List<Product> product         = this.createProduct(orderRequest.getOrderProductRequests());
+        List<Coupon> coupons          = this.createOrderCoupon(orderRequest);
+        List<ProductOption> options   = this.createOptions(orderRequest.getOrderProductRequests());
+        OrderProcessor orderProcessor = new OrderProcessor(member, order, product, options, coupons, new OrderValidator());
 
         orderProcessor.buildOrder();
 
@@ -99,10 +99,6 @@ public class OrderService {
     private List<Product> createProduct(List<OrderProductRequest> orderProductRequests) {
         List<Integer> orderProductIds = orderProductRequests.stream()
                 .map(OrderProductRequest::getProductId)
-                .toList();
-
-        List<Integer> orderOptionIds      = orderProductRequests.stream()
-                .flatMap(OrderProductRequest -> OrderProductRequest.getProductOptionIds().stream())
                 .toList();
 
         Map<Integer, Product> productMap = this.productService.findProducts(orderProductIds)

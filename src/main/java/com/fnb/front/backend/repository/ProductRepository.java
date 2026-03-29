@@ -58,6 +58,8 @@ public class ProductRepository {
         CriteriaQuery<Product> cq           = cb.createQuery(Product.class);
         Root<Product> root                  = cq.from(Product.class);
 
+        searchConditions.add(root.get("productId").in(productIds));
+
         cq = cq.select(root)
                 .where(cb.and(searchConditions.toArray(new Predicate[0])))
                 .distinct(true);
@@ -74,7 +76,7 @@ public class ProductRepository {
         Root<ProductOption> root            = cq.from(ProductOption.class);
 
         searchConditions.add(root.join("product", JoinType.INNER).get("productId").in(productIds));
-        searchConditions.add(cb.equal(root.get("productOptionId"), optionIds));
+        searchConditions.add(root.get("productOptionId").in(optionIds));
         searchConditions.add(cb.equal(root.get("isUse"), 1));
 
         cq = cq.select(root)

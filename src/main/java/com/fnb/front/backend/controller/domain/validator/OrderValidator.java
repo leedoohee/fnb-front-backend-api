@@ -48,21 +48,30 @@ public class OrderValidator {
         return true;
     }
 
-    public boolean isCanOrderProducts(List<Product> products, List<ProductOption> options) {
-
+    public boolean isCanPurchaseProduct(List<Product> products, List<ProductOption> options) {
         List<Integer> aliveProductIds     = options.stream().map(ProductOption::getProductId).distinct().toList();
-        List<Integer> aliveOptionIds      = options.stream().map(ProductOption::getProductOptionId).distinct().toList();
         List<Integer> orderProductIds     = products.stream().map(Product::getProductId).distinct().toList();
-        List<Integer> orderOptionIds      = products.stream().flatMap(product -> product.getProductOption()
-                                                    .stream().map(ProductOption::getProductOptionId)).distinct().toList();
+
         HashSet<Integer> aliveProductSet  = new HashSet<>(aliveProductIds);
         HashSet<Integer> orderProductSet  = new HashSet<>(orderProductIds);
 
-        if (!aliveProductSet.containsAll(orderProductSet)) {
+        return aliveProductSet.containsAll(orderProductSet);
+    }
+
+    public boolean isCanPurchaseOption(List<Product> products, List<ProductOption> options) {
+        List<Integer> aliveOptionIds      = options.stream().map(ProductOption::getProductOptionId).distinct().toList();
+        List<Integer> orderOptionIds      = products.stream().flatMap(product -> product.getProductOption()
+                .stream().map(ProductOption::getProductOptionId)).distinct().toList();
+
+        return orderOptionIds.size() == aliveOptionIds.size();
+    }
+
+    public boolean isCanOrderProducts(List<Product> products, List<ProductOption> options) {
+        if (!isCanPurchaseProduct(products, options)) {
             return false;
         }
 
-        if(orderOptionIds.size() > aliveOptionIds.size()) {
+        if(!isCanPurchaseOption(products, options)) {
             return false;
         }
 
