@@ -8,7 +8,7 @@
 * **Framework**: Spring Boot
 * **Build Tool**: Gradle
 * **Language**: Java 17
-* **Persistence**: Spring Data JPA / MyBatis (Repository 기반)
+* **Persistence**: CRITERIA
 * **Event Handling**: Spring ApplicationEvent (Transactional Boundary 관리)
 
 ---
