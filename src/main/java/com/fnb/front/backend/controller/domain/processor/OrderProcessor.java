@@ -53,15 +53,19 @@ public class OrderProcessor {
         assert productResult : "구매 불가능한 상품이 포함되어 있습니다.";
 
         String orderId = CommonUtil.generateOrderId();
-        this.order.build(this.buildOrderProducts(orderId, this.member, this.products, this.coupons), orderId, this.member);
+        this.order.build(this.buildOrderProducts(orderId, this.member, this.products, this.aliveOptions, this.coupons), orderId, this.member);
     }
 
-    private List<OrderProduct> buildOrderProducts(String orderId, Member member, List<Product> products, List<Coupon> coupons) {
+    private List<OrderProduct> buildOrderProducts(String orderId, Member member, List<Product> products, List<ProductOption> options, List<Coupon> coupons) {
         List<OrderProduct> orderProducts = new ArrayList<>();
 
         for (Product product : products) {
             int memberShipPrice = 0;
-            int basicOptionWithPrice = product.getPrice().intValue() + product.getBasicOptionPrice();
+
+            List<ProductOption> productOption = options.stream()
+                    .filter(option -> option.getProductId() == product.getProductId()).toList();
+
+            int priceWithBasicOption = product.getPrice().intValue() + this.calcBasicOptionPrice(productOption);
 
             if (product.inMemberShipDiscount(member)) {
                 memberShipPrice = this.calcMemberShipPriceToProduct(product, member);
@@ -74,8 +78,8 @@ public class OrderProcessor {
                     .productId(product.getProductId())
                     .couponId(this.applyCouponToProduct(product, coupons))
                     .quantity(product.getQuantity())
-                    .paymentAmount(BigDecimal.valueOf(this.calcPriceWithQuantity(basicOptionWithPrice, product.getQuantity())
-                                    + this.calcTotalAddOptionPrice(product.getProductOption())))
+                    .paymentAmount(BigDecimal.valueOf(this.calcPriceWithQuantity(priceWithBasicOption, product.getQuantity())
+                                    + this.calcTotalAddOptionPrice(productOption)))
                     .couponAmount(BigDecimal.valueOf(couponPrice))
                     .discountAmount(BigDecimal.valueOf(couponPrice + memberShipPrice))
                     .build();
@@ -132,5 +136,19 @@ public class OrderProcessor {
                 .filter(productOption -> productOption.getOptionType().equals(OptionType.ADDITIONAL.getValue()))
                 .map(ProductOption::getPrice)
                 .mapToInt(Integer::intValue).sum();
+    }
+
+    public int calcBasicOptionPrice(List<ProductOption> productOptions) {
+        int price = 0;
+
+        ProductOption basicOption = productOptions.stream()
+                .filter(productOption -> productOption.getOptionType().equals(OptionType.BASIC.getValue()))
+                .findFirst().orElse(null);
+
+        if (basicOption != null) {
+            price = basicOption.getPrice();
+        }
+
+        return price;
     }
 }

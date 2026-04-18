@@ -99,10 +99,7 @@ public class OrderService {
         return orderProductRequests.stream()
                 .map(request -> {
                     Product product = productMap.get(request.getProductId());
-                    product.setQuantity(request.getQuantity());
-                    product.setProductOption(request.getProductOptionIds().stream()
-                            .map(optionId -> ProductOption.builder().productOptionId(optionId).build())
-                            .toList());
+                    product.prepareOrder(request.getProductOptionIds(), request.getQuantity());
                     return product;
                 })
                 .toList();

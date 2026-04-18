@@ -102,6 +102,13 @@ public class Product {
 
     }
 
+    public void prepareOrder(List<Integer> optionIds, int quantity) {
+        this.quantity = quantity;
+        this.productOption = optionIds.stream()
+                .map(optionId -> ProductOption.builder().productOptionId(optionId).build())
+                .toList();
+    }
+
     public boolean isAvailablePurchase() {
         return this.status.equalsIgnoreCase("available");
     }
@@ -125,19 +132,5 @@ public class Product {
     public boolean inMemberShipDiscount(Member member) {
         List<String> grades = Arrays.stream(this.applyMemberGrades.split(",")).toList();
         return this.isApplyMembership == 1 && grades.contains(member.getGrade());
-    }
-
-    public int getBasicOptionPrice() {
-        int price = 0;
-
-        ProductOption basicOption = this.productOption.stream()
-                .filter(productOption -> productOption.getOptionType().equals(OptionType.BASIC.getValue()))
-                .findFirst().orElse(null);
-
-        if (basicOption != null) {
-            price = basicOption.getPrice();
-        }
-
-        return price;
     }
 }

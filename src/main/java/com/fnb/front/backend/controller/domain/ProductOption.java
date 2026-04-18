@@ -1,5 +1,6 @@
 package com.fnb.front.backend.controller.domain;
 
+import com.fnb.front.backend.util.OptionType;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
