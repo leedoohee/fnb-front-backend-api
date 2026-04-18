@@ -48,18 +48,3 @@
 4. 주문 상태 업데이트 (`ORDERED`)
 
 ---
-
-## 📂 Project Structure (Key Classes)
-
-```text
-src/main/java/com/fnb/front/backend/
-├── service/
-│   ├── OrderService.java        # 주문 생성 오케스트레이션
-│   ├── PaymentService.java      # 결제 요청 및 취소 제어
-│   └── AfterPaymentService.java # 결제 성공/취소 후속 비즈니스 처리
-├── controller/domain/
-│   ├── processor/
-│   │   └── OrderProcessor.java  # 할인/금액 계산 엔진
-│   ├── event/                   # 시스템 내부 메시지 객체
-│   └── validator/               # 주문 제약 조건 검증기
-└── repository/                  # 데이터 액세스 계층
