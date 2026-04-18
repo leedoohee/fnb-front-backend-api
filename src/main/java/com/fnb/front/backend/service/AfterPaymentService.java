@@ -40,7 +40,17 @@ public class AfterPaymentService {
             boolean couponResult  = this.couponService.subtractCoupon(event.getOrder(), event.getOrder().getMember());
             boolean pointResult   = this.pointService.givePoint(event.getOrder(), event.getOrder().getMember());
 
-            assert productResult && couponResult && pointResult : "결제 후처리 과정에서 오류가 발생하였습니다.";
+            if (!productResult) {
+                throw new IllegalStateException("재고 차감 과정에서 오류가 발생하였습니다.");
+            }
+
+            if (!couponResult) {
+                throw new IllegalStateException("쿠폰 차감 과정에서 오류가 발생하였습니다.");
+            }
+
+            if (!pointResult) {
+                throw new IllegalStateException("포인트 적립 과정에서 오류가 발생하였습니다.");
+            }
 
             //TODO 금액 비교 로직
             int paymentId = this.paymentService.insertPayment(Payment.builder()
