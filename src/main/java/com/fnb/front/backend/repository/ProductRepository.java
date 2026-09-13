@@ -99,6 +99,7 @@ public class ProductRepository {
 
         update.set("quantity", newQuantity);
         update.where(cb.and(cb.equal(root.get("productId"), productId)));
+        update.where(cb.and(cb.greaterThanOrEqualTo(root.get("quantity"), quantity)));
 
         this.em.createQuery(update).executeUpdate();
     }

@@ -26,7 +26,6 @@ public class PaymentCompleteService {
 
     private final OrderService orderService;
 
-    @Transactional
     public void handlePaymentApprove(PaymentApproveCommand command) {
         int couponAmount      = command.getOrder().getCouponAmount();
         int pointAmount       = command.getOrder().getUsePoint().intValue();
@@ -107,7 +106,6 @@ public class PaymentCompleteService {
         //TODO 장바구니는 지우는게 맞나? DELYN 처리로 남겨두는게 맞나?
     }
 
-    @Transactional
     public void handlePaymentCancel(AfterPaymentCancelCommand event) {
         List<PaymentElement> mustBeReturnedElements = event.getPayment().getPaymentElements().stream()
                 .filter(paymentElement ->
@@ -115,42 +113,36 @@ public class PaymentCompleteService {
                                         paymentElement.getPaymentMethod().contains(PaymentMethod.POINT.getValue()))
                 .toList();
 
-        try {
-            this.pointService.returnPoint(event.getOrder(), event.getOrder().getMember());
-            this.productService.returnQuantity(event.getOrder().getOrderProducts());
-            this.couponService.returnCoupon(event.getOrder(), event.getOrder().getMember());
+        this.pointService.returnPoint(event.getOrder(), event.getOrder().getMember());
+        this.productService.returnQuantity(event.getOrder().getOrderProducts());
+        this.couponService.returnCoupon(event.getOrder(), event.getOrder().getMember());
 
-            int cancelId = this.paymentService.insertPaymentCancel(PaymentCancel.builder()
-                    .cancelAmount(event.getPayment().getTotalAmount())
-                    .cancelAt(LocalDateTime.now())
-                    .orderId(event.getPayment().getOrderId())
+        int cancelId = this.paymentService.insertPaymentCancel(PaymentCancel.builder()
+                .cancelAmount(event.getPayment().getTotalAmount())
+                .cancelAt(LocalDateTime.now())
+                .orderId(event.getPayment().getOrderId())
+                .build());
+
+        if (event.getCancelPayDto() != null) {
+            this.paymentService.insertPaymentElement(PaymentElement.builder()
+                    .paymentStatus(PaymentStatus.CANCEL.getValue())
+                    .paymentId(cancelId)
+                    .transactionId(event.getCancelPayDto().getTransactionId())
+                    .amount(BigDecimal.valueOf(event.getCancelPayDto().getTotalAmount()))
+                    .taxFree(BigDecimal.valueOf(event.getCancelPayDto().getTaxFree()))
+                    .vat(BigDecimal.valueOf(event.getCancelPayDto().getVat()))
+                    .approvedAt(event.getCancelPayDto().getApprovedAt())
+                    .createdAt(LocalDateTime.now())
+                    .updatedAt(LocalDateTime.now())
                     .build());
-
-            if (event.getCancelPayDto() != null) {
-                this.paymentService.insertPaymentElement(PaymentElement.builder()
-                        .paymentStatus(PaymentStatus.CANCEL.getValue())
-                        .paymentId(cancelId)
-                        .transactionId(event.getCancelPayDto().getTransactionId())
-                        .amount(BigDecimal.valueOf(event.getCancelPayDto().getTotalAmount()))
-                        .taxFree(BigDecimal.valueOf(event.getCancelPayDto().getTaxFree()))
-                        .vat(BigDecimal.valueOf(event.getCancelPayDto().getVat()))
-                        .approvedAt(event.getCancelPayDto().getApprovedAt())
-                        .createdAt(LocalDateTime.now())
-                        .updatedAt(LocalDateTime.now())
-                        .build());
-            }
-
-            for (PaymentElement paymentElement : mustBeReturnedElements) {
-                paymentElement.setPaymentStatus(PaymentStatus.CANCEL.getValue());
-                paymentElement.setPaymentElementId(0); //TODO 자동키 생성되는지 확인
-                this.paymentService.insertPaymentElement(paymentElement);
-            }
-
-            this.orderService.updateStatus(event.getOrder().getOrderId(), OrderStatus.CANCELED.getValue());
-
-        } catch (Exception e) {
-            //exception
-            throw new RuntimeException("결제 취소 과정에서 오류가 발생하였습니다.", e);
         }
+
+        for (PaymentElement paymentElement : mustBeReturnedElements) {
+            paymentElement.setPaymentStatus(PaymentStatus.CANCEL.getValue());
+            paymentElement.setPaymentElementId(0); //TODO 자동키 생성되는지 확인
+            this.paymentService.insertPaymentElement(paymentElement);
+        }
+
+        this.orderService.updateStatus(event.getOrder().getOrderId(), OrderStatus.CANCELED.getValue());
     }
 }

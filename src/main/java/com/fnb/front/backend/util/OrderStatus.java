@@ -8,7 +8,8 @@ public enum OrderStatus {
     PAID("1"),              // 결제 완료
     DELIVERED("2"),    // 배송 완료
     ORDERED("3"),        // 주문 완료
-    CANCELED("4");      // 주문 취th
+    CANCELED("4"),     // 주문 취소
+    PENDING("5");      // 결제 오류
 
     private final String value;
 

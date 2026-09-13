@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -54,9 +55,16 @@ public class PointService {
     }
 
     public void returnPoint(Order order, Member member) {
-        MemberPoint memberPoint = this.memberRepository.findMemberPoint(order.getOrderId());
-        this.memberRepository.updateMinusPoint(member.getMemberId(), memberPoint.getAmount());
-        //TODO 디비 관점에는 delete가 맞지만, 비지니스관점에는 minus로 남겨두는게 맞음. 추후 변경예정
+        List<MemberPoint> memberPoints = this.memberRepository.findMemberPoint(order.getOrderId());
+
+        for (MemberPoint memberPoint : memberPoints) {
+            if (memberPoint.getPointType() == PointType.PLUS.getValue()) {
+                this.memberRepository.updateMinusPoint(member.getMemberId(), memberPoint.getAmount());
+            } else if (memberPoint.getPointType() == PointType.MINUS.getValue()) {
+                this.memberRepository.updatePlusPoint(member.getMemberId(), memberPoint.getAmount());
+            }
+        }
+
         this.pointRepository.deleteMemberPoint(order.getOrderId());
     }
 

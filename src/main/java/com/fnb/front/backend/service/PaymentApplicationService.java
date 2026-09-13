@@ -10,6 +10,7 @@ import com.fnb.front.backend.controller.dto.CancelPayDto;
 import com.fnb.front.backend.controller.dto.KakaoPayApproveDto;
 import com.fnb.front.backend.controller.dto.KakaoPayCancelDto;
 import com.fnb.front.backend.controller.dto.RequestCancelPayDto;
+import com.fnb.front.backend.util.OrderStatus;
 import com.fnb.front.backend.util.PayType;
 import com.fnb.front.backend.util.PaymentStatus;
 import lombok.RequiredArgsConstructor;
@@ -54,7 +55,7 @@ public class PaymentApplicationService {
 
         } catch (Exception completionException) {
             this.cancel(PayType.KAKAO.getValue(), response.getTransactionId(), response.getTotalAmount(), response.getTaxFree());
-
+            this.orderService.updateStatus(order.getOrderId(), OrderStatus.PENDING.getValue());
             throw completionException;
         }
     }
@@ -66,28 +67,32 @@ public class PaymentApplicationService {
 
         assert paymentElement != null : "결제정보를 찾을 수 없습니다.";
 
-        Payment payment = this.paymentService.findPayment(paymentElement.getPaymentId());
-        Order order     = this.orderService.findOrder(payment.getOrderId());
+        try {
+            Payment payment = this.paymentService.findPayment(paymentElement.getPaymentId());
+            Order order     = this.orderService.findOrder(payment.getOrderId());
 
-        this.paymentCompleteService.handlePaymentCancel(AfterPaymentCancelCommand
-                .builder()
-                .cancelPayDto(CancelPayDto.builder()
-                                .approvalId(Objects.requireNonNull(response).getAid())
-                                .transactionId(response.getTid())
-                                .productName(response.getItemName())
-                                .quantity(response.getQuantity())
-                                .totalAmount(response.getCancelAmount().getTotal())
-                                .taxFree(response.getCancelAmount().getTaxFree())
-                                .vat(response.getCancelAmount().getVat())
-                                .point(response.getCancelAmount().getPoint())
-                                .discount(response.getCancelAmount().getDiscount())
-                                .greenDeposit(response.getCancelAmount().getGreenDeposit())
-                                .approvedAt(LocalDateTime.parse(response.getApprovedAt()))
-                                .cancelAt(LocalDateTime.parse(response.getCancelAt()))
-                                .build())
-                .order(order)
-                .payment(payment)
-                .build());
+            this.paymentCompleteService.handlePaymentCancel(AfterPaymentCancelCommand
+                    .builder()
+                    .cancelPayDto(CancelPayDto.builder()
+                            .approvalId(Objects.requireNonNull(response).getAid())
+                            .transactionId(response.getTid())
+                            .productName(response.getItemName())
+                            .quantity(response.getQuantity())
+                            .totalAmount(response.getCancelAmount().getTotal())
+                            .taxFree(response.getCancelAmount().getTaxFree())
+                            .vat(response.getCancelAmount().getVat())
+                            .point(response.getCancelAmount().getPoint())
+                            .discount(response.getCancelAmount().getDiscount())
+                            .greenDeposit(response.getCancelAmount().getGreenDeposit())
+                            .approvedAt(LocalDateTime.parse(response.getApprovedAt()))
+                            .cancelAt(LocalDateTime.parse(response.getCancelAt()))
+                            .build())
+                    .order(order)
+                    .payment(payment)
+                    .build());
+        } catch (Exception e) {
+            throw new RuntimeException("결제취소 과정에서 오류가 발생하였습니다.");
+        }
     }
 
     private boolean cancel(String payType, String transactionId, BigDecimal cancelAmount, BigDecimal taxFree) {
@@ -98,9 +103,9 @@ public class PaymentApplicationService {
                 .transactionId(transactionId).build());
     }
 
-    public void handleRequestCancel(RequestCancelCommand event) {
-        Payment payment = this.paymentService.findPayment(event.getOrderId());
-        Order order     = this.orderService.findOrder(event.getOrderId());
+    public void handleRequestCancel(RequestCancelCommand command) {
+        Payment payment = this.paymentService.findPayment(command.getOrderId());
+        Order order     = this.orderService.findOrder(command.getOrderId());
 
         if (!payment.getPaymentStatus().equals(PaymentStatus.APPROVE.getValue())) {
             throw new RuntimeException("취소할 수 없는 주문상태입니다.");
@@ -132,11 +137,11 @@ public class PaymentApplicationService {
                 .build());
     }
 
-    public void handleRequestPayment(RequestPaymentCommand event) {
+    public void handleRequestPayment(RequestPaymentCommand command) {
         this.paymentCompleteService.handlePaymentApprove(PaymentApproveCommand
                 .builder()
                 .payType(null)
-                .order(event.getOrder())
+                .order(command.getOrder())
                 .response(null)
                 .build());
     }

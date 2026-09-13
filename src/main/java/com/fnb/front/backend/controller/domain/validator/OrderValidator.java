@@ -1,11 +1,14 @@
 package com.fnb.front.backend.controller.domain.validator;
 
 import com.fnb.front.backend.controller.domain.*;
+import com.fnb.front.backend.controller.domain.request.OrderCouponRequest;
 import com.fnb.front.backend.controller.domain.request.OrderProductRequest;
+import com.fnb.front.backend.controller.domain.request.OrderRequest;
 
 import java.math.BigDecimal;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 
 public class OrderValidator {
 
@@ -66,7 +69,8 @@ public class OrderValidator {
         return orderOptionIds.size() == aliveOptionIds.size();
     }
 
-    public boolean isCanOrderProducts(List<Product> products, List<ProductOption> options, List<OrderProductRequest> orderProductRequests) {
+    public boolean isCanOrderProducts(List<Product> products, List<ProductOption> options,
+                                      OrderRequest orderRequest, List<Coupon> coupons) {
         if (!isCanPurchaseProduct(products, options)) {
             return false;
         }
@@ -84,19 +88,22 @@ public class OrderValidator {
                 return false;
             }
 
-            if (!product.isAvailableUseCoupon()) {
+            if(!coupons.isEmpty()) {
+                if (!this.isCanApplyCouponToProduct(product, coupons, orderRequest.getOrderCouponRequests())
+                    && product.isAvailableUseCoupon()) {
+                    return false;
+                }
+            }
+
+            if (product.isLessMinPurchaseQuantity(this.getOrderProductQuantity(product, orderRequest.getOrderProductRequests()))) {
                 return false;
             }
 
-            if (product.isLessMinPurchaseQuantity(this.getOrderProductQuantity(product, orderProductRequests))) {
+            if (product.isOverMaxPurchaseQuantity(this.getOrderProductQuantity(product, orderRequest.getOrderProductRequests()))) {
                 return false;
             }
 
-            if (product.isOverMaxPurchaseQuantity(this.getOrderProductQuantity(product, orderProductRequests))) {
-                return false;
-            }
-
-            if (!product.isOrderableQuantity(this.getOrderProductQuantity(product, orderProductRequests))) {
+            if (!product.isOrderableQuantity(this.getOrderProductQuantity(product, orderRequest.getOrderProductRequests()))) {
                 return false;
             }
         }
@@ -105,7 +112,8 @@ public class OrderValidator {
     }
 
     public Integer getOrderProductQuantity(Product product, List<OrderProductRequest> orderProductRequests) {
-        OrderProductRequest request = orderProductRequests.stream().filter(orderProductRequest -> product.getProductId() == orderProductRequest.getProductId())
+        OrderProductRequest request = orderProductRequests.stream()
+                .filter(orderProductRequest -> product.getProductId() == orderProductRequest.getProductId())
                 .findFirst().orElse(null);
 
         if (request == null) {
@@ -113,5 +121,33 @@ public class OrderValidator {
         } else {
             return request.getQuantity();
         }
+    }
+
+    public boolean isCanApplyCouponToProduct(Product product, List<Coupon> coupons, List<OrderCouponRequest> orderCouponRequests) {
+        OrderCouponRequest couponRequest = orderCouponRequests.stream()
+                .filter(orderCouponRequest -> product.getProductId() == orderCouponRequest.getProductId())
+                .findFirst().orElse(null);
+
+        Coupon coupon = coupons.stream()
+                .filter(c -> c.getCouponId() == Objects.requireNonNull(couponRequest).getCouponId())
+                .findFirst().orElse(null);
+
+        if (couponRequest == null) {
+            return false;
+        }
+
+        if (coupon == null) {
+            return false;
+        }
+
+        List<CouponProduct> couponProducts = coupon.getCouponProducts();
+
+        for (CouponProduct couponProduct : couponProducts) {
+            if (couponProduct.getProductId() == product.getProductId()) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

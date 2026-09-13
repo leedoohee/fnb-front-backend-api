@@ -53,7 +53,7 @@ public class MemberRepository {
         return typedQuery.getResultList();
     }
 
-    public MemberPoint findMemberPoint(String orderId) {
+    public List<MemberPoint> findMemberPoint(String orderId) {
 
         CriteriaBuilder cb              = this.em.getCriteriaBuilder();
         CriteriaQuery<MemberPoint> cq   = cb.createQuery(MemberPoint.class);
@@ -62,7 +62,7 @@ public class MemberRepository {
         cq = cq.where(cb.and(cb.equal(root.get("orderId"), orderId)));
         TypedQuery<MemberPoint> typedQuery = this.em.createQuery(cq);
 
-        return typedQuery.getSingleResult();
+        return typedQuery.getResultList();
     }
 
     public List<MemberCoupon> findMemberCoupons(String memberId, String isUsed) {
@@ -140,6 +140,25 @@ public class MemberRepository {
 
         Expression<Integer> currentPoints = root.get("points");
         Expression<Integer> newPoints     = cb.diff(currentPoints, point);
+
+        update.set("points", newPoints);
+
+        searchConditions.add(cb.equal(root.get("memberId"), memberId));
+
+        update.where(cb.and(searchConditions.toArray(new Predicate[0])));
+
+        this.em.createQuery(update).executeUpdate();
+    }
+
+    public void updatePlusPoint(String memberId, int point) {
+        List<Predicate> searchConditions    = new ArrayList<>();
+        CriteriaBuilder cb                  = this.em.getCriteriaBuilder();
+
+        CriteriaUpdate<Member> update = cb.createCriteriaUpdate(Member.class);
+        Root<Member> root = update.from(Member.class);
+
+        Expression<Integer> currentPoints = root.get("points");
+        Expression<Integer> newPoints     = cb.sum(currentPoints, point);
 
         update.set("points", newPoints);
 
