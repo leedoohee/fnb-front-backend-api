@@ -111,11 +111,7 @@ public class Coupon {
 
     public boolean isCanApplyDuring() {
         LocalDateTime now = LocalDateTime.now();
-        return this.applyStartAt.isAfter(now) && this.applyEndAt.isBefore(now);
-    }
-
-    public boolean isApplyToEntireProduct() {
-        return this.applyEntireProduct.equals(RangeProduct.ENTIRE.getValue()); //1이면 전체
+        return !now.isBefore(applyStartAt) && !now.isAfter(applyEndAt);
     }
 
     public boolean isAvailableStatus() {

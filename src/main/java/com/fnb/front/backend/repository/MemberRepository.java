@@ -73,7 +73,7 @@ public class MemberRepository {
         Root<MemberCoupon> root          = cq.from(MemberCoupon.class);
 
         searchConditions.add(cb.equal(root.get("memberId"), memberId));
-        searchConditions.add(cb.equal(root.get("isUse"), isUsed));
+        searchConditions.add(cb.equal(root.get("isUsed"), isUsed));
 
         cq = cq.where(cb.and(searchConditions.toArray(new Predicate[0])));
         TypedQuery<MemberCoupon> typedQuery = this.em.createQuery(cq);

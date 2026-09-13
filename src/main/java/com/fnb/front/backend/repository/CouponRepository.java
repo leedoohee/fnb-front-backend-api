@@ -50,8 +50,8 @@ public class CouponRepository {
         Root<Coupon> root                = cq.from(Coupon.class);
 
         searchConditions.add(cb.equal(root.get("status"), status));
-        searchConditions.add(cb.greaterThanOrEqualTo(root.get("applyStartAt"), LocalDateTime.now()));
-        searchConditions.add(cb.lessThanOrEqualTo(root.get("applyEndAt"), LocalDateTime.now()));
+        searchConditions.add(cb.lessThanOrEqualTo(root.get("applyStartAt"), LocalDateTime.now()));
+        searchConditions.add(cb.greaterThanOrEqualTo(root.get("applyEndAt"), LocalDateTime.now()));
 
         cq = cq.select(root)
                 .where(cb.and(searchConditions.toArray(new Predicate[0])))
@@ -122,7 +122,7 @@ public class CouponRepository {
         CriteriaQuery<Coupon> cq   = cb.createQuery(Coupon.class);
         Root<Coupon> root          = cq.from(Coupon.class);
 
-        cq = cq.where(cb.and(root.get("id").in(couponIds)));
+        cq = cq.where(cb.and(root.get("couponId").in(couponIds)));
         TypedQuery<Coupon> typedQuery = this.em.createQuery(cq);
 
         return typedQuery.getResultList();
