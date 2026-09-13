@@ -66,7 +66,7 @@ public class OrderValidator {
         return orderOptionIds.size() == aliveOptionIds.size();
     }
 
-    public boolean isCanOrderProducts(List<Product> products, List<ProductOption> options) {
+    public boolean isCanOrderProducts(List<Product> products, List<ProductOption> options, List<OrderProductRequest> orderProductRequests) {
         if (!isCanPurchaseProduct(products, options)) {
             return false;
         }
@@ -76,7 +76,7 @@ public class OrderValidator {
         }
 
         for (Product product : products) {
-            if (product.isInfiniteQty()) {
+            if (product.isInfiniteQuantity()) {
                 continue;
             }
 
@@ -88,15 +88,30 @@ public class OrderValidator {
                 return false;
             }
 
-            if(product.isLessMinPurchaseQuantity()) {
+            if (product.isLessMinPurchaseQuantity()) {
                 return false;
             }
 
-            if(product.isOverMaxPurchaseQuantity()) {
+            if (product.isOverMaxPurchaseQuantity()) {
+                return false;
+            }
+
+            if (product.isOrderableQuantity(this.getOrderProductQuantity(product, orderProductRequests))) {
                 return false;
             }
         }
 
         return true;
+    }
+
+    public Integer getOrderProductQuantity(Product product, List<OrderProductRequest> orderProductRequests) {
+        OrderProductRequest request = orderProductRequests.stream().filter(orderProductRequest -> product.getProductId() == orderProductRequest.getProductId())
+                .findFirst().orElse(null);
+
+        if (request == null) {
+            return 0;
+        } else {
+            return request.getQuantity();
+        }
     }
 }

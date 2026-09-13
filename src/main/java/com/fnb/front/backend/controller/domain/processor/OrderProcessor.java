@@ -3,6 +3,7 @@ package com.fnb.front.backend.controller.domain.processor;
 import com.fnb.front.backend.controller.domain.*;
 import com.fnb.front.backend.controller.domain.implement.DiscountPolicy;
 import com.fnb.front.backend.controller.domain.implement.Calculator;
+import com.fnb.front.backend.controller.domain.request.OrderRequest;
 import com.fnb.front.backend.controller.domain.validator.OrderValidator;
 import com.fnb.front.backend.util.CommonUtil;
 import com.fnb.front.backend.util.OptionType;
@@ -17,14 +18,17 @@ public class OrderProcessor {
     private final List<Coupon> coupons;
     private final List<ProductOption> aliveOptions;
     private final OrderValidator orderValidator;
+    private final OrderRequest orderRequest;
 
-    public OrderProcessor(Member member, Order order, List<Product> products, List<ProductOption> options, List<Coupon> coupons, OrderValidator orderValidator) {
+    public OrderProcessor(Member member, Order order, List<Product> products, List<ProductOption> options,
+                          List<Coupon> coupons, OrderValidator orderValidator, OrderRequest orderRequest) {
         this.member = member;
         this.order = order;
         this.products = products;
         this.coupons = coupons;
         this.aliveOptions = options;
         this.orderValidator = orderValidator;
+        this.orderRequest = orderRequest;
     }
 
     public void buildOrder() {
@@ -48,7 +52,7 @@ public class OrderProcessor {
             throw new IllegalStateException("사용 불가능한 쿠폰이 포함되어 있습니다.");
         }
 
-        boolean productResult = this.orderValidator.isCanOrderProducts(this.products, this.aliveOptions);
+        boolean productResult = this.orderValidator.isCanOrderProducts(this.products, this.aliveOptions, this.orderRequest.getOrderProductRequests());
 
         assert productResult : "구매 불가능한 상품이 포함되어 있습니다.";
 

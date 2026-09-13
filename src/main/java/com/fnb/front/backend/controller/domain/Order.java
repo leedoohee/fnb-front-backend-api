@@ -81,12 +81,14 @@ public class Order {
                 .map(orderProduct -> orderProduct.getPaymentAmount().intValue())
                 .mapToInt(Integer::intValue).sum();
 
+        int totalPrice = totalOriginPrice - discountPrice - totalCouponPrice - this.usePoint.intValue();
+
         this.orderId        = orderId;
         this.orderStatus    = OrderStatus.TEMP.getValue();
         this.orderType      = this.orderType == 0 ? OrderType.PICKUP.getValue() : OrderType.DELIVERY.getValue();
         this.discountAmount = BigDecimal.valueOf(discountPrice + this.usePoint.intValue());
         this.couponAmount   = totalCouponPrice;
-        this.totalAmount    = BigDecimal.valueOf(totalOriginPrice);
+        this.totalAmount    = BigDecimal.valueOf(totalPrice);
         this.orderDate      = LocalDateTime.now();
         this.memberName     = this.member.getName();
         this.memberId       = this.member.getMemberId();

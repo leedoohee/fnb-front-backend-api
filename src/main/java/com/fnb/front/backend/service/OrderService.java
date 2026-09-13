@@ -38,7 +38,7 @@ public class OrderService {
         List<Product> product         = this.createProduct(orderRequest.getOrderProductRequests());
         List<Coupon> coupons          = this.createOrderCoupon(orderRequest);
         List<ProductOption> options   = this.createOptions(orderRequest.getOrderProductRequests());
-        OrderProcessor orderProcessor = new OrderProcessor(member, order, product, options, coupons, new OrderValidator());
+        OrderProcessor orderProcessor = new OrderProcessor(member, order, product, options, coupons, new OrderValidator(), orderRequest);
 
         orderProcessor.buildOrder();
 
@@ -79,11 +79,7 @@ public class OrderService {
                 .collect(Collectors.toMap(Product::getProductId, p -> p));
 
         return orderProductRequests.stream()
-                .map(request -> {
-                    Product product = productMap.get(request.getProductId());
-                    product.prepareOrder(request.getProductOptionIds(), request.getQuantity());
-                    return product;
-                })
+                .map(request -> productMap.get(request.getProductId()))
                 .toList();
     }
 

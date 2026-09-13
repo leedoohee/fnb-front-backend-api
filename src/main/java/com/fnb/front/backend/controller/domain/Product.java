@@ -102,13 +102,6 @@ public class Product {
 
     }
 
-    public void prepareOrder(List<Integer> optionIds, int quantity) {
-        this.quantity = quantity;
-        this.productOption = optionIds.stream()
-                .map(optionId -> ProductOption.builder().productOptionId(optionId).build())
-                .toList();
-    }
-
     public boolean isAvailablePurchase() {
         return this.status.equalsIgnoreCase("available");
     }
@@ -125,8 +118,12 @@ public class Product {
         return this.maxQuantity < this.quantity ;
     }
 
-    public boolean isInfiniteQty() {
+    public boolean isInfiniteQuantity() {
         return this.isInfiniteQty > 0;
+    }
+
+    public boolean isOrderableQuantity(Integer orderQuantity) {
+        return orderQuantity <= this.quantity;
     }
 
     public boolean inMemberShipDiscount(Member member) {
