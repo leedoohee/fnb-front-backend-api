@@ -58,8 +58,6 @@ flowchart TD
 | `OrderProcessor` | 주문 상품 구성과 원가·옵션·쿠폰·회원 등급 할인 계산 |
 | `OrderValidator` | 회원, 포인트, 쿠폰, 상품, 옵션, 주문 수량 검증 |
 
-`OrderService → PaymentApplicationService` 역방향 의존을 제거해 주문 서비스와 결제 서비스의 직접 순환참조를 끊었습니다. 서비스 간 전달 객체도 Spring Event 상속 없이 일반 Command 객체로 사용합니다.
-
 ## 주문 처리 흐름
 
 ```mermaid
