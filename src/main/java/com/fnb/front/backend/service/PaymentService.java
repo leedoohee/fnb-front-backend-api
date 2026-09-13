@@ -1,29 +1,9 @@
 package com.fnb.front.backend.service;
 
 import com.fnb.front.backend.controller.domain.*;
-import com.fnb.front.backend.controller.domain.event.*;
-import com.fnb.front.backend.controller.domain.processor.PaymentProcessor;
-import com.fnb.front.backend.controller.domain.response.ApprovePaymentResponse;
-import com.fnb.front.backend.controller.dto.KakaoPayCancelDto;
-import com.fnb.front.backend.controller.dto.CancelPayDto;
-import com.fnb.front.backend.controller.domain.response.RequestPaymentResponse;
-import com.fnb.front.backend.controller.dto.KakaoPayApproveDto;
-import com.fnb.front.backend.controller.domain.request.RequestPayment;
-import com.fnb.front.backend.controller.dto.RequestCancelPayDto;
 import com.fnb.front.backend.repository.*;
-import com.fnb.front.backend.util.PayType;
-import com.fnb.front.backend.util.PaymentStatus;
 import lombok.RequiredArgsConstructor;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.event.TransactionPhase;
-import org.springframework.transaction.event.TransactionalEventListener;
-
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor

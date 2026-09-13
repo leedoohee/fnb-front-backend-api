@@ -1,15 +1,15 @@
-package com.fnb.front.backend.controller.domain.event;
+package com.fnb.front.backend.controller.domain.command;
 
 import lombok.Builder;
 import lombok.Getter;
 import org.springframework.context.ApplicationEvent;
 
 @Getter
-public class RequestCancelEvent extends ApplicationEvent {
+public class RequestCancelCommand extends ApplicationEvent {
     private final String orderId;
 
     @Builder
-    public RequestCancelEvent(Object source, String orderId) {
+    public RequestCancelCommand(Object source, String orderId) {
         super(source);
         this.orderId = orderId;
     }

@@ -1,7 +1,7 @@
 package com.fnb.front.backend.service;
 
 import com.fnb.front.backend.controller.domain.*;
-import com.fnb.front.backend.controller.domain.event.*;
+import com.fnb.front.backend.controller.domain.command.*;
 import com.fnb.front.backend.controller.domain.processor.PaymentProcessor;
 import com.fnb.front.backend.controller.domain.request.RequestPayment;
 import com.fnb.front.backend.controller.domain.response.ApprovePaymentResponse;
@@ -10,14 +10,10 @@ import com.fnb.front.backend.controller.dto.CancelPayDto;
 import com.fnb.front.backend.controller.dto.KakaoPayApproveDto;
 import com.fnb.front.backend.controller.dto.KakaoPayCancelDto;
 import com.fnb.front.backend.controller.dto.RequestCancelPayDto;
-import com.fnb.front.backend.repository.PaymentRepository;
 import com.fnb.front.backend.util.PayType;
 import com.fnb.front.backend.util.PaymentStatus;
 import lombok.RequiredArgsConstructor;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.event.TransactionPhase;
-import org.springframework.transaction.event.TransactionalEventListener;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -48,12 +44,19 @@ public class PaymentApplicationService {
 
         Order order = this.orderService.findOrder(response.getOrderId());
 
-        this.paymentCompleteService.handlePaymentApprove(PaymentApproveEvent
-                                        .builder()
-                                        .payType(PayType.KAKAO.getValue())
-                                        .order(order)
-                                        .response(response)
-                                        .build());
+        try {
+            this.paymentCompleteService.handlePaymentApprove(PaymentApproveCommand
+                    .builder()
+                    .payType(PayType.KAKAO.getValue())
+                    .order(order)
+                    .response(response)
+                    .build());
+
+        } catch (Exception completionException) {
+            this.cancel(PayType.KAKAO.getValue(), response.getTransactionId(), response.getTotalAmount(), response.getTaxFree());
+
+            throw completionException;
+        }
     }
 
     //TODO 카카오는 실패시 , 콜백url로 온다. 콜백 함수 처리 필요.
@@ -66,7 +69,7 @@ public class PaymentApplicationService {
         Payment payment = this.paymentService.findPayment(paymentElement.getPaymentId());
         Order order     = this.orderService.findOrder(payment.getOrderId());
 
-        this.paymentCompleteService.handlePaymentCancel(AfterPaymentCancelEvent
+        this.paymentCompleteService.handlePaymentCancel(AfterPaymentCancelCommand
                 .builder()
                 .cancelPayDto(CancelPayDto.builder()
                                 .approvalId(Objects.requireNonNull(response).getAid())
@@ -95,7 +98,7 @@ public class PaymentApplicationService {
                 .transactionId(transactionId).build());
     }
 
-    public void handleRequestCancel(RequestCancelEvent event) {
+    public void handleRequestCancel(RequestCancelCommand event) {
         Payment payment = this.paymentService.findPayment(event.getOrderId());
         Order order     = this.orderService.findOrder(event.getOrderId());
 
@@ -121,7 +124,7 @@ public class PaymentApplicationService {
             }
         }
 
-        this.paymentCompleteService.handlePaymentCancel(AfterPaymentCancelEvent
+        this.paymentCompleteService.handlePaymentCancel(AfterPaymentCancelCommand
                 .builder()
                 .cancelPayDto(null)
                 .order(order)
@@ -129,8 +132,8 @@ public class PaymentApplicationService {
                 .build());
     }
 
-    public void handleRequestPayment(RequestPaymentEvent event) {
-        this.paymentCompleteService.handlePaymentApprove(PaymentApproveEvent
+    public void handleRequestPayment(RequestPaymentCommand event) {
+        this.paymentCompleteService.handlePaymentApprove(PaymentApproveCommand
                 .builder()
                 .payType(null)
                 .order(event.getOrder())

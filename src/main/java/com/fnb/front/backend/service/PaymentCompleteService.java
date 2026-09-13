@@ -1,9 +1,8 @@
 package com.fnb.front.backend.service;
 
 import com.fnb.front.backend.controller.domain.*;
-import com.fnb.front.backend.controller.domain.event.AfterPaymentCancelEvent;
-import com.fnb.front.backend.controller.domain.event.PaymentApproveEvent;
-import com.fnb.front.backend.controller.domain.event.PaymentCancelEvent;
+import com.fnb.front.backend.controller.domain.command.AfterPaymentCancelCommand;
+import com.fnb.front.backend.controller.domain.command.PaymentApproveCommand;
 import com.fnb.front.backend.util.*;
 import com.fnb.front.backend.util.PaymentStatus;
 import lombok.RequiredArgsConstructor;
@@ -27,106 +26,89 @@ public class PaymentCompleteService {
 
     private final OrderService orderService;
 
-    private final ApplicationEventPublisher paymentCancelEvent;
-
     @Transactional
-    public void handlePaymentApprove(PaymentApproveEvent event) {
-        int couponAmount      = event.getOrder().getCouponAmount();
-        int pointAmount       = event.getOrder().getUsePoint().intValue();
+    public void handlePaymentApprove(PaymentApproveCommand command) {
+        int couponAmount      = command.getOrder().getCouponAmount();
+        int pointAmount       = command.getOrder().getUsePoint().intValue();
 
-        try {
-            boolean productResult = this.productService.minusQuantity(event.getOrder().getOrderProducts());
-            boolean couponResult  = this.couponService.subtractCoupon(event.getOrder(), event.getOrder().getMember());
-            boolean pointResult   = this.pointService.givePoint(event.getOrder(), event.getOrder().getMember());
+        boolean productResult = this.productService.minusQuantity(command.getOrder().getOrderProducts());
+        boolean couponResult  = this.couponService.subtractCoupon(command.getOrder(), command.getOrder().getMember());
+        boolean pointResult   = this.pointService.givePoint(command.getOrder(), command.getOrder().getMember());
 
-            if (!productResult) {
-                throw new IllegalStateException("재고 차감 과정에서 오류가 발생하였습니다.");
-            }
-
-            if (!couponResult) {
-                throw new IllegalStateException("쿠폰 차감 과정에서 오류가 발생하였습니다.");
-            }
-
-            if (!pointResult) {
-                throw new IllegalStateException("포인트 적립 과정에서 오류가 발생하였습니다.");
-            }
-
-            //TODO 금액 비교 로직
-            int paymentId = this.paymentService.insertPayment(Payment.builder()
-                    .paymentAt(LocalDateTime.now())
-                    .paymentType(event.getPayType())
-                    .paymentStatus(PaymentStatus.APPROVE.getValue())
-                    .totalAmount(event.getOrder().getTotalAmount())
-                    .orderId(event.getOrder().getOrderId())
-                    .build());
-
-            if (couponAmount > 0) {
-                this.paymentService.insertPaymentElement(PaymentElement.builder()
-                        .paymentMethod(PaymentMethod.COUPON.getValue())
-                        .amount(BigDecimal.valueOf(couponAmount))
-                        .paymentId(paymentId)
-                        .build());
-            }
-
-            if (pointAmount > 0) {
-                this.paymentService.insertPaymentElement(PaymentElement.builder()
-                        .paymentMethod(PaymentMethod.POINT.getValue())
-                        .amount(BigDecimal.valueOf(pointAmount))
-                        .paymentId(paymentId)
-                        .build());
-            }
-
-            if(event.getResponse() != null) {
-                String cardNumber = "N/A";
-                String emptyField = null;
-
-                this.paymentService.insertPaymentElement(PaymentElement.builder()
-                        .paymentStatus(PaymentStatus.APPROVE.getValue())
-                        .paymentId(paymentId)
-                        .paymentMethod(event.getResponse().getPaymentMethod()) // TODO 오는 값에 따라 분기처리
-                        .transactionId(event.getResponse().getTransactionId())
-                        .amount(event.getResponse().getTotalAmount())
-                        .taxFree(event.getResponse().getTaxFree())
-                        .vat(event.getResponse().getVat())
-                        .approvedAt(event.getResponse().getApprovedAt())
-                        .cardType(event.getResponse().getCardType())
-                        .cardNumber(cardNumber)
-                        .install(event.getResponse().getInstall())
-                        .isFreeInstall(event.getResponse().getIsFreeInstall())
-                        .installType(event.getResponse().getInstallType())
-                        .cardCorp(event.getResponse().getCardCorp())
-                        .cardCorpCode(event.getResponse().getCardCorpCode())
-                        .binNumber(event.getResponse().getBinNumber())
-                        .issuer(event.getResponse().getIssuer())
-                        .issuerCode(event.getResponse().getIssuerCode())
-                        .bankName(emptyField)
-                        .accountNumber(emptyField)
-                        .accountType(emptyField)
-                        .createdAt(LocalDateTime.now())
-                        .updatedAt(LocalDateTime.now())
-                        .build());
-            }
-
-            this.orderService.updateStatus(event.getOrder().getOrderId(), OrderStatus.ORDERED.getValue());
-            //TODO 장바구니는 지우는게 맞나? DELYN 처리로 남겨두는게 맞나?
-
-        } catch (Exception e) {
-            //exception
-            if (event.getResponse() != null) {
-                this.paymentCancelEvent.publishEvent(PaymentCancelEvent.builder()
-                        .transactionId(event.getResponse().getTransactionId())
-                        .payType(event.getPayType())
-                        .cancelAmount(event.getResponse().getTotalAmount())
-                        .cancelTaxFreeAmount(event.getResponse().getTaxFree())
-                        .build());
-
-                throw new RuntimeException("결제 처리과정에서 오류가 발생하였습니다.", e);
-            }
+        if (!productResult) {
+            throw new IllegalStateException("재고 차감 과정에서 오류가 발생하였습니다.");
         }
+
+        if (!couponResult) {
+            throw new IllegalStateException("쿠폰 차감 과정에서 오류가 발생하였습니다.");
+        }
+
+        if (!pointResult) {
+            throw new IllegalStateException("포인트 적립 과정에서 오류가 발생하였습니다.");
+        }
+
+        //TODO 금액 비교 로직
+        int paymentId = this.paymentService.insertPayment(Payment.builder()
+                .paymentAt(LocalDateTime.now())
+                .paymentType(command.getPayType())
+                .paymentStatus(PaymentStatus.APPROVE.getValue())
+                .totalAmount(command.getOrder().getTotalAmount())
+                .orderId(command.getOrder().getOrderId())
+                .build());
+
+        if (couponAmount > 0) {
+            this.paymentService.insertPaymentElement(PaymentElement.builder()
+                    .paymentMethod(PaymentMethod.COUPON.getValue())
+                    .amount(BigDecimal.valueOf(couponAmount))
+                    .paymentId(paymentId)
+                    .build());
+        }
+
+        if (pointAmount > 0) {
+            this.paymentService.insertPaymentElement(PaymentElement.builder()
+                    .paymentMethod(PaymentMethod.POINT.getValue())
+                    .amount(BigDecimal.valueOf(pointAmount))
+                    .paymentId(paymentId)
+                    .build());
+        }
+
+        if(command.getResponse() != null) {
+            String cardNumber = "N/A";
+            String emptyField = null;
+
+            this.paymentService.insertPaymentElement(PaymentElement.builder()
+                    .paymentStatus(PaymentStatus.APPROVE.getValue())
+                    .paymentId(paymentId)
+                    .paymentMethod(command.getResponse().getPaymentMethod()) // TODO 오는 값에 따라 분기처리
+                    .transactionId(command.getResponse().getTransactionId())
+                    .amount(command.getResponse().getTotalAmount())
+                    .taxFree(command.getResponse().getTaxFree())
+                    .vat(command.getResponse().getVat())
+                    .approvedAt(command.getResponse().getApprovedAt())
+                    .cardType(command.getResponse().getCardType())
+                    .cardNumber(cardNumber)
+                    .install(command.getResponse().getInstall())
+                    .isFreeInstall(command.getResponse().getIsFreeInstall())
+                    .installType(command.getResponse().getInstallType())
+                    .cardCorp(command.getResponse().getCardCorp())
+                    .cardCorpCode(command.getResponse().getCardCorpCode())
+                    .binNumber(command.getResponse().getBinNumber())
+                    .issuer(command.getResponse().getIssuer())
+                    .issuerCode(command.getResponse().getIssuerCode())
+                    .bankName(emptyField)
+                    .accountNumber(emptyField)
+                    .accountType(emptyField)
+                    .createdAt(LocalDateTime.now())
+                    .updatedAt(LocalDateTime.now())
+                    .build());
+        }
+
+        this.orderService.updateStatus(command.getOrder().getOrderId(), OrderStatus.ORDERED.getValue());
+        //TODO 장바구니는 지우는게 맞나? DELYN 처리로 남겨두는게 맞나?
     }
 
     @Transactional
-    public void handlePaymentCancel(AfterPaymentCancelEvent event) {
+    public void handlePaymentCancel(AfterPaymentCancelCommand event) {
         List<PaymentElement> mustBeReturnedElements = event.getPayment().getPaymentElements().stream()
                 .filter(paymentElement ->
                         paymentElement.getPaymentMethod().contains(PaymentMethod.COUPON.getValue()) ||

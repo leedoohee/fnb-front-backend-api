@@ -1,8 +1,7 @@
 package com.fnb.front.backend.service;
 
 import com.fnb.front.backend.controller.domain.*;
-import com.fnb.front.backend.controller.domain.event.RequestCancelEvent;
-import com.fnb.front.backend.controller.domain.event.RequestPaymentEvent;
+import com.fnb.front.backend.controller.domain.command.RequestCancelCommand;
 import com.fnb.front.backend.controller.domain.response.OrderResponse;
 import com.fnb.front.backend.controller.domain.validator.OrderValidator;
 import com.fnb.front.backend.repository.*;
@@ -49,17 +48,11 @@ public class OrderService {
         this.insertOrder(order);
         this.insertOrderProducts(order.getOrderProducts());
 
-        if (order.getTotalAmount().compareTo(BigDecimal.ZERO) > 0) {
-            //결제 금액 0원이면
-            this.paymentApplicationService.handleRequestPayment(RequestPaymentEvent.builder()
-                    .order(this.findOrder(order.getOrderId())).build());
-        }
-
         return this.makePaymentResponse(order);
     }
 
     public void cancel(String orderId) {
-        this.paymentApplicationService.handleRequestCancel(RequestCancelEvent.builder()
+        this.paymentApplicationService.handleRequestCancel(RequestCancelCommand.builder()
                 .orderId(orderId).build());
     }
 
