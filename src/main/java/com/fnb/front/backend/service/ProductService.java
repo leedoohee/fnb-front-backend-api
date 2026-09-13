@@ -95,7 +95,7 @@ public class ProductService {
             throw new IllegalArgumentException("재고의 수는 0 이상이어야 합니다.");
         }
 
-        if (product.isInfiniteQty()) {
+        if (product.isInfiniteQuantity()) {
             return true;
         }
 
@@ -109,7 +109,7 @@ public class ProductService {
     public boolean minusQuantity(List<OrderProduct> orderProducts) {
 
         for (OrderProduct orderProduct : orderProducts) {
-            if(orderProduct.getProduct() != null && orderProduct.getProduct().isInfiniteQty()) {
+            if(orderProduct.getProduct() != null && orderProduct.getProduct().isInfiniteQuantity()) {
                 continue;
             }
 

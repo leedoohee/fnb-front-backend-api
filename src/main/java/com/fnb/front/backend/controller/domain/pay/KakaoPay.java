@@ -124,7 +124,7 @@ public class KakaoPay implements IPay {
                 .cid("kakao")
                 .tid(cancelPaymentDto.getTransactionId())
                 .cancel_amount(cancelPaymentDto.getCancelAmount())
-                .cancel_tax_free_amount(cancelPaymentDto.getCancelAmount())
+                .cancel_tax_free_amount(cancelPaymentDto.getCancelTaxFreeAmount())
                 .build();
 
         HttpHeaders headers = new HttpHeaders();

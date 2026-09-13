@@ -110,12 +110,12 @@ public class Product {
         return this.isAvailableCoupon == 1;
     }
 
-    public boolean isLessMinPurchaseQuantity() {
-        return quantity < this.minQuantity;
+    public boolean isLessMinPurchaseQuantity(Integer orderQuantity) {
+        return orderQuantity < this.minQuantity;
     }
 
-    public boolean isOverMaxPurchaseQuantity() {
-        return this.maxQuantity < this.quantity ;
+    public boolean isOverMaxPurchaseQuantity(Integer orderQuantity) {
+        return this.maxQuantity < orderQuantity ;
     }
 
     public boolean isInfiniteQuantity() {

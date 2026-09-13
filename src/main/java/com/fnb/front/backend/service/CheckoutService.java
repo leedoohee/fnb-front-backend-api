@@ -20,7 +20,7 @@ public class CheckoutService {
 
         OrderResponse response = this.orderService.create(request);
 
-        if (response.getPurchasePrice().compareTo(BigDecimal.ZERO) > 0) {
+        if (response.getPurchasePrice().compareTo(BigDecimal.ZERO) == 0) {
             //결제 금액 0원이면
             this.paymentApplicationService.handleRequestPayment(RequestPaymentCommand.builder()
                     .order(this.orderService.findOrder(response.getOrderId())).build());

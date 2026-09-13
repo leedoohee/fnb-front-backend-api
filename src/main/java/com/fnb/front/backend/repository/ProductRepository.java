@@ -27,7 +27,7 @@ public class ProductRepository {
         root.fetch("productOption", JoinType.LEFT);
 
         cq = cq.select(root)
-                .where(cb.and(cb.equal(root.get("id"), productId)))
+                .where(cb.and(cb.equal(root.get("productId"), productId)))
                 .distinct(true);
 
         TypedQuery<Product> typedQuery = this.em.createQuery(cq);
@@ -41,7 +41,7 @@ public class ProductRepository {
         CriteriaQuery<Product> cq    = cb.createQuery(Product.class);
         Root<Product> root           = cq.from(Product.class);
 
-        root.fetch("productAttachFile", JoinType.INNER);
+        root.fetch("productAttachFiles", JoinType.INNER);
 
         cq = cq.select(root)
                 .where(cb.and(cb.equal(root.get("status"), status)))

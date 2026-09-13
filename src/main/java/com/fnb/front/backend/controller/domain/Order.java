@@ -81,7 +81,7 @@ public class Order {
                 .map(orderProduct -> orderProduct.getPaymentAmount().intValue())
                 .mapToInt(Integer::intValue).sum();
 
-        int totalPrice = totalOriginPrice - discountPrice - totalCouponPrice - this.usePoint.intValue();
+        int totalPrice = totalOriginPrice - discountPrice - this.usePoint.intValue();
 
         this.orderId        = orderId;
         this.orderStatus    = OrderStatus.TEMP.getValue();

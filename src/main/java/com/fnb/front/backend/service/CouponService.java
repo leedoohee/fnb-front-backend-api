@@ -100,7 +100,7 @@ public class CouponService {
                 return false;
             }
 
-            this.couponRepository.updateUsedMemberCoupon(member.getMemberId(), couponId, Used.NOTUSED.getValue());
+            this.couponRepository.updateUsedMemberCoupon(member.getMemberId(), couponId, Used.USED.getValue());
         }
 
         return true;

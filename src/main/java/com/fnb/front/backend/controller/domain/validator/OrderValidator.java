@@ -88,15 +88,15 @@ public class OrderValidator {
                 return false;
             }
 
-            if (product.isLessMinPurchaseQuantity()) {
+            if (product.isLessMinPurchaseQuantity(this.getOrderProductQuantity(product, orderProductRequests))) {
                 return false;
             }
 
-            if (product.isOverMaxPurchaseQuantity()) {
+            if (product.isOverMaxPurchaseQuantity(this.getOrderProductQuantity(product, orderProductRequests))) {
                 return false;
             }
 
-            if (product.isOrderableQuantity(this.getOrderProductQuantity(product, orderProductRequests))) {
+            if (!product.isOrderableQuantity(this.getOrderProductQuantity(product, orderProductRequests))) {
                 return false;
             }
         }
