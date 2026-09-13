@@ -9,15 +9,14 @@ import com.fnb.front.backend.util.PaymentStatus;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.event.TransactionalEventListener;
-
+import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class AfterPaymentService {
+public class PaymentCompleteService {
     private final PaymentService paymentService;
 
     private final ProductService productService;
@@ -30,8 +29,8 @@ public class AfterPaymentService {
 
     private final ApplicationEventPublisher paymentCancelEvent;
 
-    @TransactionalEventListener
-    public void handlePaymentApproveEvent(PaymentApproveEvent event) {
+    @Transactional
+    public void handlePaymentApprove(PaymentApproveEvent event) {
         int couponAmount      = event.getOrder().getCouponAmount();
         int pointAmount       = event.getOrder().getUsePoint().intValue();
 
@@ -126,8 +125,8 @@ public class AfterPaymentService {
         }
     }
 
-    @TransactionalEventListener
-    public void handlePaymentCancelEvent(AfterPaymentCancelEvent event) {
+    @Transactional
+    public void handlePaymentCancel(AfterPaymentCancelEvent event) {
         List<PaymentElement> mustBeReturnedElements = event.getPayment().getPaymentElements().stream()
                 .filter(paymentElement ->
                         paymentElement.getPaymentMethod().contains(PaymentMethod.COUPON.getValue()) ||

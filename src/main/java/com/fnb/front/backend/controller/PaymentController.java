@@ -1,6 +1,7 @@
 package com.fnb.front.backend.controller;
 
 import com.fnb.front.backend.controller.dto.KakaoPayCancelDto;
+import com.fnb.front.backend.service.PaymentApplicationService;
 import com.fnb.front.backend.service.PaymentService;
 import com.fnb.front.backend.controller.domain.response.RequestPaymentResponse;
 import com.fnb.front.backend.controller.dto.KakaoPayApproveDto;
@@ -15,23 +16,23 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class PaymentController {
 
-    private final PaymentService paymentService;
+    private final PaymentApplicationService paymentApplicationService;
 
     //카카오 페이 및 pg 전용
     @PostMapping("/payment/request")
     public ResponseEntity<RequestPaymentResponse> request(@RequestBody RequestPayment requestPayment) {
-        return ResponseEntity.ok(this.paymentService.request(requestPayment));
+        return ResponseEntity.ok(this.paymentApplicationService.request(requestPayment));
     }
 
     @PostMapping("/payment/kakao/approve")
     public ResponseEntity<Boolean> approveKakao(@RequestBody KakaoPayApproveDto kakaoPaymentApproveDto) {
-        this.paymentService.approveKakaoResult(kakaoPaymentApproveDto);
+        this.paymentApplicationService.approveKakaoResult(kakaoPaymentApproveDto);
         return ResponseEntity.ok(true);
     }
 
     @PostMapping("/payment/kakao/cancel")
     public ResponseEntity<Boolean> cancelKakao(@RequestBody KakaoPayCancelDto response) {
-        this.paymentService.cancelKakaoResult(response);
+        this.paymentApplicationService.cancelKakaoResult(response);
         return ResponseEntity.ok(true);
     }
 }

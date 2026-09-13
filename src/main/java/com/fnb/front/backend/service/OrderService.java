@@ -12,7 +12,6 @@ import com.fnb.front.backend.controller.domain.request.OrderProductRequest;
 import com.fnb.front.backend.controller.domain.request.OrderRequest;
 import com.fnb.front.backend.util.Used;
 import lombok.RequiredArgsConstructor;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -34,9 +33,7 @@ public class OrderService {
 
     private final OrderRepository orderRepository;
 
-    private final ApplicationEventPublisher requestCancelEvent;
-
-    private final ApplicationEventPublisher processOrderEvent;
+    private final PaymentApplicationService paymentApplicationService;
 
     @Transactional
     public OrderResponse create(OrderRequest orderRequest) {
@@ -54,15 +51,15 @@ public class OrderService {
 
         if (order.getTotalAmount().compareTo(BigDecimal.ZERO) > 0) {
             //결제 금액 0원이면
-            this.processOrderEvent.publishEvent(RequestPaymentEvent.builder()
-                    .order(this.findOrder(order.getOrderId())));
+            this.paymentApplicationService.handleRequestPayment(RequestPaymentEvent.builder()
+                    .order(this.findOrder(order.getOrderId())).build());
         }
 
         return this.makePaymentResponse(order);
     }
 
     public void cancel(String orderId) {
-        this.requestCancelEvent.publishEvent(RequestCancelEvent.builder()
+        this.paymentApplicationService.handleRequestCancel(RequestCancelEvent.builder()
                 .orderId(orderId).build());
     }
 
