@@ -67,6 +67,8 @@ public class Order {
     }
 
     public void build(List<OrderProduct> orderProducts, String orderId, Member member) {
+        this.member = member;
+
         int totalCouponPrice = orderProducts.stream()
                 .map(orderProduct -> orderProduct.getCouponAmount().intValue())
                 .mapToInt(Integer::intValue).sum();

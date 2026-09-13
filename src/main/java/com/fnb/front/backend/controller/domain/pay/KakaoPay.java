@@ -21,6 +21,7 @@ public class KakaoPay implements IPay {
     private final String SECRET_KEY = "YOUR_SECRET_KEY"; // Replace with your actual key
     private final String REQUEST_API_URL = "https://open-api.kakaopay.com/online/v1/payment/ready";
     private final String APPROVE_API_URL = "https://open-api.kakaopay.com/online/v1/payment/approve";
+    private final String CANCEL_API_URL  = "https://open-api.kakaopay.com/online/v1/payment/cancel";
 
     @Override
     public RequestPaymentResponse request(RequestPayment requestPayment) {
@@ -133,7 +134,7 @@ public class KakaoPay implements IPay {
         HttpEntity<KakaoPayCancelRequest> httpEntity = new HttpEntity<>(requestBody, headers);
 
         try {
-            restTemplate.postForObject(APPROVE_API_URL, httpEntity, KakaoPayCancelDto.class);
+            restTemplate.postForObject(CANCEL_API_URL, httpEntity, KakaoPayCancelDto.class);
         } catch (Exception e) {
             return false;
         }

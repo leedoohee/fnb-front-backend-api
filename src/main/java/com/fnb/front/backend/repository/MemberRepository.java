@@ -139,7 +139,7 @@ public class MemberRepository {
         Root<Member> root = update.from(Member.class);
 
         Expression<Integer> currentPoints = root.get("points");
-        Expression<Integer> newPoints     = cb.mod(currentPoints, point);
+        Expression<Integer> newPoints     = cb.diff(currentPoints, point);
 
         update.set("points", newPoints);
 

@@ -29,7 +29,9 @@ public class OrderRepository {
 
     @Transactional
     public void insertOrderProducts(List<OrderProduct> orderProducts) {
-        this.em.persist(orderProducts);
+        for (OrderProduct orderProduct : orderProducts) {
+            em.persist(orderProduct);
+        }
     }
 
     public void updateOrderStatus(String orderId, String status) {
@@ -38,7 +40,7 @@ public class OrderRepository {
         CriteriaUpdate<Order> update = cb.createCriteriaUpdate(Order.class);
         Root<Order> root = update.from(Order.class);
 
-        update.set("status", status);
+        update.set("orderStatus", status);
         update.where(cb.and(cb.equal(root.get("orderId"), orderId)));
 
         this.em.createQuery(update).executeUpdate();

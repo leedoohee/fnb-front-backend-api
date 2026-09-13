@@ -8,14 +8,13 @@ import lombok.Getter;
 import org.springframework.context.ApplicationEvent;
 
 @Getter
-public class AfterPaymentCancelCommand extends ApplicationEvent {
+public class AfterPaymentCancelCommand {
     private final CancelPayDto cancelPayDto;
     private final Order order;
     private final Payment payment;
 
     @Builder
-    public AfterPaymentCancelCommand(Object source, CancelPayDto cancelPayDto, Order order, Payment payment) {
-        super(source);
+    public AfterPaymentCancelCommand(CancelPayDto cancelPayDto, Order order, Payment payment) {
         this.cancelPayDto = cancelPayDto;
         this.order = order;
         this.payment = payment;

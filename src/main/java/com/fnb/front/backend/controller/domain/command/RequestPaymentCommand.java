@@ -6,12 +6,11 @@ import lombok.Getter;
 import org.springframework.context.ApplicationEvent;
 
 @Getter
-public class RequestPaymentCommand extends ApplicationEvent {
+public class RequestPaymentCommand {
     private final Order order;
 
     @Builder
-    public RequestPaymentCommand(Order source, Order order) {
-        super(source);
+    public RequestPaymentCommand(Order order) {
         this.order = order;
     }
 }

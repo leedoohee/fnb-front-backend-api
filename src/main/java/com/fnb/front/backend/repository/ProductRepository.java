@@ -110,7 +110,7 @@ public class ProductRepository {
         Root<Product> root = update.from(Product.class);
 
         Expression<Integer> currentQuantity = root.get("quantity");
-        Expression<Integer> newQuantity     = cb.mod(currentQuantity, quantity);
+        Expression<Integer> newQuantity     = cb.sum(currentQuantity, quantity);
 
         update.set("quantity", newQuantity);
         update.where(cb.and(cb.equal(root.get("productId"), productId)));

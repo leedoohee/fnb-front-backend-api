@@ -7,14 +7,13 @@ import lombok.Getter;
 import org.springframework.context.ApplicationEvent;
 
 @Getter
-public class PaymentApproveCommand extends ApplicationEvent {
+public class PaymentApproveCommand {
     private final String payType;
     private final Order order;
     private final ApprovePaymentResponse response;
 
     @Builder
-    public PaymentApproveCommand(Object source, String payType, Order order, ApprovePaymentResponse response) {
-        super(source);
+    public PaymentApproveCommand(String payType, Order order, ApprovePaymentResponse response) {
         this.payType = payType;
         this.order = order;
         this.response = response;
