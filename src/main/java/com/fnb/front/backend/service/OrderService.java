@@ -1,7 +1,6 @@
 package com.fnb.front.backend.service;
 
 import com.fnb.front.backend.controller.domain.*;
-import com.fnb.front.backend.controller.domain.command.RequestCancelCommand;
 import com.fnb.front.backend.controller.domain.response.OrderResponse;
 import com.fnb.front.backend.controller.domain.validator.OrderValidator;
 import com.fnb.front.backend.repository.*;
@@ -32,8 +31,6 @@ public class OrderService {
 
     private final OrderRepository orderRepository;
 
-    private final PaymentApplicationService paymentApplicationService;
-
     @Transactional
     public OrderResponse create(OrderRequest orderRequest) {
         Order order                   = this.createOrder(orderRequest);
@@ -49,11 +46,6 @@ public class OrderService {
         this.insertOrderProducts(order.getOrderProducts());
 
         return this.makePaymentResponse(order);
-    }
-
-    public void cancel(String orderId) {
-        this.paymentApplicationService.handleRequestCancel(RequestCancelCommand.builder()
-                .orderId(orderId).build());
     }
 
     public Order findOrder(String orderId) {
