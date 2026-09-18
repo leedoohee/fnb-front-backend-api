@@ -27,12 +27,13 @@ public class PaymentCompleteService {
 
     @Transactional
     public void handlePaymentApprove(PaymentApproveCommand command) {
-        int couponAmount      = command.getOrder().getCouponAmount();
-        int pointAmount       = command.getOrder().getUsePoint().intValue();
+        Order order           = this.orderService.findOrder(command.getOrderId());
+        int couponAmount      = order.getCouponAmount();
+        int pointAmount       = order.getUsePoint().intValue();
 
-        boolean productResult = this.productService.minusQuantity(command.getOrder().getOrderProducts());
-        boolean couponResult  = this.couponService.subtractCoupon(command.getOrder(), command.getOrder().getMember());
-        boolean pointResult   = this.pointService.givePoint(command.getOrder(), command.getOrder().getMember());
+        boolean productResult = this.productService.minusQuantity(order.getOrderProducts());
+        boolean couponResult  = this.couponService.subtractCoupon(order, order.getMember());
+        boolean pointResult   = this.pointService.givePoint(order, order.getMember());
 
         if (!productResult) {
             throw new IllegalStateException("재고 차감 과정에서 오류가 발생하였습니다.");
@@ -51,8 +52,8 @@ public class PaymentCompleteService {
                 .paymentAt(LocalDateTime.now())
                 .paymentType(command.getPayType())
                 .paymentStatus(PaymentStatus.APPROVE.getValue())
-                .totalAmount(command.getOrder().getTotalAmount())
-                .orderId(command.getOrder().getOrderId())
+                .totalAmount(order.getTotalAmount())
+                .orderId(order.getOrderId())
                 .build());
 
         if (couponAmount > 0) {
@@ -102,48 +103,51 @@ public class PaymentCompleteService {
                     .build());
         }
 
-        this.orderService.updateStatus(command.getOrder().getOrderId(), OrderStatus.ORDERED.getValue());
+        this.orderService.updateStatus(order.getOrderId(), OrderStatus.ORDERED.getValue());
         //TODO 장바구니는 지우는게 맞나? DELYN 처리로 남겨두는게 맞나?
     }
 
     @Transactional
-    public void handlePaymentCancel(AfterPaymentCancelCommand event) {
-        List<PaymentElement> mustBeReturnedElements = event.getPayment().getPaymentElements().stream()
-                .filter(paymentElement ->
-                        paymentElement.getPaymentMethod().contains(PaymentMethod.COUPON.getValue()) ||
-                                        paymentElement.getPaymentMethod().contains(PaymentMethod.POINT.getValue()))
+    public void handlePaymentCancel(AfterPaymentCancelCommand command) {
+        Order order     = this.orderService.findOrder(command.getOrderId());
+        Payment payment = this.paymentService.findPayment(command.getOrderId());
+
+        List<PaymentElement> mustBeReturnedPayTypes = payment.getPaymentElements().stream()
+                .filter(paymentType ->
+                        paymentType.getPaymentMethod().contains(PaymentMethod.COUPON.getValue()) ||
+                                paymentType.getPaymentMethod().contains(PaymentMethod.POINT.getValue()))
                 .toList();
 
-        this.pointService.returnPoint(event.getOrder(), event.getOrder().getMember());
-        this.productService.returnQuantity(event.getOrder().getOrderProducts());
-        this.couponService.returnCoupon(event.getOrder(), event.getOrder().getMember());
+        this.pointService.returnPoint(order, order.getMember());
+        this.productService.returnQuantity(order.getOrderProducts());
+        this.couponService.returnCoupon(order, order.getMember());
 
         int cancelId = this.paymentService.insertPaymentCancel(PaymentCancel.builder()
-                .cancelAmount(event.getPayment().getTotalAmount())
+                .cancelAmount(payment.getTotalAmount())
                 .cancelAt(LocalDateTime.now())
-                .orderId(event.getPayment().getOrderId())
+                .orderId(payment.getOrderId())
                 .build());
 
-        if (event.getCancelPayDto() != null) {
+        if (command.getCancelPayDto() != null) {
             this.paymentService.insertPaymentElement(PaymentElement.builder()
                     .paymentStatus(PaymentStatus.CANCEL.getValue())
                     .paymentId(cancelId)
-                    .transactionId(event.getCancelPayDto().getTransactionId())
-                    .amount(BigDecimal.valueOf(event.getCancelPayDto().getTotalAmount()))
-                    .taxFree(BigDecimal.valueOf(event.getCancelPayDto().getTaxFree()))
-                    .vat(BigDecimal.valueOf(event.getCancelPayDto().getVat()))
-                    .approvedAt(event.getCancelPayDto().getApprovedAt())
+                    .transactionId(command.getCancelPayDto().getTransactionId())
+                    .amount(BigDecimal.valueOf(command.getCancelPayDto().getTotalAmount()))
+                    .taxFree(BigDecimal.valueOf(command.getCancelPayDto().getTaxFree()))
+                    .vat(BigDecimal.valueOf(command.getCancelPayDto().getVat()))
+                    .approvedAt(command.getCancelPayDto().getApprovedAt())
                     .createdAt(LocalDateTime.now())
                     .updatedAt(LocalDateTime.now())
                     .build());
         }
 
-        for (PaymentElement paymentElement : mustBeReturnedElements) {
-            paymentElement.setPaymentStatus(PaymentStatus.CANCEL.getValue());
-            paymentElement.setPaymentElementId(0); //TODO 자동키 생성되는지 확인
-            this.paymentService.insertPaymentElement(paymentElement);
+        for (PaymentElement payType : mustBeReturnedPayTypes) {
+            payType.setPaymentStatus(PaymentStatus.CANCEL.getValue());
+            payType.setPaymentElementId(0); //TODO 자동키 생성되는지 확인
+            this.paymentService.insertPaymentElement(payType);
         }
 
-        this.orderService.updateStatus(event.getOrder().getOrderId(), OrderStatus.CANCELED.getValue());
+        this.orderService.updateStatus(order.getOrderId(), OrderStatus.CANCELED.getValue());
     }
 }

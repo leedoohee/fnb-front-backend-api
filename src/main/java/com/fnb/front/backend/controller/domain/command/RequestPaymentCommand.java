@@ -7,10 +7,10 @@ import org.springframework.context.ApplicationEvent;
 
 @Getter
 public class RequestPaymentCommand {
-    private final Order order;
+    private final String orderId;
 
     @Builder
-    public RequestPaymentCommand(Order order) {
-        this.order = order;
+    public RequestPaymentCommand(String orderId) {
+        this.orderId = orderId;
     }
 }

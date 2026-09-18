@@ -36,8 +36,8 @@ public class PaymentApplicationService {
     }
 
     public void approveKakaoResult(KakaoPayApproveDto kakaoPaymentApproveDto) {
-        PaymentProcessor paymentProcessor   = new PaymentProcessor(PayFactory.getPay(PayType.KAKAO.getValue()));
-        ApprovePaymentResponse response     = paymentProcessor.approve(kakaoPaymentApproveDto);
+        PaymentProcessor paymentProcessor = new PaymentProcessor(PayFactory.getPay(PayType.KAKAO.getValue()));
+        ApprovePaymentResponse response   = paymentProcessor.approve(kakaoPaymentApproveDto);
 
         if(response == null) {
             throw new RuntimeException("결제승인 과정에서 오류가 발생하였습니다.");
@@ -49,7 +49,7 @@ public class PaymentApplicationService {
             this.paymentCompleteService.handlePaymentApprove(PaymentApproveCommand
                     .builder()
                     .payType(PayType.KAKAO.getValue())
-                    .order(order)
+                    .orderId(response.getOrderId())
                     .response(response)
                     .build());
 
@@ -87,8 +87,8 @@ public class PaymentApplicationService {
                             .approvedAt(LocalDateTime.parse(response.getApprovedAt()))
                             .cancelAt(LocalDateTime.parse(response.getCancelAt()))
                             .build())
-                    .order(order)
-                    .payment(payment)
+                    .orderId(order.getOrderId())
+                    .paymentId(payment.getPaymentId())
                     .build());
         } catch (Exception e) {
             throw new RuntimeException("결제취소 과정에서 오류가 발생하였습니다.");
@@ -105,7 +105,6 @@ public class PaymentApplicationService {
 
     public void handleRequestCancel(RequestCancelCommand command) {
         Payment payment = this.paymentService.findPayment(command.getOrderId());
-        Order order     = this.orderService.findOrder(command.getOrderId());
 
         if (!payment.getPaymentStatus().equals(PaymentStatus.APPROVE.getValue())) {
             throw new RuntimeException("취소할 수 없는 주문상태입니다.");
@@ -132,8 +131,8 @@ public class PaymentApplicationService {
         this.paymentCompleteService.handlePaymentCancel(AfterPaymentCancelCommand
                 .builder()
                 .cancelPayDto(null)
-                .order(order)
-                .payment(payment)
+                .orderId(command.getOrderId())
+                .paymentId(payment.getPaymentId())
                 .build());
     }
 
@@ -141,7 +140,7 @@ public class PaymentApplicationService {
         this.paymentCompleteService.handlePaymentApprove(PaymentApproveCommand
                 .builder()
                 .payType(null)
-                .order(command.getOrder())
+                .orderId(command.getOrderId())
                 .response(null)
                 .build());
     }

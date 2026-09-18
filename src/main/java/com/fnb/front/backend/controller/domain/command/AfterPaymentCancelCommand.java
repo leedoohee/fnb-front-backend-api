@@ -10,13 +10,13 @@ import org.springframework.context.ApplicationEvent;
 @Getter
 public class AfterPaymentCancelCommand {
     private final CancelPayDto cancelPayDto;
-    private final Order order;
-    private final Payment payment;
+    private final String orderId;
+    private final int paymentId;
 
     @Builder
-    public AfterPaymentCancelCommand(CancelPayDto cancelPayDto, Order order, Payment payment) {
+    public AfterPaymentCancelCommand(CancelPayDto cancelPayDto, String orderId, int paymentId) {
         this.cancelPayDto = cancelPayDto;
-        this.order = order;
-        this.payment = payment;
+        this.orderId = orderId;
+        this.paymentId = paymentId;
     }
 }
