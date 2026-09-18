@@ -60,8 +60,6 @@ public class PaymentApplicationService {
         }
     }
 
-    //TODO 카카오는 실패시 , 콜백url로 온다. 콜백 함수 처리 필요.
-
     public void cancelKakaoResult(KakaoPayCancelDto response) {
         PaymentElement paymentElement   = this.paymentService.findPaymentElement(response.getTid());
 
