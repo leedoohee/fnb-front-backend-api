@@ -6,7 +6,6 @@ import com.fnb.front.backend.controller.domain.command.PaymentApproveCommand;
 import com.fnb.front.backend.util.*;
 import com.fnb.front.backend.util.PaymentStatus;
 import lombok.RequiredArgsConstructor;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
@@ -26,6 +25,7 @@ public class PaymentCompleteService {
 
     private final OrderService orderService;
 
+    @Transactional
     public void handlePaymentApprove(PaymentApproveCommand command) {
         int couponAmount      = command.getOrder().getCouponAmount();
         int pointAmount       = command.getOrder().getUsePoint().intValue();
@@ -106,6 +106,7 @@ public class PaymentCompleteService {
         //TODO 장바구니는 지우는게 맞나? DELYN 처리로 남겨두는게 맞나?
     }
 
+    @Transactional
     public void handlePaymentCancel(AfterPaymentCancelCommand event) {
         List<PaymentElement> mustBeReturnedElements = event.getPayment().getPaymentElements().stream()
                 .filter(paymentElement ->

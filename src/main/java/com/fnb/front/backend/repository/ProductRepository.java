@@ -90,16 +90,18 @@ public class ProductRepository {
 
     public void updateMinusQuantity(int productId, int quantity) {
         CriteriaBuilder cb = this.em.getCriteriaBuilder();
-
+        List<Predicate> searchConditions    = new ArrayList<>();
         CriteriaUpdate<Product> update = cb.createCriteriaUpdate(Product.class);
         Root<Product> root = update.from(Product.class);
 
         Expression<Integer> currentQuantity = root.get("quantity");
         Expression<Integer> newQuantity     = cb.diff(currentQuantity, quantity);
 
+        searchConditions.add(cb.equal(root.get("productId"), productId));
+        searchConditions.add(cb.greaterThanOrEqualTo(root.get("quantity"), quantity));
+
         update.set("quantity", newQuantity);
-        update.where(cb.and(cb.equal(root.get("productId"), productId)));
-        update.where(cb.and(cb.greaterThanOrEqualTo(root.get("quantity"), quantity)));
+        update.where(cb.and(searchConditions.toArray(new Predicate[0])));
 
         this.em.createQuery(update).executeUpdate();
     }
