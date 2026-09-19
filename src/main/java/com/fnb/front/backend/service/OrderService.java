@@ -129,6 +129,7 @@ public class OrderService {
         this.orderRepository.insertOrderProducts(orderProducts);
     }
 
+    @Transactional
     public void updateStatus(String orderId, String orderStatus) {
         this.orderRepository.updateOrderStatus(orderId, orderStatus);
     }
