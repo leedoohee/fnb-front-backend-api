@@ -47,7 +47,6 @@ public class PaymentCompleteService {
             throw new IllegalStateException("포인트 적립 과정에서 오류가 발생하였습니다.");
         }
 
-        //TODO 금액 비교 로직
         int paymentId = this.paymentService.insertPayment(Payment.builder()
                 .paymentAt(LocalDateTime.now())
                 .paymentType(command.getPayType())
