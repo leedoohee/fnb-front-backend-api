@@ -5,8 +5,9 @@ import lombok.Getter;
 @Getter
 public enum PaymentStatus {
     REQUEST("0"),
-    APPROVE("1"),
-    CANCEL("2");
+    APPROVING("1"),
+    APPROVE("2"),
+    CANCEL("3");
 
     private final String value;
 

@@ -43,7 +43,7 @@ public class PaymentRepository {
 
         Root<PaymentAttempt> root = update.from(PaymentAttempt.class);
 
-        update.set("status", PaymentStatus.APPROVE.getValue());
+        update.set("status", PaymentStatus.APPROVING.getValue());
 
         update.where(cb.equal(root.get("attemptKey"), attemptKey),
                     cb.equal(root.get("status"),PaymentStatus.REQUEST.getValue()));

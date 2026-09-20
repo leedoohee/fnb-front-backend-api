@@ -15,6 +15,7 @@ import com.fnb.front.backend.util.PayType;
 import com.fnb.front.backend.util.PaymentStatus;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -49,7 +50,7 @@ public class PaymentApplicationService {
             throw new RuntimeException("부가세금액이 주문금액과 다릅니다.");
         }
 
-        if (!OrderStatus.PENDING.getValue().equals(order.getOrderStatus())) {
+        if (!OrderStatus.PENDING.getValue().equals(order.getOrderStatus()) && !OrderStatus.TEMP.getValue().equals(order.getOrderStatus())) {
             throw new IllegalStateException("결제할 수 없는 주문상태입니다.");
         }
 
@@ -85,9 +86,7 @@ public class PaymentApplicationService {
         int claimed = paymentService.updateAttemptStatus(attemptKey);
 
         if (claimed == 0) {
-            if (attempt.getStatus().equals(PaymentStatus.APPROVE.getValue())) {
-                throw new IllegalStateException("이미 처리 중이거나 처리된 결제입니다.");
-            }
+            throw new IllegalStateException("이미 처리 중이거나 처리된 결제입니다.");
         }
 
         Order order = this.orderService.findMemberOrder(attempt.getOrderId(), attempt.getMemberId());
@@ -196,7 +195,7 @@ public class PaymentApplicationService {
 
         //TODO payType으로 필터 ex)KAKAO, NAVER
         PaymentElement paymentGateWayElement = paymentElements.stream()
-                .filter(paymentElement -> !paymentElement.getTransactionId().isEmpty())
+                .filter(paymentElement -> StringUtils.hasText(paymentElement.getTransactionId()))
                 .findFirst().orElse(null);
 
         if(paymentGateWayElement != null) {

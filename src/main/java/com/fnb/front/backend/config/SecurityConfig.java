@@ -34,8 +34,6 @@ public class SecurityConfig  {
                         // 인증 및 토큰 발급 경로는 모두 접근 허용
                         .requestMatchers("/auth/sign-in", "/auth/sign-up").permitAll()
                         .requestMatchers(HttpMethod.GET, "/payment/kakao/approve/**").permitAll()
-
-                        .anyRequest().authenticated()
                         .anyRequest().authenticated()
                 )
                 .formLogin(AbstractHttpConfigurer::disable)
