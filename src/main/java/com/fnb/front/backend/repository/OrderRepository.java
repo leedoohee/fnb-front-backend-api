@@ -1,6 +1,5 @@
 package com.fnb.front.backend.repository;
 
-import com.fnb.front.backend.controller.domain.MemberCoupon;
 import com.fnb.front.backend.controller.domain.Order;
 import com.fnb.front.backend.controller.domain.OrderProduct;
 import com.fnb.front.backend.controller.domain.request.MyPageRequest;

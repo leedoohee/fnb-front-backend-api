@@ -3,7 +3,6 @@ package com.fnb.front.backend.controller;
 import com.fnb.front.backend.controller.dto.KakaoPayCancelDto;
 import com.fnb.front.backend.security.CustomUserDetails;
 import com.fnb.front.backend.service.PaymentApplicationService;
-import com.fnb.front.backend.service.PaymentService;
 import com.fnb.front.backend.controller.domain.response.RequestPaymentResponse;
 import com.fnb.front.backend.controller.dto.KakaoPayApproveDto;
 import com.fnb.front.backend.controller.domain.request.RequestPayment;

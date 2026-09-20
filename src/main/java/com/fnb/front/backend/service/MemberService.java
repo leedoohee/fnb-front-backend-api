@@ -7,7 +7,6 @@ import com.fnb.front.backend.controller.domain.request.SignUpRequest;
 import com.fnb.front.backend.repository.MemberRepository;
 import com.fnb.front.backend.security.JwtUtil;
 import com.fnb.front.backend.util.MemberStatus;
-import com.fnb.front.backend.util.Used;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
