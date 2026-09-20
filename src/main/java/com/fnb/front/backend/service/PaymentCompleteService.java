@@ -5,7 +5,6 @@ import com.fnb.front.backend.controller.domain.command.AfterPaymentCancelCommand
 import com.fnb.front.backend.controller.domain.command.PaymentApproveCommand;
 import com.fnb.front.backend.util.*;
 import com.fnb.front.backend.util.PaymentStatus;
-import jakarta.persistence.Column;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
