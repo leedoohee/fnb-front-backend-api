@@ -54,7 +54,6 @@ public class PaymentApplicationService {
         }
 
         PaymentProcessor paymentProcessor = new PaymentProcessor(PayFactory.getPay(requestPayment.getPayType()));
-
         RequestPaymentResponse response = paymentProcessor.request(requestPayment);
 
         if(response == null) {
@@ -83,17 +82,22 @@ public class PaymentApplicationService {
             throw new RuntimeException("결제승인 과정에서 오류가 발생하였습니다.");
         }
 
+        int claimed = paymentService.updateAttemptStatus(attemptKey);
+
+        if (claimed == 0) {
+            if (attempt.getStatus().equals(PaymentStatus.APPROVE.getValue())) {
+                throw new IllegalStateException("이미 처리 중이거나 처리된 결제입니다.");
+            }
+        }
+
         Order order = this.orderService.findMemberOrder(attempt.getOrderId(), attempt.getMemberId());
 
         if (order == null) {
             throw new RuntimeException("결제승인 과정에서 오류가 발생하였습니다.");
         }
 
-        if (order.getTotalAmount()
-                .compareTo(attempt.getExpectedAmount()) != 0) {
-            throw new IllegalStateException(
-                    "결제 금액이 일치하지 않습니다."
-            );
+        if (order.getTotalAmount().compareTo(attempt.getExpectedAmount()) != 0) {
+            throw new IllegalStateException("결제 금액이 일치하지 않습니다.");
         }
 
         PaymentProcessor paymentProcessor = new PaymentProcessor(PayFactory.getPay(PayType.KAKAO.getValue()));

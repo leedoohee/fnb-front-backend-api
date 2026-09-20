@@ -1,6 +1,7 @@
 package com.fnb.front.backend.repository;
 
 import com.fnb.front.backend.controller.domain.*;
+import com.fnb.front.backend.util.PaymentStatus;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.TypedQuery;
 import jakarta.persistence.criteria.*;
@@ -33,6 +34,21 @@ public class PaymentRepository {
     public int insertPaymentCancel(PaymentCancel paymentCancel) {
         this.em.persist(paymentCancel);
         return paymentCancel.getId();
+    }
+
+    @Transactional
+    public int updateAttemptStatus(String attemptKey) {
+        CriteriaBuilder cb = em.getCriteriaBuilder();
+        CriteriaUpdate<PaymentAttempt> update = cb.createCriteriaUpdate(PaymentAttempt.class);
+
+        Root<PaymentAttempt> root = update.from(PaymentAttempt.class);
+
+        update.set("status", PaymentStatus.APPROVE.getValue());
+
+        update.where(cb.equal(root.get("attemptKey"), attemptKey),
+                    cb.equal(root.get("status"),PaymentStatus.REQUEST.getValue()));
+
+        return em.createQuery(update).executeUpdate();
     }
 
     @Transactional

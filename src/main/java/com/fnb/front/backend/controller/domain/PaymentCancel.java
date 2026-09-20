@@ -22,18 +22,18 @@ public class PaymentCancel {
     @Column(name = "id", updatable = false, nullable = false)
     private int id;
 
-    // Foreign Key reference to the Order entity
-    @Column(name = "order_id", unique = true, nullable = false) // Assuming one payment per order
+    @Column(name = "payment_id", nullable = false)
+    private int paymentId;
+
+    @Column(name = "order_id", unique = true, nullable = false)
     private String orderId;
 
-    // Using LocalDateTime for precise date and time tracking
     @Column(name = "cancel_at", updatable = false)
     private LocalDateTime cancelAt;
 
     @Column(name = "cancel_status")
     private String cancelStatus;
 
-    // Monetary fields with defined precision/scale for accurate currency storage
     @Column(name = "cancel_amount", precision = 19, scale = 2)
     private BigDecimal cancelAmount;
 

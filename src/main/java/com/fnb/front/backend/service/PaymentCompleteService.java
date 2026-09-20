@@ -9,6 +9,8 @@ import jakarta.persistence.Column;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
+
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -61,6 +63,11 @@ public class PaymentCompleteService {
             this.paymentService.insertPaymentElement(PaymentElement.builder()
                     .paymentMethod(PaymentMethod.COUPON.getValue())
                     .amount(BigDecimal.valueOf(couponAmount))
+                    .paymentStatus(PaymentStatus.APPROVE.getValue())
+                    .taxFree(BigDecimal.ZERO)
+                    .vat(BigDecimal.ZERO)
+                    .createdAt(LocalDateTime.now())
+                    .updatedAt(LocalDateTime.now())
                     .paymentId(paymentId)
                     .build());
         }
@@ -69,6 +76,11 @@ public class PaymentCompleteService {
             this.paymentService.insertPaymentElement(PaymentElement.builder()
                     .paymentMethod(PaymentMethod.POINT.getValue())
                     .amount(BigDecimal.valueOf(pointAmount))
+                    .paymentStatus(PaymentStatus.APPROVE.getValue())
+                    .taxFree(BigDecimal.ZERO)
+                    .vat(BigDecimal.ZERO)
+                    .createdAt(LocalDateTime.now())
+                    .updatedAt(LocalDateTime.now())
                     .paymentId(paymentId)
                     .build());
         }
@@ -120,24 +132,25 @@ public class PaymentCompleteService {
                 .toList();
 
         PaymentElement paymentGateWayElement = payment.getPaymentElements().stream()
-                .filter(paymentType -> !paymentType.getTransactionId().isEmpty())
+                .filter(element -> StringUtils.hasText(element.getTransactionId()))
                 .findFirst().orElse(null);
 
         this.pointService.returnPoint(order, order.getMember());
         this.productService.returnQuantity(order.getOrderProducts());
         this.couponService.returnCoupon(order, order.getMember());
 
-        int cancelId = this.paymentService.insertPaymentCancel(PaymentCancel.builder()
+        this.paymentService.insertPaymentCancel(PaymentCancel.builder()
                 .cancelAmount(payment.getTotalAmount())
                 .cancelAt(LocalDateTime.now())
                 .orderId(payment.getOrderId())
+                .paymentId(payment.getPaymentId())
                 .build());
 
         if (command.getCancelPayDto() != null) {
             this.paymentService.insertPaymentElement(PaymentElement.builder()
                     .paymentStatus(PaymentStatus.CANCEL.getValue())
                     .paymentMethod(Objects.requireNonNull(paymentGateWayElement).getPaymentMethod())
-                    .paymentId(cancelId)
+                    .paymentId(payment.getPaymentId())
                     .transactionId(command.getCancelPayDto().getTransactionId())
                     .amount(BigDecimal.valueOf(command.getCancelPayDto().getTotalAmount()))
                     .taxFree(BigDecimal.valueOf(command.getCancelPayDto().getTaxFree()))
@@ -149,9 +162,19 @@ public class PaymentCompleteService {
         }
 
         for (PaymentElement payType : mustBeReturnedPayTypes) {
-            payType.setPaymentStatus(PaymentStatus.CANCEL.getValue());
-            payType.setPaymentElementId(0); //TODO 자동키 생성되는지 확인
-            this.paymentService.insertPaymentElement(payType);
+            PaymentElement canceledElement =
+                    PaymentElement.builder()
+                            .paymentId(payment.getPaymentId())
+                            .paymentStatus(PaymentStatus.CANCEL.getValue())
+                            .paymentMethod(payType.getPaymentMethod())
+                            .amount(payType.getAmount())
+                            .taxFree(BigDecimal.ZERO)
+                            .vat(BigDecimal.ZERO)
+                            .createdAt(LocalDateTime.now())
+                            .updatedAt(LocalDateTime.now())
+                            .build();
+
+            this.paymentService.insertPaymentElement(canceledElement);
         }
 
         this.orderService.updateStatus(order.getOrderId(), OrderStatus.CANCELED.getValue());

@@ -30,8 +30,8 @@ public class PaymentService {
         return this.paymentRepository.findPayment(orderId);
     }
 
-    public PaymentAttempt findPaymentAttempt(String orderId) {
-        return this.paymentRepository.findPaymentAttempt(orderId);
+    public PaymentAttempt findPaymentAttempt(String attemptKey) {
+        return this.paymentRepository.findPaymentAttempt(attemptKey);
     }
 
     public Payment findPayment(Integer paymentId) {
@@ -40,5 +40,9 @@ public class PaymentService {
 
     public PaymentElement findPaymentElement(String orderId) {
         return this.paymentRepository.findPaymentElement(orderId);
+    }
+
+    public int updateAttemptStatus(String attemptKey) {
+        return this.paymentRepository.updateAttemptStatus(attemptKey);
     }
 }
