@@ -5,12 +5,14 @@ import com.fnb.front.backend.controller.domain.command.AfterPaymentCancelCommand
 import com.fnb.front.backend.controller.domain.command.PaymentApproveCommand;
 import com.fnb.front.backend.util.*;
 import com.fnb.front.backend.util.PaymentStatus;
+import jakarta.persistence.Column;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -117,6 +119,10 @@ public class PaymentCompleteService {
                                 paymentType.getPaymentMethod().contains(PaymentMethod.POINT.getValue()))
                 .toList();
 
+        PaymentElement paymentGateWayElement = payment.getPaymentElements().stream()
+                .filter(paymentType -> !paymentType.getTransactionId().isEmpty())
+                .findFirst().orElse(null);
+
         this.pointService.returnPoint(order, order.getMember());
         this.productService.returnQuantity(order.getOrderProducts());
         this.couponService.returnCoupon(order, order.getMember());
@@ -130,6 +136,7 @@ public class PaymentCompleteService {
         if (command.getCancelPayDto() != null) {
             this.paymentService.insertPaymentElement(PaymentElement.builder()
                     .paymentStatus(PaymentStatus.CANCEL.getValue())
+                    .paymentMethod(Objects.requireNonNull(paymentGateWayElement).getPaymentMethod())
                     .paymentId(cancelId)
                     .transactionId(command.getCancelPayDto().getTransactionId())
                     .amount(BigDecimal.valueOf(command.getCancelPayDto().getTotalAmount()))
