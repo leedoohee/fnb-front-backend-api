@@ -43,13 +43,14 @@ public class CartService {
 
     @Transactional
     public boolean delete(int cartId, String memberId) {
-        int count = this.cartRepository.deleteCart(cartId, memberId);
+        Cart cart = this.cartRepository.findCart(cartId, memberId);
 
-        if (count == 0) {
+        if (cart == null) {
             throw new IllegalArgumentException("장바구니가 존재하지 않습니다.");
         }
 
         this.cartRepository.deleteCartItem(cartId);
+        this.cartRepository.deleteCart(cartId, memberId);
 
         return true;
     }

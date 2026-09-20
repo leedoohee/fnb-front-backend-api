@@ -21,9 +21,6 @@ public class MyPageRequest {
     @NotNull
     private int orderId;
 
-    @NotBlank
-    private String memberId;
-
     @NotNull
     private int memberSeq;
 

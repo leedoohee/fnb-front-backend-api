@@ -55,6 +55,8 @@ public class PaymentApplicationService {
         if (order.getTotalAmount().compareTo(response.getTotalAmount()) != 0) {
             this.cancel(PayType.KAKAO.getValue(), response.getTransactionId(), response.getTotalAmount(), response.getTaxFree());
             this.orderService.updateStatus(order.getOrderId(), OrderStatus.PENDING.getValue());
+
+            throw new RuntimeException("결제금액이 주문금액과 다릅니다.");
         }
 
         try {

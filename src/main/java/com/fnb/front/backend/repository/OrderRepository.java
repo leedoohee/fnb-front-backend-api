@@ -45,12 +45,12 @@ public class OrderRepository {
         this.em.createQuery(update).executeUpdate();
     }
 
-    public Long findTotalOrderCount(MyPageRequest orderRequest) {
+    public Long findTotalOrderCount(MyPageRequest orderRequest, String memberId) {
         CriteriaBuilder cb          = this.em.getCriteriaBuilder();
         CriteriaQuery<Long> cq      = cb.createQuery(Long.class);
         Root<Order> root            = cq.from(Order.class);
 
-        cq = cq.where(cb.and(this.buildConditions(orderRequest, cb, root).toArray(new Predicate[0])));
+        cq = cq.where(cb.and(this.buildConditions(orderRequest, cb, root, memberId).toArray(new Predicate[0])));
         cq = cq.select((cb.count(root)));
 
         return this.em.createQuery(cq).getSingleResult();
@@ -109,13 +109,13 @@ public class OrderRepository {
         return !typedQuery.getResultList().isEmpty() ? typedQuery.getSingleResult() : null;
     }
 
-    public List<Order> findOrders(MyPageRequest myPageRequest) {
+    public List<Order> findOrders(MyPageRequest myPageRequest, String memberId) {
         CriteriaBuilder cb         = this.em.getCriteriaBuilder();
         CriteriaQuery<Order> cq    = cb.createQuery(Order.class);
         Root<Order> root           = cq.from(Order.class);
 
         cq = cq.select(root)
-                .where(cb.and(this.buildConditions(myPageRequest, cb, root).toArray(new Predicate[0])))
+                .where(cb.and(this.buildConditions(myPageRequest, cb, root, memberId).toArray(new Predicate[0])))
                 .distinct(true);
 
         TypedQuery<Order> typedQuery = this.em.createQuery(cq);
@@ -125,7 +125,7 @@ public class OrderRepository {
         return typedQuery.getResultList();
     }
 
-    private List<Predicate> buildConditions(MyPageRequest myPageRequest, CriteriaBuilder cb, Root<Order> root) {
+    private List<Predicate> buildConditions(MyPageRequest myPageRequest, CriteriaBuilder cb, Root<Order> root, String memberId) {
         List<Predicate> searchConditions    = new ArrayList<>();
 
         if(myPageRequest.getOrderStartDate() != null && myPageRequest.getOrderEndDate() != null){
@@ -144,8 +144,8 @@ public class OrderRepository {
             searchConditions.add(cb.equal(root.get("memberSeq"), myPageRequest.getMemberSeq()));
         }
 
-        if(myPageRequest.getMemberId() != null && !myPageRequest.getMemberId().isEmpty()){
-            searchConditions.add(cb.equal(root.get("memberId"), myPageRequest.getMemberId()));
+        if(memberId != null && !memberId.isEmpty()){
+            searchConditions.add(cb.equal(root.get("memberId"), memberId));
         }
 
         return  searchConditions;
