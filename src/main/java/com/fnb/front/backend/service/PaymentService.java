@@ -22,8 +22,16 @@ public class PaymentService {
         return this.paymentRepository.insertPayment(payment);
     }
 
+    public void insertPaymentAttempt(PaymentAttempt paymentAttempt) {
+        this.paymentRepository.insertPaymentAttempt(paymentAttempt);
+    }
+
     public Payment findPayment(String orderId) {
         return this.paymentRepository.findPayment(orderId);
+    }
+
+    public PaymentAttempt findPaymentAttempt(String orderId) {
+        return this.paymentRepository.findPaymentAttempt(orderId);
     }
 
     public Payment findPayment(Integer paymentId) {

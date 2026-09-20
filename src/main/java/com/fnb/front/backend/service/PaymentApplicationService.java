@@ -13,13 +13,17 @@ import com.fnb.front.backend.controller.dto.RequestCancelPayDto;
 import com.fnb.front.backend.util.OrderStatus;
 import com.fnb.front.backend.util.PayType;
 import com.fnb.front.backend.util.PaymentStatus;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -32,24 +36,81 @@ public class PaymentApplicationService {
 
     public RequestPaymentResponse request(RequestPayment requestPayment, String memberId) {
         Order order = this.orderService.findMemberOrder(requestPayment.getOrderId(), memberId);
+        String attemptKey = UUID.randomUUID().toString();
+        requestPayment.setAttemptKey(attemptKey);
 
         if (order == null) {
             throw new RuntimeException("결제할 수 없는 주문입니다.");
         }
 
+        if (order.getTotalAmount().compareTo(requestPayment.getPurchasePrice()) != 0) {
+            throw new RuntimeException("결제요청금액이 주문금액과 다릅니다.");
+        }
+
+        if (order.getTotalAmount().divide(BigDecimal.valueOf(1.1), RoundingMode.HALF_EVEN).compareTo(requestPayment.getVatAmount()) != 0) {
+            throw new RuntimeException("부가세금액이 주문금액과 다릅니다.");
+        }
+
+        if (!OrderStatus.PENDING.getValue().equals(order.getOrderStatus())) {
+            throw new IllegalStateException("결제할 수 없는 주문상태입니다.");
+        }
+
         PaymentProcessor paymentProcessor = new PaymentProcessor(PayFactory.getPay(requestPayment.getPayType()));
-        return paymentProcessor.request(requestPayment);
+
+        RequestPaymentResponse response = paymentProcessor.request(requestPayment);
+
+        if(response == null) {
+            throw new RuntimeException("결제요청 과정에서 오류가 발생하였습니다.");
+        }
+
+        this.paymentService.insertPaymentAttempt(PaymentAttempt.builder()
+                .orderId(order.getOrderId())
+                .memberId(memberId)
+                .payType(PayType.KAKAO.getValue())
+                .attemptKey(attemptKey)
+                .transactionId(response.getTransactionId())
+                .expectedAmount(order.getTotalAmount())
+                .status(PaymentStatus.REQUEST.getValue())
+                .createdAt(LocalDateTime.now())
+                .build());
+
+        return response;
     }
 
-    public void approveKakaoResult(KakaoPayApproveDto kakaoPaymentApproveDto) {
+    public void approveKakaoResult(String pgToken, String attemptKey) {
+        PaymentAttempt attempt = paymentService.findPaymentAttempt(attemptKey);
+
+        if (attempt == null) {
+            throw new RuntimeException("결제승인 과정에서 오류가 발생하였습니다.");
+        }
+
+        Order order = this.orderService.findMemberOrder(attempt.getOrderId(), attempt.getMemberId());
+
+        if (order == null) {
+            throw new RuntimeException("결제승인 과정에서 오류가 발생하였습니다.");
+        }
+
+        if (order.getTotalAmount()
+                .compareTo(attempt.getExpectedAmount()) != 0) {
+            throw new IllegalStateException(
+                    "결제 금액이 일치하지 않습니다."
+            );
+        }
+
         PaymentProcessor paymentProcessor = new PaymentProcessor(PayFactory.getPay(PayType.KAKAO.getValue()));
-        ApprovePaymentResponse response   = paymentProcessor.approve(kakaoPaymentApproveDto);
+        ApprovePaymentResponse response   = paymentProcessor.approve(KakaoPayApproveDto.builder()
+                .amount(order.getTotalAmount())
+                .pgToken(pgToken)
+                .paymentKey(attempt.getPayType())
+                .paymentType(attempt.getPayType())
+                .transactionId(attempt.getTransactionId())
+                .orderId(order.getOrderId())
+                .memberName(order.getMemberName())
+                .build());
 
         if(response == null) {
             throw new RuntimeException("결제승인 과정에서 오류가 발생하였습니다.");
         }
-
-        Order order = this.orderService.findOrder(response.getOrderId());
 
         // 결제금액이 주문금액과 다를 경우 결제취소 처리 후 주문상태를 PENDING으로 변경
         if (order.getTotalAmount().compareTo(response.getTotalAmount()) != 0) {

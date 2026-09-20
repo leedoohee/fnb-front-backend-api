@@ -39,4 +39,6 @@ public class RequestPayment {
 
     @NotNull
     private BigDecimal taxAmount;
+
+    private String attemptKey;
 }

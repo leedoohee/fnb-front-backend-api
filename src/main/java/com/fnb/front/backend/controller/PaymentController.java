@@ -9,9 +9,7 @@ import com.fnb.front.backend.controller.domain.request.RequestPayment;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
@@ -25,9 +23,9 @@ public class PaymentController {
         return ResponseEntity.ok(this.paymentApplicationService.request(requestPayment, user.getUserId()));
     }
 
-    @PostMapping("/payment/kakao/approve")
-    public ResponseEntity<Boolean> approveKakao(@RequestBody KakaoPayApproveDto kakaoPaymentApproveDto) {
-        this.paymentApplicationService.approveKakaoResult(kakaoPaymentApproveDto);
+    @GetMapping("/payment/kakao/approve/{attemptKey}")
+    public ResponseEntity<Boolean> approveKakao(@RequestParam("pg_token") String pgToken, @PathVariable String attemptKey) {
+        this.paymentApplicationService.approveKakaoResult(pgToken, attemptKey);
         return ResponseEntity.ok(true);
     }
 

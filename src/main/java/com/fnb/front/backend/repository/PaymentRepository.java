@@ -25,6 +25,11 @@ public class PaymentRepository {
     }
 
     @Transactional
+    public void insertPaymentAttempt(PaymentAttempt paymentAttempt) {
+        this.em.persist(paymentAttempt);
+    }
+
+    @Transactional
     public int insertPaymentCancel(PaymentCancel paymentCancel) {
         this.em.persist(paymentCancel);
         return paymentCancel.getId();
@@ -45,6 +50,19 @@ public class PaymentRepository {
         TypedQuery<PaymentType> typedQuery = this.em.createQuery(cq);
 
         return typedQuery.getResultList();
+    }
+
+    public PaymentAttempt findPaymentAttempt(String attemptKey) {
+        CriteriaBuilder cb                  = this.em.getCriteriaBuilder();
+        CriteriaQuery<PaymentAttempt> cq    = cb.createQuery(PaymentAttempt.class);
+        Root<PaymentAttempt> root           = cq.from(PaymentAttempt.class);
+
+        cq = cq.where(cb.and(cb.equal(root.get("attemptKey"), attemptKey)));
+
+        TypedQuery<PaymentAttempt> typedQuery = this.em.createQuery(cq);
+        typedQuery.setMaxResults(1);
+
+        return !typedQuery.getResultList().isEmpty() ? typedQuery.getSingleResult() : null;
     }
 
     public PaymentElement findPaymentElement(String transactionId) {

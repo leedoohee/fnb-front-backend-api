@@ -4,6 +4,7 @@ import lombok.Getter;
 
 @Getter
 public enum PaymentStatus {
+    REQUEST("0"),
     APPROVE("1"),
     CANCEL("2");
 

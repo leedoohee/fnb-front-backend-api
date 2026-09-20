@@ -41,9 +41,9 @@ public class KakaoPay implements IPay {
                 .totalAmount(requestPayment.getPurchasePrice())
                 .vatAmount(requestPayment.getVatAmount())
                 .taxFreeAmount(requestPayment.getTaxAmount())
-                .approvalUrl("https://developers.kakao.com/success")
+                .approvalUrl(APPROVE_API_URL + "/" + requestPayment.getAttemptKey())
                 .failUrl("https://developers.kakao.com/fail")
-                .cancelUrl("https://developers.kakao.com/cancel")
+                .cancelUrl(CANCEL_API_URL)
                 .build();
 
         HttpEntity<KakaoPayRequestDto> httpEntity = new HttpEntity<>(requestBody, headers);
