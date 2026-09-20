@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class KakaoPayRequestResponse {
+    @JsonProperty("tid")
     private String tid;
 
     @JsonProperty("next_redirect_app_url")

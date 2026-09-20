@@ -14,13 +14,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @Builder
 @Entity
-@Table(
-        name = "payment_attempt",
-        uniqueConstraints = {
-                @UniqueConstraint(name = "uk_payment_attempt_tid", columnNames = "transactionId"),
-                @UniqueConstraint(name = "uk_payment_attempt_key", columnNames = "attempt_key")
-        }
-)
+@Table(name = "payment_attempt")
 public class PaymentAttempt {
 
     @Id
@@ -44,7 +38,7 @@ public class PaymentAttempt {
     @Column(name = "transactionId", nullable = false)
     private String transactionId;
 
-    @Column(name = "expectedTaxFreeAmount", nullable = false)
+    @Column(name = "expectedAmount", nullable = false)
     private BigDecimal expectedAmount;
 
     @Column(name = "expectedTaxFreeAmount", nullable = false)

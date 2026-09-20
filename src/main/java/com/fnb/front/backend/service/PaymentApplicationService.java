@@ -13,8 +13,6 @@ import com.fnb.front.backend.controller.dto.RequestCancelPayDto;
 import com.fnb.front.backend.util.OrderStatus;
 import com.fnb.front.backend.util.PayType;
 import com.fnb.front.backend.util.PaymentStatus;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -70,6 +68,7 @@ public class PaymentApplicationService {
                 .attemptKey(attemptKey)
                 .transactionId(response.getTransactionId())
                 .expectedAmount(order.getTotalAmount())
+                .expectedTaxFreeAmount(order.getTotalAmount().divide(BigDecimal.valueOf(1.1), RoundingMode.HALF_EVEN))
                 .status(PaymentStatus.REQUEST.getValue())
                 .createdAt(LocalDateTime.now())
                 .build());
