@@ -13,9 +13,6 @@ import java.util.List;
 @Setter
 public class OrderRequest {
 
-    @NotBlank
-    private String memberId;
-
     @NotNull
     private int orderType;
 

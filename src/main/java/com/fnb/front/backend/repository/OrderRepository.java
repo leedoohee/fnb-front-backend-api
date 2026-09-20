@@ -74,6 +74,24 @@ public class OrderRepository {
         return typedQuery.getResultList();
     }
 
+    public Order findMemberOrder(String orderId, String memberId) {
+        List<Predicate> searchConditions    = new ArrayList<>();
+        CriteriaBuilder cb        = this.em.getCriteriaBuilder();
+        CriteriaQuery<Order> cq   = cb.createQuery(Order.class);
+        Root<Order> root          = cq.from(Order.class);
+
+        searchConditions.add(cb.equal(root.get("orderId"), orderId));
+        searchConditions.add(cb.equal(root.get("memberId"), memberId));
+
+        cq = cq.select(root)
+                .where(searchConditions.toArray(new Predicate[0]));
+
+        TypedQuery<Order> typedQuery = this.em.createQuery(cq);
+        typedQuery.setMaxResults(1);
+
+        return !typedQuery.getResultList().isEmpty() ? typedQuery.getSingleResult() : null;
+    }
+
     public Order findOrder(String orderId) {
         CriteriaBuilder cb        = this.em.getCriteriaBuilder();
         CriteriaQuery<Order> cq   = cb.createQuery(Order.class);

@@ -30,7 +30,13 @@ public class PaymentApplicationService {
 
     private final PaymentCompleteService paymentCompleteService;
 
-    public RequestPaymentResponse request(RequestPayment requestPayment) {
+    public RequestPaymentResponse request(RequestPayment requestPayment, String memberId) {
+        Order order = this.orderService.findMemberOrder(requestPayment.getOrderId(), memberId);
+
+        if (order == null) {
+            throw new RuntimeException("결제할 수 없는 주문입니다.");
+        }
+
         PaymentProcessor paymentProcessor = new PaymentProcessor(PayFactory.getPay(requestPayment.getPayType()));
         return paymentProcessor.request(requestPayment);
     }
@@ -45,7 +51,7 @@ public class PaymentApplicationService {
 
         Order order = this.orderService.findOrder(response.getOrderId());
 
-        // 결제금액이 주문금액보다 적을 경우 결제취소 처리
+        // 결제금액이 주문금액과 다를 경우 결제취소 처리 후 주문상태를 PENDING으로 변경
         if (order.getTotalAmount().compareTo(response.getTotalAmount()) < 0) {
             this.cancel(PayType.KAKAO.getValue(), response.getTransactionId(), response.getTotalAmount(), response.getTaxFree());
             this.orderService.updateStatus(order.getOrderId(), OrderStatus.PENDING.getValue());
@@ -108,6 +114,12 @@ public class PaymentApplicationService {
     }
 
     public void handleRequestCancel(RequestCancelCommand command) {
+        Order order = this.orderService.findMemberOrder(command.getOrderId(), command.getMemberId());
+
+        if (order == null) {
+            throw new RuntimeException("취소할 수 없는 주문입니다.");
+        }
+
         Payment payment = this.paymentService.findPayment(command.getOrderId());
 
         if (!payment.getPaymentStatus().equals(PaymentStatus.APPROVE.getValue())) {

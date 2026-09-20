@@ -1,6 +1,7 @@
 package com.fnb.front.backend.controller;
 
 import com.fnb.front.backend.controller.dto.KakaoPayCancelDto;
+import com.fnb.front.backend.security.CustomUserDetails;
 import com.fnb.front.backend.service.PaymentApplicationService;
 import com.fnb.front.backend.service.PaymentService;
 import com.fnb.front.backend.controller.domain.response.RequestPaymentResponse;
@@ -8,6 +9,7 @@ import com.fnb.front.backend.controller.dto.KakaoPayApproveDto;
 import com.fnb.front.backend.controller.domain.request.RequestPayment;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -20,8 +22,8 @@ public class PaymentController {
 
     //카카오 페이 및 pg 전용
     @PostMapping("/payment/request")
-    public ResponseEntity<RequestPaymentResponse> request(@RequestBody RequestPayment requestPayment) {
-        return ResponseEntity.ok(this.paymentApplicationService.request(requestPayment));
+    public ResponseEntity<RequestPaymentResponse> request(@RequestBody RequestPayment requestPayment, @AuthenticationPrincipal CustomUserDetails user) {
+        return ResponseEntity.ok(this.paymentApplicationService.request(requestPayment, user.getUserId()));
     }
 
     @PostMapping("/payment/kakao/approve")

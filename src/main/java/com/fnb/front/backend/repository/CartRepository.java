@@ -7,6 +7,8 @@ import jakarta.persistence.TypedQuery;
 import jakarta.persistence.criteria.*;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.ArrayList;
 import java.util.List;
 
 @Component
@@ -61,15 +63,18 @@ public class CartRepository {
         return !typedQuery.getResultList().isEmpty() ? typedQuery.getSingleResult() : null;
     }
 
-    public void deleteCart(int cartId) {
+    public int deleteCart(int cartId, String memberId) {
+        List<Predicate> searchConditions    = new ArrayList<>();
         CriteriaBuilder cb = this.em.getCriteriaBuilder();
-
         CriteriaDelete<Cart> delete = cb.createCriteriaDelete(Cart.class);
         Root<Cart> root = delete.from(Cart.class);
 
-        delete = delete.where(cb.and(cb.equal(root.get("id"), cartId)));
+        searchConditions.add(cb.equal(root.get("cartId"), cartId));
+        searchConditions.add(cb.equal(root.get("memberId"), memberId));
 
-        this.em.createQuery(delete).executeUpdate();
+        delete = delete.where(searchConditions.toArray(new Predicate[0]));
+
+        return this.em.createQuery(delete).executeUpdate();
     }
 
     public void deleteCartItem(int cartId) {

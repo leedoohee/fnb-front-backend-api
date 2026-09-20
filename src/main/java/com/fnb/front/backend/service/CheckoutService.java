@@ -16,9 +16,9 @@ public class CheckoutService {
     private final OrderService orderService;
     private final PaymentApplicationService paymentApplicationService;
 
-    public OrderResponse createOrder(OrderRequest request) {
+    public OrderResponse createOrder(OrderRequest request, String memberId) {
 
-        OrderResponse response = this.orderService.create(request);
+        OrderResponse response = this.orderService.create(request, memberId);
 
         if (response.getPurchasePrice().compareTo(BigDecimal.ZERO) == 0) {
             //결제 금액 0원이면
@@ -29,8 +29,10 @@ public class CheckoutService {
         return response;
     }
 
-    public void cancelOrder(String orderId) {
+    public void cancelOrder(String orderId, String memberId) {
         this.paymentApplicationService.handleRequestCancel(RequestCancelCommand.builder()
-                .orderId(orderId).build());
+                .orderId(orderId)
+                .memberId(memberId)
+                .build());
     }
 }

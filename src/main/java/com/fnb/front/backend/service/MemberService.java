@@ -49,7 +49,6 @@ public class MemberService {
     public boolean signUp(SignUpRequest signUpRequest) {
         Member member = this.memberRepository.findMember(signUpRequest.getMemberId());
 
-        //exception
         if (member != null) {
             throw new IllegalArgumentException("이미 사용중인 아이디입니다.");
         }

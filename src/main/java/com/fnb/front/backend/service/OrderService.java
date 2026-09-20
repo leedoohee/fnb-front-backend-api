@@ -32,9 +32,9 @@ public class OrderService {
     private final OrderRepository orderRepository;
 
     @Transactional
-    public OrderResponse create(OrderRequest orderRequest) {
+    public OrderResponse create(OrderRequest orderRequest, String memberId) {
         Order order                   = this.createOrder(orderRequest);
-        Member member                 = this.createMember(orderRequest);
+        Member member                 = this.createMember(memberId);
         List<Product> product         = this.createProduct(orderRequest.getOrderProductRequests());
         List<Coupon> coupons          = this.createOrderCoupon(orderRequest);
         List<ProductOption> options   = this.createOptions(orderRequest.getOrderProductRequests());
@@ -50,6 +50,10 @@ public class OrderService {
 
     public Order findOrder(String orderId) {
         return this.orderRepository.findOrder(orderId);
+    }
+
+    public Order findMemberOrder(String orderId, String memberId) {
+        return this.orderRepository.findMemberOrder(orderId, memberId);
     }
 
     private Order createOrder(OrderRequest orderRequest) {
@@ -100,9 +104,9 @@ public class OrderService {
         return coupons;
     }
 
-    private Member createMember(OrderRequest orderRequest) {
-        Member member                       = this.memberService.findMember(orderRequest.getMemberId());
-        List<MemberCoupon> memberCoupons    = this.memberService.findMemberCoupons(member.getMemberId(), Used.NOTUSED.getValue());
+    private Member createMember(String memberId) {
+        Member member                       = this.memberService.findMember(memberId);
+        List<MemberCoupon> memberCoupons    = this.memberService.findMemberCoupons(memberId, Used.NOTUSED.getValue());
         member.setOwnedCoupon(memberCoupons);
 
         return member;

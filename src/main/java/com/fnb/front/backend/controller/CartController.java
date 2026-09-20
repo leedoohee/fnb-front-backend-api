@@ -7,6 +7,8 @@ import com.fnb.front.backend.controller.domain.request.CartRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import com.fnb.front.backend.security.CustomUserDetails;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 
 import java.util.List;
 
@@ -21,14 +23,14 @@ public class CartController {
         return ResponseEntity.ok(this.cartService.create(cartRequest));
     }
 
-    @GetMapping("/cart/{memberId}")
-    public ResponseEntity<List<CartInfoResponse>> getCart(@PathVariable String memberId) {
-        return ResponseEntity.ok(this.cartService.getInfo(memberId));
+    @GetMapping("/cart")
+    public ResponseEntity<List<CartInfoResponse>> getCart(@AuthenticationPrincipal CustomUserDetails user) {
+        return ResponseEntity.ok(this.cartService.getInfo(user.getUserId()));
     }
 
     @DeleteMapping("/cart/{cartId}")
-    public ResponseEntity<Boolean> deleteCart(@PathVariable int cartId) {
-        return ResponseEntity.ok(this.cartService.delete(cartId));
+    public ResponseEntity<Boolean> deleteCart(@PathVariable int cartId, @AuthenticationPrincipal CustomUserDetails user) {
+        return ResponseEntity.ok(this.cartService.delete(cartId, user.getUserId()));
     }
 
     @PutMapping("/cart")
