@@ -19,8 +19,8 @@ public class CartController {
     private final CartService cartService;
 
     @PostMapping("/cart")
-    public ResponseEntity<Boolean> addCart(@RequestBody CartRequest cartRequest) {
-        return ResponseEntity.ok(this.cartService.create(cartRequest));
+    public ResponseEntity<Boolean> addCart(@RequestBody CartRequest cartRequest, @AuthenticationPrincipal CustomUserDetails user) {
+        return ResponseEntity.ok(this.cartService.create(cartRequest, user.getUserId()));
     }
 
     @GetMapping("/cart")
@@ -34,7 +34,7 @@ public class CartController {
     }
 
     @PutMapping("/cart")
-    public ResponseEntity<Boolean> updateCart(@RequestBody CartUpdateRequest cartUpdateRequest) {
-        return ResponseEntity.ok(this.cartService.update(cartUpdateRequest));
+    public ResponseEntity<Boolean> updateCart(@RequestBody CartUpdateRequest cartUpdateRequest, @AuthenticationPrincipal CustomUserDetails user) {
+        return ResponseEntity.ok(this.cartService.update(cartUpdateRequest, user.getUserId()));
     }
 }

@@ -88,7 +88,7 @@ public class ProductRepository {
         return typedQuery.getResultList();
     }
 
-    public void updateMinusQuantity(int productId, int quantity) {
+    public int updateMinusQuantity(int productId, int quantity) {
         CriteriaBuilder cb = this.em.getCriteriaBuilder();
         List<Predicate> searchConditions    = new ArrayList<>();
         CriteriaUpdate<Product> update = cb.createCriteriaUpdate(Product.class);
@@ -103,7 +103,7 @@ public class ProductRepository {
         update.set("quantity", newQuantity);
         update.where(cb.and(searchConditions.toArray(new Predicate[0])));
 
-        this.em.createQuery(update).executeUpdate();
+        return this.em.createQuery(update).executeUpdate();
     }
 
     public void updatePlusQuantity(int productId, int quantity) {

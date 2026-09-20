@@ -118,8 +118,12 @@ public class ProductService {
                 return false;
             }
 
-            this.productRepository.updateMinusQuantity(Objects.requireNonNull(orderProduct.getProduct()).getProductId(),
+            int count = this.productRepository.updateMinusQuantity(Objects.requireNonNull(orderProduct.getProduct()).getProductId(),
                     orderProduct.getQuantity());
+
+            if (count == 0) {
+                throw new IllegalArgumentException("재고가 부족합니다.");
+            }
         }
 
         return true;

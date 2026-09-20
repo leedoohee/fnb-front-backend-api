@@ -15,9 +15,6 @@ public class CartRequest {
     @NotNull
     private int productId;
 
-    @NotBlank
-    private String memberId;
-
     @NotNull
     private int quantity;
 

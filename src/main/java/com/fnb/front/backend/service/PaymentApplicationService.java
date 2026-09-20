@@ -52,7 +52,7 @@ public class PaymentApplicationService {
         Order order = this.orderService.findOrder(response.getOrderId());
 
         // 결제금액이 주문금액과 다를 경우 결제취소 처리 후 주문상태를 PENDING으로 변경
-        if (order.getTotalAmount().compareTo(response.getTotalAmount()) < 0) {
+        if (order.getTotalAmount().compareTo(response.getTotalAmount()) != 0) {
             this.cancel(PayType.KAKAO.getValue(), response.getTransactionId(), response.getTotalAmount(), response.getTaxFree());
             this.orderService.updateStatus(order.getOrderId(), OrderStatus.PENDING.getValue());
         }

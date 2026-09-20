@@ -50,12 +50,16 @@ public class CartRepository {
         return query.getResultList();
     }
 
-    public Cart findCart(int cartId) {
+    public Cart findCart(int cartId, String memberId) {
+        List<Predicate> searchConditions = new ArrayList<>();
         CriteriaBuilder cb      = this.em.getCriteriaBuilder();
         CriteriaQuery<Cart> cq  = cb.createQuery(Cart.class);
         Root<Cart> root         = cq.from(Cart.class);
 
-        cq = cq.select(root).where(cb.equal(root.get("cartId"), cartId));
+        searchConditions.add(cb.equal(root.get("cartId"), cartId));
+        searchConditions.add(cb.equal(root.get("memberId"), memberId));
+
+        cq = cq.select(root).where(searchConditions.toArray(new Predicate[0]));
 
         TypedQuery<Cart> typedQuery = this.em.createQuery(cq);
         typedQuery.setMaxResults(1);

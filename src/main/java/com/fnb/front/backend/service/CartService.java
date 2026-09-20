@@ -21,9 +21,9 @@ public class CartService {
     private final CartRepository cartRepository;
 
     @Transactional
-    public boolean create(CartRequest cartRequest) {
+    public boolean create(CartRequest cartRequest, String memberId) {
         int cartId = this.cartRepository.insertCart(Cart.builder()
-                            .memberId(cartRequest.getMemberId())
+                            .memberId(memberId)
                             .productId(cartRequest.getProductId())
                             .createdAt(LocalDateTime.now())
                             .build());
@@ -54,8 +54,9 @@ public class CartService {
         return true;
     }
 
-    public boolean update(CartUpdateRequest cartUpdateRequest) {
-        Cart cart = this.cartRepository.findCart(cartUpdateRequest.getCartId());
+    @Transactional
+    public boolean update(CartUpdateRequest cartUpdateRequest, String memberId) {
+        Cart cart = this.cartRepository.findCart(cartUpdateRequest.getCartId(), memberId);
 
         if (cart == null) {
             throw new IllegalArgumentException("장바구니가 존재하지 않습니다.");

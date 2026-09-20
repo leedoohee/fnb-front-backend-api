@@ -110,7 +110,6 @@ public class OrderRepository {
     }
 
     public List<Order> findOrders(MyPageRequest myPageRequest) {
-
         CriteriaBuilder cb         = this.em.getCriteriaBuilder();
         CriteriaQuery<Order> cq    = cb.createQuery(Order.class);
         Root<Order> root           = cq.from(Order.class);

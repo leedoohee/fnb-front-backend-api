@@ -20,7 +20,11 @@ public class MyPageService {
 
     private final MemberRepository memberRepository;
     //TODO 데이터 구조 다시 정하고 재개발 예정
-    public PageResponse<MyOrderResponse> getMyOrders(MyPageRequest myPageRequest) {
+    public PageResponse<MyOrderResponse> getMyOrders(MyPageRequest myPageRequest, String memberId) {
+        if (!myPageRequest.getMemberId().equals(memberId)) {
+            throw new IllegalArgumentException("잘못된 접근입니다.");
+        }
+
         long totalCount                                 = this.orderRepository.findTotalOrderCount(myPageRequest);
         int lastPageNumber                              = (int) (Math.ceil((double) totalCount / myPageRequest.getPageLimit()));
         List<Order> orders                              = this.orderRepository.findOrders(myPageRequest);

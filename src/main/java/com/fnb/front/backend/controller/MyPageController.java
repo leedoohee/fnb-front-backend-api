@@ -24,7 +24,7 @@ public class MyPageController {
     }
 
     @GetMapping("/my-page/order")
-    public ResponseEntity<PageResponse<MyOrderResponse>> getMyReviews(MyPageRequest myPageRequest) {
-        return ResponseEntity.ok(this.myPageService.getMyOrders(myPageRequest));
+    public ResponseEntity<PageResponse<MyOrderResponse>> getMyReviews(MyPageRequest myPageRequest, @AuthenticationPrincipal CustomUserDetails user) {
+        return ResponseEntity.ok(this.myPageService.getMyOrders(myPageRequest, user.getUserId()));
     }
 }
