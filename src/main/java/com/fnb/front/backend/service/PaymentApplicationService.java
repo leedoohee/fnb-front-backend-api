@@ -116,8 +116,10 @@ public class PaymentApplicationService {
 
         // 결제금액이 주문금액과 다를 경우 결제취소 처리 후 주문상태를 PENDING으로 변경
         if (order.getTotalAmount().compareTo(response.getTotalAmount()) != 0) {
-            this.cancel(PayType.KAKAO.getValue(), response.getTransactionId(), response.getTotalAmount(), response.getTaxFree());
-            this.orderService.updateStatus(order.getOrderId(), OrderStatus.PENDING.getValue());
+            boolean canceled = this.cancel(PayType.KAKAO.getValue(), response.getTransactionId(), response.getTotalAmount(), response.getTaxFree());
+            if (!canceled) {
+                orderService.updateStatus(order.getOrderId(), OrderStatus.PENDING.getValue());
+            }
 
             throw new RuntimeException("결제금액이 주문금액과 다릅니다.");
         }
@@ -131,8 +133,10 @@ public class PaymentApplicationService {
                     .build());
 
         } catch (Exception completionException) {
-            this.cancel(PayType.KAKAO.getValue(), response.getTransactionId(), response.getTotalAmount(), response.getTaxFree());
-            this.orderService.updateStatus(order.getOrderId(), OrderStatus.PENDING.getValue());
+            boolean canceled = this.cancel(PayType.KAKAO.getValue(), response.getTransactionId(), response.getTotalAmount(), response.getTaxFree());
+            if (!canceled) {
+                orderService.updateStatus(order.getOrderId(), OrderStatus.PENDING.getValue());
+            }
             throw completionException;
         }
     }
