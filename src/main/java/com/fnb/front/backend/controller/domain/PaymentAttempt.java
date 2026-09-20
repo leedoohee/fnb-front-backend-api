@@ -14,7 +14,19 @@ import java.time.LocalDateTime;
 @Entity
 @AllArgsConstructor
 @Builder
-@Table(name = "payment_attempt")
+@Table(
+        name = "payment_attempt",
+        uniqueConstraints = {
+                @UniqueConstraint(
+                        name = "uk_payment_attempt_key",
+                        columnNames = "attempt_key"
+                ),
+                @UniqueConstraint(
+                        name = "uk_payment_attempt_tid",
+                        columnNames = "transactionId"
+                )
+        }
+)
 public class PaymentAttempt {
 
     @Id

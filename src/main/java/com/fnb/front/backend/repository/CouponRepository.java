@@ -2,6 +2,8 @@ package com.fnb.front.backend.repository;
 
 import com.fnb.front.backend.controller.domain.Coupon;
 import com.fnb.front.backend.controller.domain.MemberCoupon;
+import com.fnb.front.backend.util.CouponStatus;
+import com.fnb.front.backend.util.Used;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.TypedQuery;
 import jakarta.persistence.criteria.*;
@@ -37,6 +39,7 @@ public class CouponRepository {
 
         searchConditions.add(cb.equal(root.get("memberId"), memberId));
         searchConditions.add(cb.equal(root.get("couponId"), couponId));
+        searchConditions.add(cb.equal(root.get("isUsed"), Used.NOTUSED.getValue()));
 
         update.where(cb.and(searchConditions.toArray(new Predicate[0])));
 

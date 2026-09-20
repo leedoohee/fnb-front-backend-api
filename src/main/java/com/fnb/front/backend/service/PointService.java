@@ -8,6 +8,7 @@ import com.fnb.front.backend.util.PointType;
 import com.fnb.front.backend.util.Used;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -20,6 +21,7 @@ public class PointService {
 
     private final MemberRepository memberRepository;
 
+    @Transactional
     public boolean givePoint(Order order, Member member) {
         //TODO 페이에 따른 추가적립
         int point = order.getUsePoint().intValue();
@@ -50,7 +52,8 @@ public class PointService {
                 .build();
 
         this.pointRepository.insertMemberPoint(plusPoint);
-
+        this.memberRepository.updateMinusPoint(member.getMemberId(), point);
+        this.memberRepository.updatePlusPoint(member.getMemberId(), applyPoint);
         return true;
     }
 
