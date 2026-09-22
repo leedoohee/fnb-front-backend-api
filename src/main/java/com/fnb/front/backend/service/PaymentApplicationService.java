@@ -83,7 +83,7 @@ public class PaymentApplicationService {
             throw new RuntimeException("결제승인 과정에서 오류가 발생하였습니다.");
         }
 
-        int claimed = paymentService.updateAttemptStatus(attemptKey);
+        int claimed = paymentService.updateAttemptStatus(attemptKey, PaymentStatus.APPROVING.getValue());
 
         if (claimed == 0) {
             throw new IllegalStateException("이미 처리 중이거나 처리된 결제입니다.");
@@ -129,6 +129,7 @@ public class PaymentApplicationService {
                     .builder()
                     .payType(PayType.KAKAO.getValue())
                     .orderId(response.getOrderId())
+                    .attemptKey(attemptKey)
                     .response(response)
                     .build());
 

@@ -116,6 +116,7 @@ public class PaymentCompleteService {
         }
 
         this.orderService.updateStatus(order.getOrderId(), OrderStatus.ORDERED.getValue());
+        this.paymentService.updateAttemptStatus(command.getAttemptKey(), PaymentStatus.APPROVE.getValue());
         //TODO 장바구니는 지우는게 맞나? DELYN 처리로 남겨두는게 맞나?
     }
 
@@ -177,5 +178,6 @@ public class PaymentCompleteService {
         }
 
         this.orderService.updateStatus(order.getOrderId(), OrderStatus.CANCELED.getValue());
+        this.paymentService.updatePaymentStatus(payment.getPaymentId(), PaymentStatus.CANCEL.getValue());
     }
 }

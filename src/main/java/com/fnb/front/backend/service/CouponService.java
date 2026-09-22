@@ -115,7 +115,7 @@ public class CouponService {
                 continue;
             }
 
-            this.couponRepository.updateUsedMemberCoupon(member.getMemberId(),
+            this.couponRepository.updateReturnedMemberCoupon(member.getMemberId(),
                     orderProduct.getCoupon().getCouponId(), Used.NOTUSED.getValue());
         }
     }

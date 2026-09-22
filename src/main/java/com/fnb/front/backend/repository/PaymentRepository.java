@@ -37,18 +37,31 @@ public class PaymentRepository {
     }
 
     @Transactional
-    public int updateAttemptStatus(String attemptKey) {
+    public int updateAttemptStatus(String attemptKey, String status) {
         CriteriaBuilder cb = em.getCriteriaBuilder();
         CriteriaUpdate<PaymentAttempt> update = cb.createCriteriaUpdate(PaymentAttempt.class);
 
         Root<PaymentAttempt> root = update.from(PaymentAttempt.class);
 
-        update.set("status", PaymentStatus.APPROVING.getValue());
+        update.set("status", status);
 
         update.where(cb.equal(root.get("attemptKey"), attemptKey),
                     cb.equal(root.get("status"),PaymentStatus.REQUEST.getValue()));
 
-        return em.createQuery(update).executeUpdate();
+        return this.em.createQuery(update).executeUpdate();
+    }
+
+    @Transactional
+    public void updatePaymentStatus(Integer paymentId, String paymentStatus) {
+        CriteriaBuilder cb = em.getCriteriaBuilder();
+        CriteriaUpdate<Payment> update = cb.createCriteriaUpdate(Payment.class);
+        Root<Payment> root = update.from(Payment.class);
+
+        update.set("status", paymentStatus);
+
+        update.where(cb.equal(root.get("paymentId"), paymentId));
+
+        this.em.createQuery(update).executeUpdate();
     }
 
     @Transactional
@@ -105,7 +118,7 @@ public class PaymentRepository {
                 .where(cb.and(cb.equal(root.get("paymentId"), paymentId)))
                 .distinct(true);
 
-        TypedQuery<Payment> typedQuery = em.createQuery(cq);
+        TypedQuery<Payment> typedQuery = this.em.createQuery(cq);
 
         return typedQuery.getSingleResult();
     }
@@ -121,7 +134,7 @@ public class PaymentRepository {
                 .where(cb.and(cb.equal(root.get("orderId"), orderId)))
                 .distinct(true);
 
-        TypedQuery<Payment> typedQuery = em.createQuery(cq);
+        TypedQuery<Payment> typedQuery = this.em.createQuery(cq);
 
         return typedQuery.getSingleResult();
     }

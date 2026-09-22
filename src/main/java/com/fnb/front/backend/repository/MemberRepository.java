@@ -131,7 +131,7 @@ public class MemberRepository {
         }
     }
 
-    public void updateMinusPoint(String memberId, int point) {
+    public int updateMinusPoint(String memberId, int point) {
         List<Predicate> searchConditions    = new ArrayList<>();
         CriteriaBuilder cb                  = this.em.getCriteriaBuilder();
 
@@ -144,10 +144,28 @@ public class MemberRepository {
         update.set("points", newPoints);
 
         searchConditions.add(cb.equal(root.get("memberId"), memberId));
-
+        searchConditions.add(cb.greaterThanOrEqualTo(newPoints, 0));
         update.where(cb.and(searchConditions.toArray(new Predicate[0])));
 
-        this.em.createQuery(update).executeUpdate();
+        return this.em.createQuery(update).executeUpdate();
+    }
+
+    public int updateReturnedPoint(String memberId, int point) {
+        List<Predicate> searchConditions    = new ArrayList<>();
+        CriteriaBuilder cb                  = this.em.getCriteriaBuilder();
+
+        CriteriaUpdate<Member> update = cb.createCriteriaUpdate(Member.class);
+        Root<Member> root = update.from(Member.class);
+
+        Expression<Integer> currentPoints = root.get("points");
+        Expression<Integer> newPoints     = cb.diff(currentPoints, point);
+
+        update.set("points", newPoints);
+
+        searchConditions.add(cb.equal(root.get("memberId"), memberId));
+        update.where(cb.and(searchConditions.toArray(new Predicate[0])));
+
+        return this.em.createQuery(update).executeUpdate();
     }
 
     public void updatePlusPoint(String memberId, int point) {

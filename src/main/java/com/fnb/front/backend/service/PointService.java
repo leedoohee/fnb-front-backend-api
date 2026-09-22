@@ -52,7 +52,12 @@ public class PointService {
                 .build();
 
         this.pointRepository.insertMemberPoint(plusPoint);
-        this.memberRepository.updateMinusPoint(member.getMemberId(), point);
+        int count = this.memberRepository.updateMinusPoint(member.getMemberId(), point);
+
+        if (count == 0) {
+            throw new IllegalStateException("포인트 차감 과정에서 오류가 발생하였습니다.");
+        }
+
         this.memberRepository.updatePlusPoint(member.getMemberId(), applyPoint);
         return true;
     }
@@ -62,7 +67,7 @@ public class PointService {
 
         for (MemberPoint memberPoint : memberPoints) {
             if (memberPoint.getPointType() == PointType.PLUS.getValue()) {
-                this.memberRepository.updateMinusPoint(member.getMemberId(), memberPoint.getAmount());
+                this.memberRepository.updateReturnedPoint(member.getMemberId(), memberPoint.getAmount());
             } else if (memberPoint.getPointType() == PointType.MINUS.getValue()) {
                 this.memberRepository.updatePlusPoint(member.getMemberId(), memberPoint.getAmount());
             }

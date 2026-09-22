@@ -42,7 +42,11 @@ public class PaymentService {
         return this.paymentRepository.findPaymentElement(orderId);
     }
 
-    public int updateAttemptStatus(String attemptKey) {
-        return this.paymentRepository.updateAttemptStatus(attemptKey);
+    public int updateAttemptStatus(String attemptKey, String status) {
+        return this.paymentRepository.updateAttemptStatus(attemptKey, status);
+    }
+
+    public void updatePaymentStatus(Integer paymentId, String status) {
+        this.paymentRepository.updatePaymentStatus(paymentId, status);
     }
 }

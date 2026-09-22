@@ -10,12 +10,14 @@ import org.springframework.context.ApplicationEvent;
 public class PaymentApproveCommand {
     private final String payType;
     private final String orderId;
+    private final String attemptKey;
     private final ApprovePaymentResponse response;
 
     @Builder
-    public PaymentApproveCommand(String payType, String orderId, ApprovePaymentResponse response) {
+    public PaymentApproveCommand(String payType, String orderId, String attemptKey, ApprovePaymentResponse response) {
         this.payType = payType;
         this.orderId = orderId;
+        this.attemptKey = attemptKey;
         this.response = response;
     }
 }
