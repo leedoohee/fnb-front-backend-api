@@ -57,7 +57,7 @@ public class PaymentRepository {
         CriteriaUpdate<Payment> update = cb.createCriteriaUpdate(Payment.class);
         Root<Payment> root = update.from(Payment.class);
 
-        update.set("status", paymentStatus);
+        update.set("paymentStatus", paymentStatus);
 
         update.where(cb.equal(root.get("paymentId"), paymentId));
 

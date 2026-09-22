@@ -39,7 +39,7 @@ public class CouponRepository {
 
         searchConditions.add(cb.equal(root.get("memberId"), memberId));
         searchConditions.add(cb.equal(root.get("couponId"), couponId));
-        searchConditions.add(cb.equal(root.get("isUsed"), Used.NOTUSED.getValue()));
+        searchConditions.add(cb.equal(root.get("isUsed"), Used.USED.getValue()));
 
         update.where(cb.and(searchConditions.toArray(new Predicate[0])));
 
@@ -57,6 +57,7 @@ public class CouponRepository {
 
         searchConditions.add(cb.equal(root.get("memberId"), memberId));
         searchConditions.add(cb.equal(root.get("couponId"), couponId));
+        searchConditions.add(cb.equal(root.get("isUsed"), Used.NOTUSED.getValue()));
 
         update.where(cb.and(searchConditions.toArray(new Predicate[0])));
 
