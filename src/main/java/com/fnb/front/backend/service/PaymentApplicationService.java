@@ -199,7 +199,6 @@ public class PaymentApplicationService {
         }
 
         Payment payment = this.paymentService.findPayment(command.getOrderId());
-        PaymentAttempt paymentAttempt = this.paymentService.findOrderPaymentAttempt(command.getOrderId(), payment.getAttemptKey());
 
         if (!payment.getPaymentStatus().equals(PaymentStatus.APPROVE.getValue())) {
             throw new RuntimeException("취소할 수 없는 주문상태입니다.");
@@ -217,12 +216,17 @@ public class PaymentApplicationService {
                                         paymentGateWayElement.getAmount(),
                                         paymentGateWayElement.getTaxFree());
 
+            PaymentAttempt paymentAttempt = this.paymentService.findOrderPaymentAttempt(command.getOrderId(), payment.getAttemptKey());
+
             if (!result) {
                 this.orderService.updateStatus(order.getOrderId(), OrderStatus.PENDING.getValue());
                 this.paymentService.updateAttemptStatus(paymentAttempt.getAttemptKey(),
-                        PaymentStatus.APPROVING.getValue(), PaymentStatus.CANCEL_PENDING.getValue());
+                        PaymentStatus.APPROVE.getValue(), PaymentStatus.CANCEL_PENDING.getValue());
                 throw new RuntimeException("결제취소 과정에서 오류가 발생하였습니다.");
             }
+
+            this.paymentService.updateAttemptStatus(paymentAttempt.getAttemptKey(),
+                    PaymentStatus.APPROVE.getValue(), PaymentStatus.CANCEL.getValue());
         }
 
         this.paymentCompleteService.handlePaymentCancel(AfterPaymentCancelCommand

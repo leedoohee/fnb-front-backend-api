@@ -88,7 +88,7 @@ public class CouponService {
     public boolean subtractCoupon(Order order, Member member) {
         List<OrderProduct> orderProducts = order.getOrderProducts();
         List<Integer> couponIdList       = orderProducts.stream().map(OrderProduct::getCouponId).toList();
-        List<MemberCoupon> memberCoupons = this.memberRepository.findMemberCoupons(member.getMemberId(), couponIdList, Used.NOTUSED.getValue());
+        List<MemberCoupon> memberCoupons = this.memberRepository.findMemberCoupons(member.getMemberId(), couponIdList);
 
         for (OrderProduct orderProduct : orderProducts) {
             int couponId = orderProduct.getCouponId();
@@ -100,7 +100,7 @@ public class CouponService {
                 return false;
             }
 
-            if(memberCoupon != null && this.couponRepository.updateUsedMemberCoupon(member.getMemberId(),
+            if(couponId != 0 && this.couponRepository.updateUsedMemberCoupon(member.getMemberId(),
                     couponId, Used.USED.getValue()) == 0) {
                 return false;
             }
