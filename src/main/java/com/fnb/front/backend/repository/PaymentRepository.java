@@ -39,15 +39,19 @@ public class PaymentRepository {
     }
 
     @Transactional
-    public int updateAttemptStatus(String attemptKey, String status) {
+    public int updateAttemptStatus(String attemptKey, String expectedStatus, String updateStatus) {
+        List<Predicate> searchConditions = new ArrayList<>();
         CriteriaBuilder cb = em.getCriteriaBuilder();
         CriteriaUpdate<PaymentAttempt> update = cb.createCriteriaUpdate(PaymentAttempt.class);
 
         Root<PaymentAttempt> root = update.from(PaymentAttempt.class);
 
-        update.set("status", status);
+        update.set("status", updateStatus);
 
-        update.where(cb.equal(root.get("attemptKey"), attemptKey));
+        searchConditions.add(cb.equal(root.get("attemptKey"), attemptKey));
+        searchConditions.add(cb.equal(root.get("status"), expectedStatus));
+
+        update.where(searchConditions.toArray(new Predicate[0]));
 
         return this.em.createQuery(update).executeUpdate();
     }

@@ -83,7 +83,11 @@ public class PaymentApplicationService {
             throw new RuntimeException("결제승인 과정에서 오류가 발생하였습니다.");
         }
 
-        this.paymentService.updateAttemptStatus(attemptKey, PaymentStatus.APPROVING.getValue());
+        int count = this.paymentService.updateAttemptStatus(attemptKey, PaymentStatus.REQUEST.getValue(), PaymentStatus.APPROVING.getValue());
+
+        if (count == 0) {
+            throw new RuntimeException("결제승인 과정에서 오류가 발생하였습니다.");
+        }
 
         Order order = this.orderService.findMemberOrder(attempt.getOrderId(), attempt.getMemberId());
 
@@ -110,12 +114,11 @@ public class PaymentApplicationService {
             throw new RuntimeException("결제승인 과정에서 오류가 발생하였습니다.");
         }
 
-        // 결제금액이 주문금액과 다를 경우 결제취소 처리 후 주문상태를 PENDING으로 변경
         if (order.getTotalAmount().compareTo(response.getTotalAmount()) != 0) {
-            boolean canceled = this.cancel(PayType.KAKAO.getValue(), response.getTransactionId(), response.getTotalAmount(), response.getTaxFree());
-            if (!canceled) {
+            boolean result = this.cancel(PayType.KAKAO.getValue(), response.getTransactionId(), response.getTotalAmount(), response.getTaxFree());
+            if (!result) {
                 this.orderService.updateStatus(order.getOrderId(), OrderStatus.PENDING.getValue());
-                this.paymentService.updateAttemptStatus(attemptKey, PaymentStatus.PENDING.getValue());
+                this.paymentService.updateAttemptStatus(attemptKey, PaymentStatus.APPROVING.getValue(), PaymentStatus.CANCEL_PENDING.getValue());
             }
 
             throw new RuntimeException("결제금액이 주문금액과 다릅니다.");
@@ -131,10 +134,10 @@ public class PaymentApplicationService {
                     .build());
 
         } catch (Exception completionException) {
-            boolean canceled = this.cancel(PayType.KAKAO.getValue(), response.getTransactionId(), response.getTotalAmount(), response.getTaxFree());
-            if (!canceled) {
+            boolean result = this.cancel(PayType.KAKAO.getValue(), response.getTransactionId(), response.getTotalAmount(), response.getTaxFree());
+            if (!result) {
                 this.orderService.updateStatus(order.getOrderId(), OrderStatus.PENDING.getValue());
-                this.paymentService.updateAttemptStatus(attemptKey, PaymentStatus.PENDING.getValue());
+                this.paymentService.updateAttemptStatus(attemptKey, PaymentStatus.APPROVING.getValue(), PaymentStatus.CANCEL_PENDING.getValue());
             }
             throw completionException;
         }
@@ -189,7 +192,7 @@ public class PaymentApplicationService {
         }
 
         Payment payment = this.paymentService.findPayment(command.getOrderId());
-        PaymentAttempt paymentAttempt = this.paymentService.findPaymentAttempt(command.getOrderId());
+        PaymentAttempt paymentAttempt = this.paymentService.findOrderPaymentAttempt(command.getOrderId());
 
         if (!payment.getPaymentStatus().equals(PaymentStatus.APPROVE.getValue())) {
             throw new RuntimeException("취소할 수 없는 주문상태입니다.");
@@ -210,7 +213,7 @@ public class PaymentApplicationService {
 
             if (!result) {
                 this.orderService.updateStatus(order.getOrderId(), OrderStatus.PENDING.getValue());
-                this.paymentService.updateAttemptStatus(paymentAttempt.getAttemptKey(), PaymentStatus.PENDING.getValue());
+                this.paymentService.updateAttemptStatus(paymentAttempt.getAttemptKey(), PaymentStatus.CANCEL_PENDING.getValue(), PaymentStatus.PENDING.getValue());
                 throw new RuntimeException("결제취소 과정에서 오류가 발생하였습니다.");
             }
         }

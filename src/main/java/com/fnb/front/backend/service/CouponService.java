@@ -100,7 +100,9 @@ public class CouponService {
                 return false;
             }
 
-            this.couponRepository.updateUsedMemberCoupon(member.getMemberId(), couponId, Used.USED.getValue());
+            if(this.couponRepository.updateUsedMemberCoupon(member.getMemberId(), couponId, Used.USED.getValue()) == 0) {
+                return false;
+            }
         }
 
         return true;
@@ -110,13 +112,14 @@ public class CouponService {
         List<OrderProduct> orderProducts = this.orderRepository.findOrderProducts(order.getOrderId());
 
         for (OrderProduct orderProduct : orderProducts) {
-
             if (orderProduct.getCoupon() == null) {
                 continue;
             }
 
-            this.couponRepository.updateReturnedMemberCoupon(member.getMemberId(),
-                    orderProduct.getCoupon().getCouponId(), Used.NOTUSED.getValue());
+            if (this.couponRepository.updateReturnedMemberCoupon(member.getMemberId(),
+                    orderProduct.getCoupon().getCouponId(), Used.NOTUSED.getValue()) == 0) {
+                throw new IllegalStateException("쿠폰 반환 과정에서 오류가 발생하였습니다.");
+            }
         }
     }
 

@@ -28,7 +28,7 @@ public class CouponRepository {
         this.em.persist(memberCoupon);
     }
 
-    public void updateReturnedMemberCoupon(String memberId, int couponId, String isUsed) {
+    public int updateReturnedMemberCoupon(String memberId, int couponId, String isUsed) {
         List<Predicate> searchConditions    = new ArrayList<>();
         CriteriaBuilder cb = this.em.getCriteriaBuilder();
 
@@ -43,10 +43,10 @@ public class CouponRepository {
 
         update.where(cb.and(searchConditions.toArray(new Predicate[0])));
 
-        this.em.createQuery(update).executeUpdate();
+        return this.em.createQuery(update).executeUpdate();
     }
 
-    public void updateUsedMemberCoupon(String memberId, int couponId, String isUsed) {
+    public int updateUsedMemberCoupon(String memberId, int couponId, String isUsed) {
         List<Predicate> searchConditions    = new ArrayList<>();
         CriteriaBuilder cb = this.em.getCriteriaBuilder();
 
@@ -61,7 +61,7 @@ public class CouponRepository {
 
         update.where(cb.and(searchConditions.toArray(new Predicate[0])));
 
-        this.em.createQuery(update).executeUpdate();
+        return this.em.createQuery(update).executeUpdate();
     }
 
     public List<Coupon> findCoupons(String status) {
