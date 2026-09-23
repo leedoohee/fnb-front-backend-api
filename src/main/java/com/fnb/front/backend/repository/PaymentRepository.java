@@ -8,6 +8,8 @@ import jakarta.persistence.criteria.*;
 import jakarta.persistence.criteria.Order;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.ArrayList;
 import java.util.List;
 
 @Component
@@ -45,8 +47,7 @@ public class PaymentRepository {
 
         update.set("status", status);
 
-        update.where(cb.equal(root.get("attemptKey"), attemptKey),
-                    cb.equal(root.get("status"),PaymentStatus.REQUEST.getValue()));
+        update.where(cb.equal(root.get("attemptKey"), attemptKey));
 
         return this.em.createQuery(update).executeUpdate();
     }
@@ -82,11 +83,31 @@ public class PaymentRepository {
     }
 
     public PaymentAttempt findPaymentAttempt(String attemptKey) {
+        List<Predicate> searchConditions = new ArrayList<>();
         CriteriaBuilder cb                  = this.em.getCriteriaBuilder();
         CriteriaQuery<PaymentAttempt> cq    = cb.createQuery(PaymentAttempt.class);
         Root<PaymentAttempt> root           = cq.from(PaymentAttempt.class);
 
-        cq = cq.where(cb.and(cb.equal(root.get("attemptKey"), attemptKey)));
+        searchConditions.add(cb.equal(root.get("attemptKey"), attemptKey));
+        searchConditions.add(cb.equal(root.get("status"),PaymentStatus.REQUEST.getValue()));
+
+        cq = cq.where(searchConditions.toArray(new Predicate[0]));
+
+        TypedQuery<PaymentAttempt> typedQuery = this.em.createQuery(cq);
+        typedQuery.setMaxResults(1);
+
+        return !typedQuery.getResultList().isEmpty() ? typedQuery.getSingleResult() : null;
+    }
+
+    public PaymentAttempt findOrderPaymentAttempt(String orderId) {
+        List<Predicate> searchConditions = new ArrayList<>();
+        CriteriaBuilder cb                  = this.em.getCriteriaBuilder();
+        CriteriaQuery<PaymentAttempt> cq    = cb.createQuery(PaymentAttempt.class);
+        Root<PaymentAttempt> root           = cq.from(PaymentAttempt.class);
+
+        searchConditions.add(cb.equal(root.get("orderId"), orderId));
+
+        cq = cq.where(searchConditions.toArray(new Predicate[0]));
 
         TypedQuery<PaymentAttempt> typedQuery = this.em.createQuery(cq);
         typedQuery.setMaxResults(1);

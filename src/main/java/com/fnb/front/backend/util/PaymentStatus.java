@@ -7,8 +7,8 @@ public enum PaymentStatus {
     REQUEST("0"),
     APPROVING("1"),
     APPROVE("2"),
-    CANCEL("3");
-
+    CANCEL("3"),
+    PENDING("4");
     private final String value;
 
     PaymentStatus(String value) {
