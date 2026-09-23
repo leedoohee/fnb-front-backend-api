@@ -116,6 +116,7 @@ public class PaymentApplicationService {
 
         if (order.getTotalAmount().compareTo(response.getTotalAmount()) != 0) {
             boolean result = this.cancel(PayType.KAKAO.getValue(), response.getTransactionId(), response.getTotalAmount(), response.getTaxFree());
+
             if (!result) {
                 this.orderService.updateStatus(order.getOrderId(), OrderStatus.PENDING.getValue());
                 this.paymentService.updateAttemptStatus(attemptKey, PaymentStatus.APPROVING.getValue(), PaymentStatus.CANCEL_PENDING.getValue());

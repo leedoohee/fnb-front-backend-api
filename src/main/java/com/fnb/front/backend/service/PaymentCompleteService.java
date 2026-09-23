@@ -126,9 +126,7 @@ public class PaymentCompleteService {
         Payment payment = this.paymentService.findPayment(command.getOrderId());
 
         List<PaymentElement> mustBeReturnedPayTypes = payment.getPaymentElements().stream()
-                .filter(paymentType ->
-                        paymentType.getPaymentMethod().contains(PaymentMethod.COUPON.getValue()) ||
-                                paymentType.getPaymentMethod().contains(PaymentMethod.POINT.getValue()))
+                .filter(paymentType -> !StringUtils.hasText(paymentType.getTransactionId()))
                 .toList();
 
         PaymentElement paymentGateWayElement = payment.getPaymentElements().stream()
