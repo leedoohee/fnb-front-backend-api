@@ -34,8 +34,8 @@ public class PaymentService {
         return this.paymentRepository.findPaymentAttempt(attemptKey);
     }
 
-    public PaymentAttempt findOrderPaymentAttempt(String orderId) {
-        return this.paymentRepository.findOrderPaymentAttempt(orderId);
+    public PaymentAttempt findOrderPaymentAttempt(String orderId, String attemptKey) {
+        return this.paymentRepository.findOrderPaymentAttempt(orderId, attemptKey);
     }
 
     public Payment findPayment(Integer paymentId) {

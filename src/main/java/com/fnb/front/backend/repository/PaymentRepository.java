@@ -103,13 +103,14 @@ public class PaymentRepository {
         return !typedQuery.getResultList().isEmpty() ? typedQuery.getSingleResult() : null;
     }
 
-    public PaymentAttempt findOrderPaymentAttempt(String orderId) {
+    public PaymentAttempt findOrderPaymentAttempt(String orderId, String attemptKey) {
         List<Predicate> searchConditions = new ArrayList<>();
         CriteriaBuilder cb                  = this.em.getCriteriaBuilder();
         CriteriaQuery<PaymentAttempt> cq    = cb.createQuery(PaymentAttempt.class);
         Root<PaymentAttempt> root           = cq.from(PaymentAttempt.class);
 
         searchConditions.add(cb.equal(root.get("orderId"), orderId));
+        searchConditions.add(cb.equal(root.get("attemptKey"), attemptKey));
 
         cq = cq.where(searchConditions.toArray(new Predicate[0]));
 

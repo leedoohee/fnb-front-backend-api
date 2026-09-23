@@ -40,6 +40,9 @@ public class Payment {
     @Column(name = "payment_amount", precision = 19, scale = 2)
     private BigDecimal paymentAmount;
 
+    @Column(name = "attempt_key", nullable = false)
+    private String attemptKey;
+
     @OneToMany(mappedBy = "payment")
     private List<PaymentElement> paymentElements;
 

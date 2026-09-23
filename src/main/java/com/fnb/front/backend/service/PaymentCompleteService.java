@@ -55,6 +55,7 @@ public class PaymentCompleteService {
                 .paymentType(command.getPayType())
                 .paymentStatus(PaymentStatus.APPROVE.getValue())
                 .totalAmount(order.getTotalAmount())
+                .attemptKey(command.getAttemptKey())
                 .orderId(order.getOrderId())
                 .build());
 

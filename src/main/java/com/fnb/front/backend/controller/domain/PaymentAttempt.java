@@ -42,11 +42,9 @@ public class PaymentAttempt {
     @Column(name="payType", nullable = false)
     private String payType;
 
-    // 서버가 생성하는 외부 노출용 일회성 식별자
     @Column(name = "attempt_key", nullable = false)
     private String attemptKey;
 
-    // 카카오 Ready 응답
     @Column(name = "transactionId", nullable = false)
     private String transactionId;
 
@@ -57,7 +55,7 @@ public class PaymentAttempt {
     private BigDecimal expectedTaxFreeAmount;
 
     @Column(name = "status", nullable = false)
-    private String status; // READY, APPROVED, CANCELED, FAILED, EXPIRED
+    private String status;
 
     private LocalDateTime createdAt;
     private LocalDateTime approvedAt;
