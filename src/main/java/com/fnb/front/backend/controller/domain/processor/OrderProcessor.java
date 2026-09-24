@@ -13,18 +13,17 @@ import org.springframework.stereotype.Component;
 import java.math.BigDecimal;
 import java.util.*;
 
-@Component
 public class OrderProcessor {
-    private Member member;
-    private Order order;
-    private List<Product> products;
-    private List<Coupon> coupons;
-    private List<ProductOption> aliveOptions;
-    private OrderValidator orderValidator;
-    private OrderRequest orderRequest;
+    private final Member member;
+    private final Order order;
+    private final List<Product> products;
+    private final List<Coupon> coupons;
+    private final List<ProductOption> aliveOptions;
+    private final OrderValidator orderValidator;
+    private final OrderRequest orderRequest;
 
-    public void prepareOrder(Member member, Order order, List<Product> products, List<ProductOption> options,
-                        List<Coupon> coupons, OrderValidator orderValidator, OrderRequest orderRequest) {
+    public OrderProcessor(Member member, Order order, List<Product> products, List<ProductOption> options,
+                          List<Coupon> coupons, OrderValidator orderValidator, OrderRequest orderRequest) {
         this.member = member;
         this.order = order;
         this.products = products;
