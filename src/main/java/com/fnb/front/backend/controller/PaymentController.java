@@ -1,10 +1,9 @@
 package com.fnb.front.backend.controller;
 
-import com.fnb.front.backend.controller.dto.KakaoPayCancelDto;
+import com.fnb.front.backend.controller.dto.KakaoPayCancelResultDto;
 import com.fnb.front.backend.security.CustomUserDetails;
 import com.fnb.front.backend.service.PaymentApplicationService;
 import com.fnb.front.backend.controller.domain.response.RequestPaymentResponse;
-import com.fnb.front.backend.controller.dto.KakaoPayApproveDto;
 import com.fnb.front.backend.controller.domain.request.RequestPayment;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -30,7 +29,7 @@ public class PaymentController {
     }
 
     @PostMapping("/payment/kakao/cancel")
-    public ResponseEntity<Boolean> cancelKakao(@RequestBody KakaoPayCancelDto response) {
+    public ResponseEntity<Boolean> cancelKakao(@RequestBody KakaoPayCancelResultDto response) {
         this.paymentApplicationService.cancelKakaoResult(response);
         return ResponseEntity.ok(true);
     }

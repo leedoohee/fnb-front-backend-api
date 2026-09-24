@@ -7,7 +7,7 @@ import java.math.BigDecimal;
 
 @Data
 @Builder // Add this annotation
-public class KakaoPayRequestDto {
+public class KakaoPayRequestResultDto {
     private String cid;
     private String partnerOrderId;
     private String partnerUserId;

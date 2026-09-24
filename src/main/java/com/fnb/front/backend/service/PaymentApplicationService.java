@@ -3,14 +3,14 @@ package com.fnb.front.backend.service;
 import com.fnb.front.backend.controller.domain.*;
 import com.fnb.front.backend.controller.domain.command.*;
 import com.fnb.front.backend.controller.domain.processor.PaymentProcessor;
+import com.fnb.front.backend.controller.domain.request.ApproveRequest;
 import com.fnb.front.backend.controller.domain.request.RequestPayment;
 import com.fnb.front.backend.controller.domain.response.ApprovePaymentResponse;
 import com.fnb.front.backend.controller.domain.response.RequestPaymentResponse;
 import com.fnb.front.backend.controller.domain.validator.PaymentValidator;
 import com.fnb.front.backend.controller.dto.CancelPayDto;
-import com.fnb.front.backend.controller.dto.KakaoPayApproveDto;
-import com.fnb.front.backend.controller.dto.KakaoPayCancelDto;
-import com.fnb.front.backend.controller.dto.RequestCancelPayDto;
+import com.fnb.front.backend.controller.dto.KakaoPayCancelResultDto;
+import com.fnb.front.backend.controller.domain.request.CancelRequest;
 import com.fnb.front.backend.util.OrderStatus;
 import com.fnb.front.backend.util.PayType;
 import com.fnb.front.backend.util.PaymentStatus;
@@ -98,7 +98,7 @@ public class PaymentApplicationService {
         }
 
         PaymentProcessor paymentProcessor = new PaymentProcessor(PayFactory.getPay(PayType.KAKAO.getValue()));
-        ApprovePaymentResponse response   = paymentProcessor.approve(KakaoPayApproveDto.builder()
+        ApprovePaymentResponse response   = paymentProcessor.approve(ApproveRequest.builder()
                 .amount(order.getTotalAmount())
                 .pgToken(pgToken)
                 .paymentKey(attempt.getPayType())
@@ -147,7 +147,7 @@ public class PaymentApplicationService {
         }
     }
 
-    public void cancelKakaoResult(KakaoPayCancelDto response) {
+    public void cancelKakaoResult(KakaoPayCancelResultDto response) {
         PaymentElement paymentElement   = this.paymentService.findPaymentElement(response.getTid());
 
         assert paymentElement != null : "결제정보를 찾을 수 없습니다.";
@@ -182,7 +182,7 @@ public class PaymentApplicationService {
 
     private boolean cancel(String payType, String transactionId, BigDecimal cancelAmount, BigDecimal taxFree) {
         PaymentProcessor paymentProcessor  = new PaymentProcessor(PayFactory.getPay(payType));
-        return paymentProcessor.cancel(RequestCancelPayDto.builder()
+        return paymentProcessor.cancel(CancelRequest.builder()
                 .cancelAmount(cancelAmount)
                 .cancelTaxFreeAmount(taxFree)
                 .transactionId(transactionId).build());

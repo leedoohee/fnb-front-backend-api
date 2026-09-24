@@ -8,8 +8,6 @@ import com.fnb.front.backend.controller.domain.request.OrderRequest;
 import com.fnb.front.backend.controller.domain.validator.OrderValidator;
 import com.fnb.front.backend.util.CommonUtil;
 import com.fnb.front.backend.util.OptionType;
-import org.springframework.stereotype.Component;
-
 import java.math.BigDecimal;
 import java.util.*;
 

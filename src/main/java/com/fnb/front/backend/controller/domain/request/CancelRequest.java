@@ -1,4 +1,4 @@
-package com.fnb.front.backend.controller.dto;
+package com.fnb.front.backend.controller.domain.request;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -11,7 +11,7 @@ import java.math.BigDecimal;
 @Getter
 @Setter
 @Builder
-public class RequestCancelPayDto {
+public class CancelRequest {
 
     @NotNull
     private BigDecimal cancelAmount;

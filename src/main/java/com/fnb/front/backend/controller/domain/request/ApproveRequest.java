@@ -1,4 +1,4 @@
-package com.fnb.front.backend.controller.dto;
+package com.fnb.front.backend.controller.domain.request;
 
 import lombok.Builder;
 import lombok.Data;
@@ -7,7 +7,7 @@ import java.math.BigDecimal;
 
 @Data
 @Builder
-public class KakaoPayApproveDto {
+public class ApproveRequest {
     private String paymentKey;
     private String paymentType;
     private String transactionId;

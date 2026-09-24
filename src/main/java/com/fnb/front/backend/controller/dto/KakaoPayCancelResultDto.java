@@ -10,7 +10,7 @@ import java.math.BigDecimal;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class KakaoPayCancelDto {
+public class KakaoPayCancelResultDto {
 
     @JsonProperty("aid")
     private String aid;

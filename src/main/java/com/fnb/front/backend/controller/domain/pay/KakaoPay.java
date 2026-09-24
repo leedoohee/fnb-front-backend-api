@@ -2,11 +2,9 @@ package com.fnb.front.backend.controller.domain.pay;
 
 import com.fnb.front.backend.controller.domain.implement.IPay;
 
-import com.fnb.front.backend.controller.domain.request.KakaoPayApproveRequest;
-import com.fnb.front.backend.controller.domain.request.KakaoPayCancelRequest;
+import com.fnb.front.backend.controller.domain.request.*;
 import com.fnb.front.backend.controller.domain.response.*;
-import com.fnb.front.backend.controller.domain.request.RequestPayment;
-import com.fnb.front.backend.controller.dto.KakaoPayCancelDto;
+import com.fnb.front.backend.controller.dto.KakaoPayCancelResultDto;
 import com.fnb.front.backend.controller.dto.*;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -35,7 +33,7 @@ public class KakaoPay implements IPay {
         headers.set("Authorization", "SECRET_KEY " + SECRET_KEY);
         headers.set("Content-Type", MediaType.APPLICATION_JSON_VALUE);
 
-        KakaoPayRequestDto requestBody = KakaoPayRequestDto.builder()
+        KakaoPayRequestResultDto requestBody = KakaoPayRequestResultDto.builder()
                 .cid(requestPayment.getPaymentKey())
                 .partnerOrderId(requestPayment.getOrderId())
                 .partnerUserId(requestPayment.getMemberName())
@@ -49,7 +47,7 @@ public class KakaoPay implements IPay {
                 .cancelUrl(CANCEL_API_URL)
                 .build();
 
-        HttpEntity<KakaoPayRequestDto> httpEntity = new HttpEntity<>(requestBody, headers);
+        HttpEntity<KakaoPayRequestResultDto> httpEntity = new HttpEntity<>(requestBody, headers);
         RestTemplate restTemplate = new RestTemplate();
 
         try {
@@ -70,7 +68,7 @@ public class KakaoPay implements IPay {
     }
 
     @Override
-    public ApprovePaymentResponse approve(KakaoPayApproveDto kakaoPaymentApproveDto) {
+    public ApprovePaymentResponse approve(ApproveRequest kakaoPaymentApproveDto) {
 
         RestTemplate restTemplate = new RestTemplate();
         ApprovePaymentResponse approvePaymentResponse;
@@ -123,13 +121,13 @@ public class KakaoPay implements IPay {
     }
 
     @Override
-    public boolean cancel(RequestCancelPayDto cancelPaymentDto) {
+    public boolean cancel(CancelRequest cancelRequest) {
         RestTemplate restTemplate = new RestTemplate();
         KakaoPayCancelRequest requestBody = KakaoPayCancelRequest.builder()
                 .cid("kakao")
-                .tid(cancelPaymentDto.getTransactionId())
-                .cancel_amount(cancelPaymentDto.getCancelAmount())
-                .cancel_tax_free_amount(cancelPaymentDto.getCancelTaxFreeAmount())
+                .tid(cancelRequest.getTransactionId())
+                .cancelAmount(cancelRequest.getCancelAmount())
+                .cancelTaxFreeAmount(cancelRequest.getCancelTaxFreeAmount())
                 .build();
 
         HttpHeaders headers = new HttpHeaders();
@@ -139,7 +137,7 @@ public class KakaoPay implements IPay {
         HttpEntity<KakaoPayCancelRequest> httpEntity = new HttpEntity<>(requestBody, headers);
 
         try {
-            restTemplate.postForObject(CANCEL_API_URL, httpEntity, KakaoPayCancelDto.class);
+            restTemplate.postForObject(CANCEL_API_URL, httpEntity, KakaoPayCancelResultDto.class);
         } catch (Exception e) {
             return false;
         }
