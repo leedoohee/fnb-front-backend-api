@@ -45,7 +45,8 @@ public class PaymentApplicationService {
             throw new RuntimeException("주문 정보가 없습니다.");
         }
 
-        boolean result = this.paymentValidator.isAvailableRequest(order, requestPayment.getPurchasePrice(), requestPayment.getVatAmount());
+        boolean result = this.paymentValidator.isAvailableRequest(order, requestPayment.getPurchasePrice(),
+                requestPayment.getVatAmount());
 
         if (!result) {
             throw new RuntimeException("결제 정합성 체크 과정에서 오류가 발생하였습니다.");
@@ -80,6 +81,12 @@ public class PaymentApplicationService {
             throw new RuntimeException("결제승인 과정에서 오류가 발생하였습니다.");
         }
 
+        Order order = this.orderService.findMemberOrder(attempt.getOrderId(), attempt.getMemberId());
+
+        if (order == null) {
+            throw new RuntimeException("주문 정보가 존재하지 않습니다.");
+        }
+
         int count = this.paymentService.updateAttemptStatus(attemptKey,
                 PaymentStatus.REQUEST.getValue(), PaymentStatus.APPROVING.getValue());
 
@@ -87,13 +94,7 @@ public class PaymentApplicationService {
             throw new RuntimeException("결제승인 과정에서 오류가 발생하였습니다.");
         }
 
-        Order order = this.orderService.findMemberOrder(attempt.getOrderId(), attempt.getMemberId());
-
-        if (order == null) {
-            throw new RuntimeException("주문 정보가 존재하지 않습니다.");
-        }
-
-        if (this.paymentValidator.isEqualPrice(order, attempt.getExpectedAmount())) {
+        if (!this.paymentValidator.isEqualPrice(order, attempt.getExpectedAmount())) {
             throw new RuntimeException("실결제 금액과 요청 금액이 일치하지 않습니다.");
         }
 
@@ -113,14 +114,8 @@ public class PaymentApplicationService {
         }
 
         if (!this.paymentValidator.isEqualPrice(order, response.getTotalAmount())) {
-            boolean result = this.cancel(PayType.KAKAO.getValue(), response.getTransactionId(),
-                    response.getTotalAmount(), response.getTaxFree());
-
-            if (!result) {
-                this.orderService.updateStatus(order.getOrderId(), OrderStatus.PENDING.getValue());
-                this.paymentService.updateAttemptStatus(attemptKey, PaymentStatus.APPROVING.getValue(),
-                        PaymentStatus.CANCEL_PENDING.getValue());
-            }
+            this.cancelPayment(PayType.KAKAO.getValue(), response.getTransactionId(),
+                    response.getTotalAmount(), response.getTaxFree(), attemptKey, order.getOrderId());
 
             throw new RuntimeException("결제금액이 주문금액과 다릅니다.");
         }
@@ -135,14 +130,9 @@ public class PaymentApplicationService {
                     .build());
 
         } catch (Exception completionException) {
-            boolean result = this.cancel(PayType.KAKAO.getValue(), response.getTransactionId(),
-                    response.getTotalAmount(), response.getTaxFree());
+            this.cancelPayment(PayType.KAKAO.getValue(), response.getTransactionId(),
+                    response.getTotalAmount(), response.getTaxFree(), attemptKey, order.getOrderId());
 
-            if (!result) {
-                this.orderService.updateStatus(order.getOrderId(), OrderStatus.PENDING.getValue());
-                this.paymentService.updateAttemptStatus(attemptKey, PaymentStatus.APPROVING.getValue(),
-                        PaymentStatus.CANCEL_PENDING.getValue());
-            }
             throw completionException;
         }
     }
@@ -180,14 +170,6 @@ public class PaymentApplicationService {
         }
     }
 
-    private boolean cancel(String payType, String transactionId, BigDecimal cancelAmount, BigDecimal taxFree) {
-        PaymentProcessor paymentProcessor  = new PaymentProcessor(PayFactory.getPay(payType));
-        return paymentProcessor.cancel(CancelRequest.builder()
-                .cancelAmount(cancelAmount)
-                .cancelTaxFreeAmount(taxFree)
-                .transactionId(transactionId).build());
-    }
-
     public void handleRequestCancel(RequestCancelCommand command) {
         Order order = this.orderService.findMemberOrder(command.getOrderId(), command.getMemberId());
 
@@ -208,19 +190,11 @@ public class PaymentApplicationService {
                 .findFirst().orElse(null);
 
         if(paymentGateWayElement != null) {
-            boolean result = this.cancel(payment.getPaymentType(),
-                                        paymentGateWayElement.getTransactionId(),
-                                        paymentGateWayElement.getAmount(),
-                                        paymentGateWayElement.getTaxFree());
-
             PaymentAttempt paymentAttempt = this.paymentService.findOrderPaymentAttempt(command.getOrderId(), payment.getAttemptKey());
 
-            if (!result) {
-                this.orderService.updateStatus(order.getOrderId(), OrderStatus.PENDING.getValue());
-                this.paymentService.updateAttemptStatus(paymentAttempt.getAttemptKey(),
-                        PaymentStatus.APPROVE.getValue(), PaymentStatus.CANCEL_PENDING.getValue());
-                throw new RuntimeException("결제취소 과정에서 오류가 발생하였습니다.");
-            }
+            this.cancelPayment(paymentGateWayElement.getPaymentMethod(), paymentGateWayElement.getTransactionId(),
+                    paymentGateWayElement.getAmount(), paymentGateWayElement.getTaxFree(),
+                    paymentAttempt.getAttemptKey(), command.getOrderId());
 
             this.paymentService.updateAttemptStatus(paymentAttempt.getAttemptKey(),
                     PaymentStatus.APPROVE.getValue(), PaymentStatus.CANCEL.getValue());
@@ -241,5 +215,21 @@ public class PaymentApplicationService {
                 .orderId(command.getOrderId())
                 .response(null)
                 .build());
+    }
+
+    private void cancelPayment(String payType, String transactionId, BigDecimal cancelAmount,
+                                     BigDecimal taxFree, String attemptKey, String orderId) {
+        PaymentProcessor paymentProcessor  = new PaymentProcessor(PayFactory.getPay(payType));
+
+        boolean result = paymentProcessor.cancel(CancelRequest.builder()
+                .cancelAmount(cancelAmount)
+                .cancelTaxFreeAmount(taxFree)
+                .transactionId(transactionId).build());
+
+        if (!result) {
+            this.orderService.updateStatus(orderId, OrderStatus.PENDING.getValue());
+            this.paymentService.updateAttemptStatus(attemptKey, PaymentStatus.APPROVING.getValue(),
+                    PaymentStatus.CANCEL_PENDING.getValue());
+        }
     }
 }
