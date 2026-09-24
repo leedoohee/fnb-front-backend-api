@@ -1,7 +1,8 @@
-package com.fnb.front.backend.controller.dto;
+package com.fnb.front.backend.controller.domain.response;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -10,7 +11,7 @@ import java.math.BigDecimal;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class KakaoPayCancelResultDto {
+public class KakaoPayCancelResponse {
 
     @JsonProperty("aid")
     private String aid;
@@ -49,6 +50,7 @@ public class KakaoPayCancelResultDto {
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
+    @Builder
     public static class Amount {
         @JsonProperty("total")
         private BigDecimal total;
@@ -67,6 +69,7 @@ public class KakaoPayCancelResultDto {
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
+    @Builder
     public static class ApprovedCancelAmount {
 
         @JsonProperty("total")

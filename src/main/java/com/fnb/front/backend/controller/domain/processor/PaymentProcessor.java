@@ -2,6 +2,7 @@ package com.fnb.front.backend.controller.domain.processor;
 
 import com.fnb.front.backend.controller.domain.implement.IPay;
 import com.fnb.front.backend.controller.domain.response.ApprovePaymentResponse;
+import com.fnb.front.backend.controller.domain.response.CancelPaymentResponse;
 import com.fnb.front.backend.controller.domain.response.RequestPaymentResponse;
 import com.fnb.front.backend.controller.domain.request.ApproveRequest;
 import com.fnb.front.backend.controller.domain.request.RequestPayment;
@@ -23,7 +24,7 @@ public class PaymentProcessor {
         return this.IPay.approve(approveRequest);
     }
 
-    public boolean cancel(CancelRequest cancelRequest) {
+    public CancelPaymentResponse cancel(CancelRequest cancelRequest) {
         return this.IPay.cancel(cancelRequest);
     }
 }

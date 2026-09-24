@@ -1,21 +1,19 @@
 package com.fnb.front.backend.controller.domain.command;
 
-import com.fnb.front.backend.controller.domain.Order;
-import com.fnb.front.backend.controller.domain.Payment;
-import com.fnb.front.backend.controller.dto.CancelPayDto;
+
+import com.fnb.front.backend.controller.domain.response.CancelPaymentResponse;
 import lombok.Builder;
 import lombok.Getter;
-import org.springframework.context.ApplicationEvent;
 
 @Getter
 public class AfterPaymentCancelCommand {
-    private final CancelPayDto cancelPayDto;
+    private final CancelPaymentResponse cancelPaymentResponse;
     private final String orderId;
     private final int paymentId;
 
     @Builder
-    public AfterPaymentCancelCommand(CancelPayDto cancelPayDto, String orderId, int paymentId) {
-        this.cancelPayDto = cancelPayDto;
+    public AfterPaymentCancelCommand(CancelPaymentResponse cancelPaymentResponse, String orderId, int paymentId) {
+        this.cancelPaymentResponse = cancelPaymentResponse;
         this.orderId = orderId;
         this.paymentId = paymentId;
     }

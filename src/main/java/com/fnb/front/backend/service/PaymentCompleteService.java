@@ -146,16 +146,16 @@ public class PaymentCompleteService {
                 .paymentId(payment.getPaymentId())
                 .build());
 
-        if (command.getCancelPayDto() != null) {
+        if (command.getCancelPaymentResponse() != null) {
             this.paymentService.insertPaymentElement(PaymentElement.builder()
                     .paymentStatus(PaymentStatus.CANCEL.getValue())
                     .paymentMethod(Objects.requireNonNull(paymentGateWayElement).getPaymentMethod())
                     .paymentId(payment.getPaymentId())
-                    .transactionId(command.getCancelPayDto().getTransactionId())
-                    .amount(BigDecimal.valueOf(command.getCancelPayDto().getTotalAmount()))
-                    .taxFree(BigDecimal.valueOf(command.getCancelPayDto().getTaxFree()))
-                    .vat(BigDecimal.valueOf(command.getCancelPayDto().getVat()))
-                    .approvedAt(command.getCancelPayDto().getApprovedAt())
+                    .transactionId(command.getCancelPaymentResponse().getTransactionId())
+                    .amount(command.getCancelPaymentResponse().getTotalAmount())
+                    .taxFree(command.getCancelPaymentResponse().getTaxFree())
+                    .vat(command.getCancelPaymentResponse().getVat())
+                    .approvedAt(LocalDateTime.now())
                     .createdAt(LocalDateTime.now())
                     .updatedAt(LocalDateTime.now())
                     .build());

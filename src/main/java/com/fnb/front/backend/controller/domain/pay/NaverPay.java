@@ -2,6 +2,7 @@ package com.fnb.front.backend.controller.domain.pay;
 
 import com.fnb.front.backend.controller.domain.implement.IPay;
 import com.fnb.front.backend.controller.domain.response.ApprovePaymentResponse;
+import com.fnb.front.backend.controller.domain.response.CancelPaymentResponse;
 import com.fnb.front.backend.controller.domain.response.RequestPaymentResponse;
 import com.fnb.front.backend.controller.domain.request.ApproveRequest;
 import com.fnb.front.backend.controller.domain.request.RequestPayment;
@@ -29,7 +30,7 @@ public class NaverPay implements IPay {
     }
 
     @Override
-    public boolean cancel(CancelRequest cancelPaymentDto) {
-        return false;
+    public CancelPaymentResponse cancel(CancelRequest cancelPaymentDto) {
+        return null;
     }
 }

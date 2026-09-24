@@ -6,10 +6,9 @@ import com.fnb.front.backend.controller.domain.processor.PaymentProcessor;
 import com.fnb.front.backend.controller.domain.request.ApproveRequest;
 import com.fnb.front.backend.controller.domain.request.RequestPayment;
 import com.fnb.front.backend.controller.domain.response.ApprovePaymentResponse;
+import com.fnb.front.backend.controller.domain.response.CancelPaymentResponse;
 import com.fnb.front.backend.controller.domain.response.RequestPaymentResponse;
 import com.fnb.front.backend.controller.domain.validator.PaymentValidator;
-import com.fnb.front.backend.controller.dto.CancelPayDto;
-import com.fnb.front.backend.controller.dto.KakaoPayCancelResultDto;
 import com.fnb.front.backend.controller.domain.request.CancelRequest;
 import com.fnb.front.backend.util.OrderStatus;
 import com.fnb.front.backend.util.PayType;
@@ -55,10 +54,6 @@ public class PaymentApplicationService {
         PaymentProcessor paymentProcessor   = new PaymentProcessor(PayFactory.getPay(requestPayment.getPayType()));
         RequestPaymentResponse response     = paymentProcessor.request(requestPayment);
 
-        if(response == null) {
-            throw new RuntimeException("결제요청 과정에서 오류가 발생하였습니다.");
-        }
-
         this.paymentService.insertPaymentAttempt(PaymentAttempt.builder()
                 .orderId(order.getOrderId())
                 .memberId(memberId)
@@ -75,6 +70,7 @@ public class PaymentApplicationService {
     }
 
     public void approveKakaoResult(String pgToken, String attemptKey) {
+        ApprovePaymentResponse response = null;
         PaymentAttempt attempt = this.paymentService.findPaymentAttempt(attemptKey);
 
         if (attempt == null) {
@@ -97,30 +93,22 @@ public class PaymentApplicationService {
         if (!this.paymentValidator.isEqualPrice(order, attempt.getExpectedAmount())) {
             throw new RuntimeException("실결제 금액과 요청 금액이 일치하지 않습니다.");
         }
-
-        PaymentProcessor paymentProcessor = new PaymentProcessor(PayFactory.getPay(PayType.KAKAO.getValue()));
-        ApprovePaymentResponse response   = paymentProcessor.approve(ApproveRequest.builder()
-                .amount(order.getTotalAmount())
-                .pgToken(pgToken)
-                .paymentKey(attempt.getPayType())
-                .paymentType(attempt.getPayType())
-                .transactionId(attempt.getTransactionId())
-                .orderId(order.getOrderId())
-                .memberName(order.getMemberName())
-                .build());
-
-        if(response == null) {
-            throw new RuntimeException("결제승인 과정에서 오류가 발생하였습니다.");
-        }
-
-        if (!this.paymentValidator.isEqualPrice(order, response.getTotalAmount())) {
-            this.cancelPayment(PayType.KAKAO.getValue(), response.getTransactionId(),
-                    response.getTotalAmount(), response.getTaxFree(), attemptKey, order.getOrderId());
-
-            throw new RuntimeException("결제금액이 주문금액과 다릅니다.");
-        }
-
         try {
+            PaymentProcessor paymentProcessor = new PaymentProcessor(PayFactory.getPay(PayType.KAKAO.getValue()));
+            response   = paymentProcessor.approve(ApproveRequest.builder()
+                    .amount(order.getTotalAmount())
+                    .pgToken(pgToken)
+                    .paymentKey(attempt.getPayType())
+                    .paymentType(attempt.getPayType())
+                    .transactionId(attempt.getTransactionId())
+                    .orderId(order.getOrderId())
+                    .memberName(order.getMemberName())
+                    .build());
+
+            if (!this.paymentValidator.isEqualPrice(order, response.getTotalAmount())) {
+                throw new RuntimeException("결제금액이 주문금액과 다릅니다.");
+            }
+
             this.paymentCompleteService.handlePaymentApprove(PaymentApproveCommand
                     .builder()
                     .payType(PayType.KAKAO.getValue())
@@ -134,39 +122,6 @@ public class PaymentApplicationService {
                     response.getTotalAmount(), response.getTaxFree(), attemptKey, order.getOrderId());
 
             throw completionException;
-        }
-    }
-
-    public void cancelKakaoResult(KakaoPayCancelResultDto response) {
-        PaymentElement paymentElement   = this.paymentService.findPaymentElement(response.getTid());
-
-        assert paymentElement != null : "결제정보를 찾을 수 없습니다.";
-
-        try {
-            Payment payment = this.paymentService.findPayment(paymentElement.getPaymentId());
-            Order order     = this.orderService.findOrder(payment.getOrderId());
-
-            this.paymentCompleteService.handlePaymentCancel(AfterPaymentCancelCommand
-                    .builder()
-                    .cancelPayDto(CancelPayDto.builder()
-                            .approvalId(Objects.requireNonNull(response).getAid())
-                            .transactionId(response.getTid())
-                            .productName(response.getItemName())
-                            .quantity(response.getQuantity())
-                            .totalAmount(response.getCancelAmount().getTotal())
-                            .taxFree(response.getCancelAmount().getTaxFree())
-                            .vat(response.getCancelAmount().getVat())
-                            .point(response.getCancelAmount().getPoint())
-                            .discount(response.getCancelAmount().getDiscount())
-                            .greenDeposit(response.getCancelAmount().getGreenDeposit())
-                            .approvedAt(LocalDateTime.parse(response.getApprovedAt()))
-                            .cancelAt(LocalDateTime.parse(response.getCancelAt()))
-                            .build())
-                    .orderId(order.getOrderId())
-                    .paymentId(payment.getPaymentId())
-                    .build());
-        } catch (Exception e) {
-            throw new RuntimeException("결제취소 과정에서 오류가 발생하였습니다.");
         }
     }
 
@@ -192,20 +147,25 @@ public class PaymentApplicationService {
         if(paymentGateWayElement != null) {
             PaymentAttempt paymentAttempt = this.paymentService.findOrderPaymentAttempt(command.getOrderId(), payment.getAttemptKey());
 
-            this.cancelPayment(paymentGateWayElement.getPaymentMethod(), paymentGateWayElement.getTransactionId(),
+            CancelPaymentResponse response = this.cancelPayment(paymentGateWayElement.getPaymentMethod(), paymentGateWayElement.getTransactionId(),
                     paymentGateWayElement.getAmount(), paymentGateWayElement.getTaxFree(),
                     paymentAttempt.getAttemptKey(), command.getOrderId());
 
+            this.paymentCompleteService.handlePaymentCancel(AfterPaymentCancelCommand.builder()
+                            .cancelPaymentResponse(response)
+                            .orderId(response.getOrderId())
+                            .paymentId(payment.getPaymentId()).build());
+
             this.paymentService.updateAttemptStatus(paymentAttempt.getAttemptKey(),
                     PaymentStatus.APPROVE.getValue(), PaymentStatus.CANCEL.getValue());
+        } else {
+            this.paymentCompleteService.handlePaymentCancel(AfterPaymentCancelCommand
+                    .builder()
+                    .cancelPaymentResponse(null)
+                    .orderId(command.getOrderId())
+                    .paymentId(payment.getPaymentId())
+                    .build());
         }
-
-        this.paymentCompleteService.handlePaymentCancel(AfterPaymentCancelCommand
-                .builder()
-                .cancelPayDto(null)
-                .orderId(command.getOrderId())
-                .paymentId(payment.getPaymentId())
-                .build());
     }
 
     public void handleRequestPayment(RequestPaymentCommand command) {
@@ -217,19 +177,21 @@ public class PaymentApplicationService {
                 .build());
     }
 
-    private void cancelPayment(String payType, String transactionId, BigDecimal cancelAmount,
+    private CancelPaymentResponse cancelPayment(String payType, String transactionId, BigDecimal cancelAmount,
                                      BigDecimal taxFree, String attemptKey, String orderId) {
         PaymentProcessor paymentProcessor  = new PaymentProcessor(PayFactory.getPay(payType));
 
-        boolean result = paymentProcessor.cancel(CancelRequest.builder()
+        CancelPaymentResponse response = paymentProcessor.cancel(CancelRequest.builder()
                 .cancelAmount(cancelAmount)
                 .cancelTaxFreeAmount(taxFree)
                 .transactionId(transactionId).build());
 
-        if (!result) {
+        if (response.getOrderId() == null) {
             this.orderService.updateStatus(orderId, OrderStatus.PENDING.getValue());
             this.paymentService.updateAttemptStatus(attemptKey, PaymentStatus.APPROVING.getValue(),
                     PaymentStatus.CANCEL_PENDING.getValue());
         }
+
+        return response;
     }
 }
