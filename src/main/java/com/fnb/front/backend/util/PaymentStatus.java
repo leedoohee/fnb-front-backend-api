@@ -9,7 +9,8 @@ public enum PaymentStatus {
     APPROVE("2"),
     CANCEL("3"),
     PENDING("4"),
-    CANCEL_PENDING("5");
+    CANCEL_PENDING("5"),
+    CANCELING("6");
 
     private final String value;
 

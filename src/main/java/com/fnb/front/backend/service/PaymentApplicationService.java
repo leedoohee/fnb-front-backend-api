@@ -6,6 +6,7 @@ import com.fnb.front.backend.controller.domain.processor.PaymentProcessor;
 import com.fnb.front.backend.controller.domain.request.RequestPayment;
 import com.fnb.front.backend.controller.domain.response.ApprovePaymentResponse;
 import com.fnb.front.backend.controller.domain.response.RequestPaymentResponse;
+import com.fnb.front.backend.controller.domain.validator.PaymentValidator;
 import com.fnb.front.backend.controller.dto.CancelPayDto;
 import com.fnb.front.backend.controller.dto.KakaoPayApproveDto;
 import com.fnb.front.backend.controller.dto.KakaoPayCancelDto;
@@ -35,27 +36,23 @@ public class PaymentApplicationService {
 
     public RequestPaymentResponse request(RequestPayment requestPayment, String memberId) {
         Order order = this.orderService.findMemberOrder(requestPayment.getOrderId(), memberId);
+        PaymentValidator paymentValidator = new PaymentValidator();
+
         String attemptKey = UUID.randomUUID().toString();
         requestPayment.setAttemptKey(attemptKey);
 
         if (order == null) {
-            throw new RuntimeException("결제할 수 없는 주문입니다.");
+            throw new RuntimeException("주문 정보가 없습니다.");
         }
 
-        if (order.getTotalAmount().compareTo(requestPayment.getPurchasePrice()) != 0) {
-            throw new RuntimeException("결제요청금액이 주문금액과 다릅니다.");
+        boolean result = paymentValidator.isAvailableRequest(order, requestPayment.getPurchasePrice(), requestPayment.getVatAmount());
+
+        if (!result) {
+            throw new RuntimeException("결제 정합성 체크 과정에서 오류가 발생하였습니다.");
         }
 
-        if (order.getTotalAmount().divide(BigDecimal.valueOf(1.1), RoundingMode.HALF_EVEN).compareTo(requestPayment.getVatAmount()) != 0) {
-            throw new RuntimeException("부가세금액이 주문금액과 다릅니다.");
-        }
-
-        if (!OrderStatus.PENDING.getValue().equals(order.getOrderStatus()) && !OrderStatus.TEMP.getValue().equals(order.getOrderStatus())) {
-            throw new IllegalStateException("결제할 수 없는 주문상태입니다.");
-        }
-
-        PaymentProcessor paymentProcessor = new PaymentProcessor(PayFactory.getPay(requestPayment.getPayType()));
-        RequestPaymentResponse response = paymentProcessor.request(requestPayment);
+        PaymentProcessor paymentProcessor   = new PaymentProcessor(PayFactory.getPay(requestPayment.getPayType()));
+        RequestPaymentResponse response     = paymentProcessor.request(requestPayment);
 
         if(response == null) {
             throw new RuntimeException("결제요청 과정에서 오류가 발생하였습니다.");
@@ -78,6 +75,7 @@ public class PaymentApplicationService {
 
     public void approveKakaoResult(String pgToken, String attemptKey) {
         PaymentAttempt attempt = this.paymentService.findPaymentAttempt(attemptKey);
+        PaymentValidator paymentValidator = new PaymentValidator();
 
         if (attempt == null) {
             throw new RuntimeException("결제승인 과정에서 오류가 발생하였습니다.");
@@ -93,11 +91,11 @@ public class PaymentApplicationService {
         Order order = this.orderService.findMemberOrder(attempt.getOrderId(), attempt.getMemberId());
 
         if (order == null) {
-            throw new RuntimeException("결제승인 과정에서 오류가 발생하였습니다.");
+            throw new RuntimeException("주문 정보가 존재하지 않습니다.");
         }
 
-        if (order.getTotalAmount().compareTo(attempt.getExpectedAmount()) != 0) {
-            throw new IllegalStateException("결제 금액이 일치하지 않습니다.");
+        if (paymentValidator.isEqualPrice(order, attempt.getExpectedAmount())) {
+            throw new RuntimeException("실결제 금액과 요청 금액이 일치하지 않습니다.");
         }
 
         PaymentProcessor paymentProcessor = new PaymentProcessor(PayFactory.getPay(PayType.KAKAO.getValue()));
@@ -115,7 +113,7 @@ public class PaymentApplicationService {
             throw new RuntimeException("결제승인 과정에서 오류가 발생하였습니다.");
         }
 
-        if (order.getTotalAmount().compareTo(response.getTotalAmount()) != 0) {
+        if (paymentValidator.isEqualPrice(order, response.getTotalAmount())) {
             boolean result = this.cancel(PayType.KAKAO.getValue(), response.getTransactionId(),
                     response.getTotalAmount(), response.getTaxFree());
 
