@@ -34,9 +34,10 @@ public class PaymentApplicationService {
 
     private final PaymentCompleteService paymentCompleteService;
 
+    private final PaymentValidator paymentValidator;
+
     public RequestPaymentResponse request(RequestPayment requestPayment, String memberId) {
         Order order = this.orderService.findMemberOrder(requestPayment.getOrderId(), memberId);
-        PaymentValidator paymentValidator = new PaymentValidator();
 
         String attemptKey = UUID.randomUUID().toString();
         requestPayment.setAttemptKey(attemptKey);
@@ -45,7 +46,7 @@ public class PaymentApplicationService {
             throw new RuntimeException("주문 정보가 없습니다.");
         }
 
-        boolean result = paymentValidator.isAvailableRequest(order, requestPayment.getPurchasePrice(), requestPayment.getVatAmount());
+        boolean result = this.paymentValidator.isAvailableRequest(order, requestPayment.getPurchasePrice(), requestPayment.getVatAmount());
 
         if (!result) {
             throw new RuntimeException("결제 정합성 체크 과정에서 오류가 발생하였습니다.");
@@ -113,7 +114,7 @@ public class PaymentApplicationService {
             throw new RuntimeException("결제승인 과정에서 오류가 발생하였습니다.");
         }
 
-        if (paymentValidator.isEqualPrice(order, response.getTotalAmount())) {
+        if (this.paymentValidator.isEqualPrice(order, response.getTotalAmount())) {
             boolean result = this.cancel(PayType.KAKAO.getValue(), response.getTransactionId(),
                     response.getTotalAmount(), response.getTaxFree());
 

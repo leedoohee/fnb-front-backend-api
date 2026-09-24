@@ -4,12 +4,14 @@ import com.fnb.front.backend.controller.domain.*;
 import com.fnb.front.backend.controller.domain.request.OrderCouponRequest;
 import com.fnb.front.backend.controller.domain.request.OrderProductRequest;
 import com.fnb.front.backend.controller.domain.request.OrderRequest;
+import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 
+@Component
 public class OrderValidator {
 
     public boolean isCanPurchaseMember(Member member) {
