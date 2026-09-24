@@ -31,6 +31,8 @@ public class OrderService {
 
     private final OrderRepository orderRepository;
 
+    private final OrderProcessor orderProcessor;
+
     private final OrderValidator orderValidator;
 
     @Transactional
@@ -40,9 +42,9 @@ public class OrderService {
         List<Product> product         = this.createProduct(orderRequest.getOrderProductRequests());
         List<Coupon> coupons          = this.createOrderCoupon(orderRequest);
         List<ProductOption> options   = this.createOptions(orderRequest.getOrderProductRequests());
-        OrderProcessor orderProcessor = new OrderProcessor(member, order, product, options, coupons, this.orderValidator, orderRequest);
 
-        orderProcessor.buildOrder();
+        this.orderProcessor.prepareOrder(member, order, product, options, coupons, this.orderValidator, orderRequest);
+        this.orderProcessor.buildOrder();
 
         this.insertOrder(order);
         this.insertOrderProducts(order.getOrderProducts());

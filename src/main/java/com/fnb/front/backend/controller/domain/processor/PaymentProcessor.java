@@ -6,12 +6,14 @@ import com.fnb.front.backend.controller.domain.response.RequestPaymentResponse;
 import com.fnb.front.backend.controller.dto.KakaoPayApproveDto;
 import com.fnb.front.backend.controller.domain.request.RequestPayment;
 import com.fnb.front.backend.controller.dto.RequestCancelPayDto;
+import org.springframework.stereotype.Component;
 
+@Component
 public class PaymentProcessor {
 
-    private final IPay IPay;
+    private IPay IPay;
 
-    public PaymentProcessor(IPay IPay) {
+    public void preparePayment(IPay IPay) {
         this.IPay = IPay;
     }
 

@@ -11,11 +11,13 @@ import com.fnb.front.backend.controller.dto.*;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
 import java.time.LocalDateTime;
 import java.util.Objects;
 
+@Component
 public class KakaoPay implements IPay {
 
     private final String SECRET_KEY = "YOUR_SECRET_KEY"; // Replace with your actual key

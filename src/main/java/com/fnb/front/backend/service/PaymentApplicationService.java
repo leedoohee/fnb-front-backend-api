@@ -34,6 +34,8 @@ public class PaymentApplicationService {
 
     private final PaymentCompleteService paymentCompleteService;
 
+    private final PaymentProcessor paymentProcessor;
+
     private final PaymentValidator paymentValidator;
 
     public RequestPaymentResponse request(RequestPayment requestPayment, String memberId) {
@@ -52,7 +54,7 @@ public class PaymentApplicationService {
             throw new RuntimeException("결제 정합성 체크 과정에서 오류가 발생하였습니다.");
         }
 
-        PaymentProcessor paymentProcessor   = new PaymentProcessor(PayFactory.getPay(requestPayment.getPayType()));
+        this.paymentProcessor.preparePayment(PayFactory.getPay(requestPayment.getPayType()));
         RequestPaymentResponse response     = paymentProcessor.request(requestPayment);
 
         if(response == null) {
@@ -99,7 +101,8 @@ public class PaymentApplicationService {
             throw new RuntimeException("실결제 금액과 요청 금액이 일치하지 않습니다.");
         }
 
-        PaymentProcessor paymentProcessor = new PaymentProcessor(PayFactory.getPay(PayType.KAKAO.getValue()));
+        this.paymentProcessor.preparePayment(PayFactory.getPay(PayType.KAKAO.getValue()));
+
         ApprovePaymentResponse response   = paymentProcessor.approve(KakaoPayApproveDto.builder()
                 .amount(order.getTotalAmount())
                 .pgToken(pgToken)
@@ -183,7 +186,7 @@ public class PaymentApplicationService {
     }
 
     private boolean cancel(String payType, String transactionId, BigDecimal cancelAmount, BigDecimal taxFree) {
-        PaymentProcessor paymentProcessor  = new PaymentProcessor(PayFactory.getPay(payType));
+        this.paymentProcessor.preparePayment(PayFactory.getPay(payType));
         return paymentProcessor.cancel(RequestCancelPayDto.builder()
                 .cancelAmount(cancelAmount)
                 .cancelTaxFreeAmount(taxFree)
