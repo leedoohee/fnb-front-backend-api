@@ -6,6 +6,7 @@ import com.fnb.front.backend.controller.domain.request.*;
 import com.fnb.front.backend.controller.domain.response.*;
 import com.fnb.front.backend.controller.domain.response.KakaoPayCancelResponse;
 import com.fnb.front.backend.controller.dto.*;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -18,6 +19,9 @@ import java.util.Objects;
 
 @Component
 public class KakaoPay implements IPay {
+
+    @Value("${kakao.payment.cid}")
+    private String cid;
 
     private final String SECRET_KEY = "YOUR_SECRET_KEY"; // Replace with your actual key
     private final String REQUEST_API_URL = "https://open-api.kakaopay.com/online/v1/payment/ready";
@@ -35,7 +39,7 @@ public class KakaoPay implements IPay {
         headers.set("Content-Type", MediaType.APPLICATION_JSON_VALUE);
 
         KakaoPayRequestResultDto requestBody = KakaoPayRequestResultDto.builder()
-                .cid(requestPayment.getPaymentKey())
+                .cid(this.cid)
                 .partnerOrderId(requestPayment.getOrderId())
                 .partnerUserId(requestPayment.getMemberName())
                 .itemName(requestPayment.getProductName())
@@ -74,7 +78,7 @@ public class KakaoPay implements IPay {
         RestTemplate restTemplate = new RestTemplate();
 
         KakaoPayApproveRequest requestBody = KakaoPayApproveRequest.builder()
-                .cid(kakaoPaymentApproveDto.getPaymentKey())
+                .cid(this.cid)
                 .tid(kakaoPaymentApproveDto.getTransactionId())
                 .partnerOrderId(kakaoPaymentApproveDto.getOrderId())
                 .partnerUserId(kakaoPaymentApproveDto.getMemberName())
@@ -122,7 +126,7 @@ public class KakaoPay implements IPay {
     public CancelPaymentResponse cancel(CancelRequest cancelRequest) {
         RestTemplate restTemplate = new RestTemplate();
         KakaoPayCancelRequest requestBody = KakaoPayCancelRequest.builder()
-                .cid("kakao")
+                .cid(this.cid)
                 .tid(cancelRequest.getTransactionId())
                 .cancelAmount(cancelRequest.getCancelAmount())
                 .cancelTaxFreeAmount(cancelRequest.getCancelTaxFreeAmount())

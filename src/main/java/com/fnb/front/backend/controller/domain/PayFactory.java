@@ -6,6 +6,7 @@ import com.fnb.front.backend.controller.domain.pay.TossPay;
 import com.fnb.front.backend.controller.domain.implement.IPay;
 import com.fnb.front.backend.util.PayType;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 @Component
