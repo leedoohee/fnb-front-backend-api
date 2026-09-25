@@ -376,7 +376,6 @@ curl 'http://localhost:8080/cart' \
 
 1. **카카오 Ready 리다이렉트 URL이 실제 서비스 URL을 가리키지 않습니다.** `approval_url`은 현재 카카오 Approve API 주소를, `cancel_url`은 카카오 Cancel API 주소를 사용합니다. 두 값은 각각 가맹점의 승인 리다이렉트와 인증 취소 페이지여야 합니다. `fail_url`도 가맹점 실패 페이지로 변경해야 합니다.
 2. **카카오 취소 응답 매핑이 실제 필드와 완전히 일치하지 않습니다.** `approved_cancel_amount`, `canceled_amount`, `cancel_available_amount`, `canceled_at`을 구분해 매핑해야 하며, 부분 취소에서는 원결제 금액이 아니라 이번 취소 승인 금액을 저장해야 합니다.
-3. **PG 식별자가 단계마다 다릅니다.** Ready는 요청의 `paymentKey`, Approve는 `attempt.payType`, Cancel은 하드코딩된 `"kakao"`를 CID로 사용합니다. Ready에서 실제 사용한 CID를 결제 시도에 저장하고 모든 단계에서 동일하게 사용해야 합니다.
 
 ### 복구·운영 보강
 
