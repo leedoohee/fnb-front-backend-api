@@ -35,6 +35,8 @@ public class PaymentApplicationService {
 
     private final PaymentValidator paymentValidator;
 
+    private final PayFactory payFactory;
+
     public RequestPaymentResponse request(RequestPayment requestPayment, String memberId) {
         Order order = this.orderService.findMemberOrder(requestPayment.getOrderId(), memberId);
         String attemptKey = CommonUtil.generateAttemptKey();
@@ -51,7 +53,7 @@ public class PaymentApplicationService {
             throw new RuntimeException("결제 정합성 체크 과정에서 오류가 발생하였습니다.");
         }
 
-        PaymentProcessor paymentProcessor   = new PaymentProcessor(PayFactory.getPay(requestPayment.getPayType()));
+        PaymentProcessor paymentProcessor   = new PaymentProcessor(this.payFactory.getPay(requestPayment.getPayType()));
         RequestPaymentResponse response     = paymentProcessor.request(requestPayment);
 
         this.paymentService.insertPaymentAttempt(PaymentAttempt.builder()
@@ -96,7 +98,7 @@ public class PaymentApplicationService {
             throw new RuntimeException("실결제 금액과 요청 금액이 일치하지 않습니다.");
         }
 
-        PaymentProcessor paymentProcessor = new PaymentProcessor(PayFactory.getPay(PayType.KAKAO.getValue()));
+        PaymentProcessor paymentProcessor = new PaymentProcessor(this.payFactory.getPay(PayType.KAKAO.getValue()));
         ApprovePaymentResponse response = paymentProcessor.approve(ApproveRequest.builder()
                 .amount(order.getTotalAmount())
                 .pgToken(pgToken)
@@ -196,7 +198,7 @@ public class PaymentApplicationService {
 
     private CancelPaymentResponse cancelPayment(String payType, String transactionId, BigDecimal cancelAmount,
                                      BigDecimal taxFree, String attemptKey, String orderId) {
-        PaymentProcessor paymentProcessor  = new PaymentProcessor(PayFactory.getPay(payType));
+        PaymentProcessor paymentProcessor  = new PaymentProcessor(this.payFactory.getPay(payType));
 
         CancelPaymentResponse response = paymentProcessor.cancel(CancelRequest.builder()
                 .cancelAmount(cancelAmount)

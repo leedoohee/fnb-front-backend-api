@@ -5,9 +5,13 @@ import com.fnb.front.backend.controller.domain.pay.NaverPay;
 import com.fnb.front.backend.controller.domain.pay.TossPay;
 import com.fnb.front.backend.controller.domain.implement.IPay;
 import com.fnb.front.backend.util.PayType;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Component;
 
+@Component
+@RequiredArgsConstructor
 public class PayFactory {
-    public static IPay getPay(String payType) {
+    public IPay getPay(String payType) {
         if (payType.equals(PayType.KAKAO.getValue())) {
             return new KakaoPay();
         } else if (payType.equals(PayType.NAVER.getValue())) {
