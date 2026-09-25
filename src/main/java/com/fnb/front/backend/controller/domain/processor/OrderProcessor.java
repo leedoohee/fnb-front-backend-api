@@ -49,15 +49,19 @@ public class OrderProcessor {
             throw new IllegalStateException("사용 불가능한 쿠폰이 포함되어 있습니다.");
         }
 
-        boolean productResult = this.orderValidator.isCanOrderProducts(this.products, this.aliveOptions, this.orderRequest, this.coupons);
+        boolean productResult = this.orderValidator.isCanOrderProducts(this.products, this.aliveOptions,
+                this.orderRequest, this.coupons);
 
         assert productResult : "구매 불가능한 상품이 포함되어 있습니다.";
 
         String orderId = CommonUtil.generateOrderId();
-        this.order.build(this.buildOrderProducts(orderId, this.member, this.products, this.aliveOptions, this.coupons, this.orderRequest), orderId, this.member);
+
+        this.order.build(this.buildOrderProducts(orderId, this.member, this.products, this.aliveOptions,
+                this.coupons, this.orderRequest), orderId, this.member);
     }
 
-    private List<OrderProduct> buildOrderProducts(String orderId, Member member, List<Product> products, List<ProductOption> options, List<Coupon> coupons, OrderRequest orderRequest) {
+    private List<OrderProduct> buildOrderProducts(String orderId, Member member, List<Product> products,
+                                                  List<ProductOption> options, List<Coupon> coupons, OrderRequest orderRequest) {
         List<OrderProduct> orderProducts = new ArrayList<>();
 
         for (Product product : products) {

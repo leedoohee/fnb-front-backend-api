@@ -10,8 +10,8 @@ import org.springframework.stereotype.Service;
 public class PaymentService {
     private final PaymentRepository paymentRepository;
 
-    public int insertPaymentCancel(PaymentCancel paymentCancel) {
-        return this.paymentRepository.insertPaymentCancel(paymentCancel);
+    public void insertPaymentCancel(PaymentCancel paymentCancel) {
+        this.paymentRepository.insertPaymentCancel(paymentCancel);
     }
 
     public void insertPaymentElement(PaymentElement paymentElement) {
@@ -50,7 +50,7 @@ public class PaymentService {
         return this.paymentRepository.updateAttemptStatus(attemptKey, expectedStatus, updateStatus);
     }
 
-    public void updatePaymentStatus(Integer paymentId, String status) {
-        this.paymentRepository.updatePaymentStatus(paymentId, status);
+    public int updatePaymentStatus(Integer paymentId, String expectedStatus, String updateStatus) {
+        return this.paymentRepository.updatePaymentStatus(paymentId, expectedStatus, updateStatus);
     }
 }

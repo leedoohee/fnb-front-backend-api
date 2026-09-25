@@ -41,7 +41,8 @@ public class OrderService {
         List<Coupon> coupons          = this.createOrderCoupon(orderRequest);
         List<ProductOption> options   = this.createOptions(orderRequest.getOrderProductRequests());
 
-        OrderProcessor orderProcessor = new OrderProcessor(member, order, product, options, coupons, this.orderValidator, orderRequest);
+        OrderProcessor orderProcessor = new OrderProcessor(member, order, product, options, coupons,
+                this.orderValidator, orderRequest);
         orderProcessor.buildOrder();
 
         this.insertOrder(order);

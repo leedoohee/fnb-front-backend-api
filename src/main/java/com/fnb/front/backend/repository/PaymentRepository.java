@@ -5,7 +5,6 @@ import com.fnb.front.backend.util.PaymentStatus;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.TypedQuery;
 import jakarta.persistence.criteria.*;
-import jakarta.persistence.criteria.Order;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -33,9 +32,8 @@ public class PaymentRepository {
     }
 
     @Transactional
-    public int insertPaymentCancel(PaymentCancel paymentCancel) {
+    public void insertPaymentCancel(PaymentCancel paymentCancel) {
         this.em.persist(paymentCancel);
-        return paymentCancel.getId();
     }
 
     @Transactional
@@ -57,21 +55,24 @@ public class PaymentRepository {
     }
 
     @Transactional
-    public void updatePaymentStatus(Integer paymentId, String paymentStatus) {
+    public int updatePaymentStatus(Integer paymentId, String expectedStatus, String updateStatus) {
+        List<Predicate> searchConditions = new ArrayList<>();
         CriteriaBuilder cb = em.getCriteriaBuilder();
         CriteriaUpdate<Payment> update = cb.createCriteriaUpdate(Payment.class);
         Root<Payment> root = update.from(Payment.class);
+        searchConditions.add(cb.equal(root.get("paymentId"), paymentId));
+        searchConditions.add(cb.equal(root.get("paymentStatus"), expectedStatus));
 
-        update.set("paymentStatus", paymentStatus);
+        update.set("paymentStatus", updateStatus);
 
-        update.where(cb.equal(root.get("paymentId"), paymentId));
+        update.where(searchConditions.toArray(new Predicate[0]));
 
-        this.em.createQuery(update).executeUpdate();
+        return this.em.createQuery(update).executeUpdate();
     }
 
     @Transactional
     public void insertPaymentElement(PaymentElement paymentElement) {
-        em.persist(paymentElement);
+        this.em.persist(paymentElement);
     }
 
     public List<PaymentType> findPaymentType() {

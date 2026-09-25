@@ -10,6 +10,7 @@ import com.fnb.front.backend.controller.domain.response.CancelPaymentResponse;
 import com.fnb.front.backend.controller.domain.response.RequestPaymentResponse;
 import com.fnb.front.backend.controller.domain.validator.PaymentValidator;
 import com.fnb.front.backend.controller.domain.request.CancelRequest;
+import com.fnb.front.backend.util.CommonUtil;
 import com.fnb.front.backend.util.OrderStatus;
 import com.fnb.front.backend.util.PayType;
 import com.fnb.front.backend.util.PaymentStatus;
@@ -21,8 +22,6 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Objects;
-import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -37,7 +36,7 @@ public class PaymentApplicationService {
 
     public RequestPaymentResponse request(RequestPayment requestPayment, String memberId) {
         Order order = this.orderService.findMemberOrder(requestPayment.getOrderId(), memberId);
-        String attemptKey = UUID.randomUUID().toString();
+        String attemptKey = CommonUtil.generateAttemptKey();
         requestPayment.setAttemptKey(attemptKey);
 
         if (order == null) {
@@ -93,6 +92,7 @@ public class PaymentApplicationService {
         if (!this.paymentValidator.isEqualPrice(order, attempt.getExpectedAmount())) {
             throw new RuntimeException("실결제 금액과 요청 금액이 일치하지 않습니다.");
         }
+
         try {
             PaymentProcessor paymentProcessor = new PaymentProcessor(PayFactory.getPay(PayType.KAKAO.getValue()));
             response   = paymentProcessor.approve(ApproveRequest.builder()
@@ -135,6 +135,13 @@ public class PaymentApplicationService {
         Payment payment = this.paymentService.findPayment(command.getOrderId());
 
         if (!payment.getPaymentStatus().equals(PaymentStatus.APPROVE.getValue())) {
+            throw new RuntimeException("취소할 수 없는 주문상태입니다.");
+        }
+
+        int count = this.paymentService.updatePaymentStatus(payment.getPaymentId(),
+                PaymentStatus.APPROVE.getValue(), PaymentStatus.CANCELING.getValue());
+
+        if (count == 0) {
             throw new RuntimeException("취소할 수 없는 주문상태입니다.");
         }
 

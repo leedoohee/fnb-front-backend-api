@@ -72,7 +72,6 @@ public class KakaoPay implements IPay {
     public ApprovePaymentResponse approve(ApproveRequest kakaoPaymentApproveDto) {
 
         RestTemplate restTemplate = new RestTemplate();
-        ApprovePaymentResponse approvePaymentResponse;
 
         KakaoPayApproveRequest requestBody = KakaoPayApproveRequest.builder()
                 .cid(kakaoPaymentApproveDto.getPaymentKey())
@@ -91,7 +90,7 @@ public class KakaoPay implements IPay {
         try {
             KakaoPayApproveResponse response = restTemplate.postForObject(APPROVE_API_URL, httpEntity, KakaoPayApproveResponse.class);
 
-            approvePaymentResponse = ApprovePaymentResponse.builder()
+            return ApprovePaymentResponse.builder()
                     .approvalId(Objects.requireNonNull(response).getAid())
                     .transactionId(response.getTid())
                     .memberName(response.getPartnerUserId())
@@ -117,8 +116,6 @@ public class KakaoPay implements IPay {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-
-        return approvePaymentResponse;
     }
 
     @Override

@@ -1,6 +1,7 @@
 package com.fnb.front.backend.util;
 
 import java.util.Date;
+import java.util.UUID;
 
 public class CommonUtil {
 
@@ -18,5 +19,9 @@ public class CommonUtil {
 
     public static String generateOrderId() {
         return "ORDER_" + new Date().getTime();
+    }
+
+    public static String generateAttemptKey() {
+        return UUID.randomUUID().toString();
     }
 }
