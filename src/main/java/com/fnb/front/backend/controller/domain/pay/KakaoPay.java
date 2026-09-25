@@ -23,7 +23,9 @@ public class KakaoPay implements IPay {
     @Value("${kakao.payment.cid}")
     private String cid;
 
-    private final String SECRET_KEY = "YOUR_SECRET_KEY"; // Replace with your actual key
+    @Value("${kakao.payment.secretkey}")
+    private String SECRET_KEY;
+
     private final String REQUEST_API_URL = "https://open-api.kakaopay.com/online/v1/payment/ready";
     private final String APPROVE_API_URL = "https://open-api.kakaopay.com/online/v1/payment/approve";
     private final String FAIL_API_URL = "https://developers.kakao.com/fail";
