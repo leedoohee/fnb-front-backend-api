@@ -16,6 +16,7 @@ import com.fnb.front.backend.util.PayType;
 import com.fnb.front.backend.util.PaymentStatus;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.math.BigDecimal;
@@ -135,6 +136,24 @@ public class PaymentApplicationService {
 
             throw completionException;
         }
+    }
+
+    @Transactional
+    public void failKakaoResult(String attemptKey) {
+        int count = paymentService.updateAttemptStatus(attemptKey, PaymentStatus.REQUEST.getValue(),
+                PaymentStatus.AUTH_FAILED.getValue());
+
+        if (count == 1) {
+            return;
+        }
+
+        PaymentAttempt attempt = paymentService.findPaymentAttempt(attemptKey);
+
+        if (attempt != null && PaymentStatus.AUTH_FAILED.getValue().equals(attempt.getAttemptKey())) {
+            return;
+        }
+
+        throw new IllegalStateException("실패 처리할 수 없는 결제 시도입니다.");
     }
 
     public void handleRequestCancel(RequestCancelCommand command) {
