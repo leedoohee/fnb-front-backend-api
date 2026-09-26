@@ -2,6 +2,7 @@ package com.fnb.front.backend.service;
 
 import com.fnb.front.backend.controller.domain.*;
 import com.fnb.front.backend.controller.domain.command.*;
+import com.fnb.front.backend.controller.domain.implement.PaymentApprover;
 import com.fnb.front.backend.controller.domain.processor.PaymentProcessor;
 import com.fnb.front.backend.controller.domain.request.ApproveRequest;
 import com.fnb.front.backend.controller.domain.request.RequestPayment;
@@ -23,7 +24,6 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -60,7 +60,7 @@ public class PaymentApplicationService {
         this.paymentService.insertPaymentAttempt(PaymentAttempt.builder()
                 .orderId(order.getOrderId())
                 .memberId(memberId)
-                .payType(PayType.KAKAO.getValue())
+                .payType(requestPayment.getPayType())
                 .attemptKey(attemptKey)
                 .transactionId(response.getTransactionId())
                 .expectedAmount(order.getTotalAmount())
@@ -73,69 +73,18 @@ public class PaymentApplicationService {
     }
 
     public void approveKakaoResult(String pgToken, String attemptKey) {
-        PaymentAttempt attempt = this.paymentService.findPaymentAttempt(attemptKey);
-
-        if (attempt == null) {
-            throw new RuntimeException("결제승인 과정에서 오류가 발생하였습니다.");
-        }
-
-        Order order = this.orderService.findMemberOrder(attempt.getOrderId(), attempt.getMemberId());
-
-        if (order == null) {
-            throw new RuntimeException("주문 정보가 존재하지 않습니다.");
-        }
-
-        int count = this.paymentService.updateAttemptStatus(attemptKey,
-                PaymentStatus.REQUEST.getValue(), PaymentStatus.APPROVING.getValue());
-
-        if (count == 0) {
-            throw new RuntimeException("결제승인 과정에서 오류가 발생하였습니다.");
-        }
-
-        if (!this.paymentValidator.isEqualPrice(order, attempt.getExpectedAmount())) {
-            this.paymentService.updateAttemptStatus(attemptKey, PaymentStatus.APPROVING.getValue(),
-                    PaymentStatus.APPROVE_ERROR.getValue());
-
-            throw new RuntimeException("실결제 금액과 요청 금액이 일치하지 않습니다.");
-        }
-
-        PaymentProcessor paymentProcessor = new PaymentProcessor(this.payFactory.getPay(PayType.KAKAO.getValue()));
-        ApprovePaymentResponse response = paymentProcessor.approve(ApproveRequest.builder()
-                .amount(order.getTotalAmount())
-                .pgToken(pgToken)
-                .paymentKey(attempt.getPayType())
-                .paymentType(attempt.getPayType())
-                .transactionId(attempt.getTransactionId())
-                .orderId(order.getOrderId())
-                .memberName(order.getMemberName())
-                .build());
-
-        if (response == null) {
-            this.paymentService.updateAttemptStatus(attemptKey, PaymentStatus.APPROVING.getValue(),
-                    PaymentStatus.APPROVE_ERROR.getValue());
-
-            throw new RuntimeException("결제승인 과정에서 오류가 발생하였습니다.");
-        }
-
-        try {
-            if (!this.paymentValidator.isEqualPrice(order, response.getTotalAmount())) {
-                throw new RuntimeException("결제금액이 주문금액과 다릅니다.");
-            }
-
-            this.paymentCompleteService.handlePaymentApprove(PaymentApproveCommand
-                    .builder()
-                    .payType(PayType.KAKAO.getValue())
-                    .orderId(response.getOrderId())
-                    .attemptKey(attemptKey)
-                    .response(response)
-                    .build());
-
-        } catch (Exception completionException) {
-            this.cancelPayment(PayType.KAKAO.getValue(), Objects.requireNonNull(response).getTransactionId(),
-                    response.getTotalAmount(), response.getTaxFree(), attemptKey, order.getOrderId());
-
-            throw completionException;
-        }
+        this.approvePayment(attemptKey, PayType.KAKAO, (attempt, order) -> {
+            PaymentProcessor paymentProcessor = new PaymentProcessor(this.payFactory.getPay(PayType.KAKAO.getValue()));
+            return paymentProcessor.approve(
+                    ApproveRequest.builder()
+                            .amount(attempt.getExpectedAmount())
+                            .pgToken(pgToken)
+                            .transactionId(attempt.getTransactionId())
+                            .orderId(order.getOrderId())
+                            .memberName(order.getMemberName())
+                            .build()
+            );
+        });
     }
 
     @Transactional
@@ -203,6 +152,82 @@ public class PaymentApplicationService {
                     .orderId(command.getOrderId())
                     .paymentId(payment.getPaymentId())
                     .build());
+        }
+    }
+
+    private void approvePayment(String attemptKey, PayType payType, PaymentApprover approver) {
+        ApprovePaymentResponse response;
+
+        PaymentAttempt attempt = this.paymentService.findPaymentAttempt(attemptKey);
+
+        if (attempt == null) {
+            throw new RuntimeException("결제승인 과정에서 오류가 발생하였습니다.");
+        }
+
+        Order order = this.orderService.findMemberOrder(attempt.getOrderId(), attempt.getMemberId());
+
+        if (order == null) {
+            throw new RuntimeException("주문 정보가 존재하지 않습니다.");
+        }
+
+        int count = this.paymentService.updateAttemptStatus(attemptKey,
+                PaymentStatus.REQUEST.getValue(), PaymentStatus.APPROVING.getValue());
+
+        if (count == 0) {
+            throw new RuntimeException("결제승인 과정에서 오류가 발생하였습니다.");
+        }
+
+        if (!this.paymentValidator.isEqualPrice(order, attempt.getExpectedAmount())) {
+            this.paymentService.updateAttemptStatus(attemptKey, PaymentStatus.APPROVING.getValue(),
+                    PaymentStatus.APPROVE_ERROR.getValue());
+
+            throw new RuntimeException("실결제 금액과 요청 금액이 일치하지 않습니다.");
+        }
+
+        try {
+            response = approver.approve(attempt, order);
+        } catch (RuntimeException e) {
+            updateAttemptStatus(attemptKey, PaymentStatus.APPROVING.getValue(), PaymentStatus.APPROVE_ERROR.getValue());
+
+            throw e;
+        } catch (Exception e) {
+            updateAttemptStatus(attemptKey, PaymentStatus.APPROVING.getValue(), PaymentStatus.APPROVE_PENDING.getValue());
+
+            throw new RuntimeException("PG 승인 결과를 확인할 수 없습니다.", e);
+        }
+
+        try {
+            if (!this.paymentValidator.isEqualPrice(order, response.getTotalAmount())) {
+                throw new RuntimeException("결제금액이 주문금액과 다릅니다.");
+            }
+
+            this.paymentCompleteService.handlePaymentApprove(PaymentApproveCommand
+                    .builder()
+                    .payType(attempt.getPayType())
+                    .orderId(response.getOrderId())
+                    .attemptKey(attemptKey)
+                    .response(response)
+                    .build());
+
+        } catch (Exception completionException) {
+            this.cancelPayment(
+                    payType.getValue(),
+                    response.getTransactionId(),
+                    response.getTotalAmount(),
+                    response.getTaxFree(),
+                    attemptKey,
+                    order.getOrderId()
+            );
+
+            throw completionException;
+        }
+    }
+
+    private void updateAttemptStatus(String attemptKey, String expected, String next) {
+        int updated = this.paymentService.updateAttemptStatus(attemptKey, expected, next);
+
+        if (updated == 0) {
+            throw new RuntimeException(expected + "에서 " + next + " 상태로 변경할 수 없습니다.");
         }
     }
 

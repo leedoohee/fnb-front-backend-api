@@ -12,7 +12,8 @@ public enum PaymentStatus {
     CANCEL_PENDING("5"),
     CANCELING("6"),
     APPROVE_ERROR("7"),
-    AUTH_FAILED("8");
+    AUTH_FAILED("8"),
+    APPROVE_PENDING("9");
 
     private final String value;
 
