@@ -21,4 +21,8 @@ public class CancelRequest {
 
     @NotBlank
     private String transactionId;
+
+    private String cancelReason;
+
+    private BigDecimal cancelVatAmount;
 }

@@ -24,6 +24,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -39,6 +40,7 @@ public class PaymentApplicationService {
     private final PayFactory payFactory;
 
     public RequestPaymentResponse request(RequestPayment requestPayment, String memberId) {
+        RequestPaymentResponse response = null;
         Order order = this.orderService.findMemberOrder(requestPayment.getOrderId(), memberId);
         String attemptKey = CommonUtil.generateAttemptKey();
         requestPayment.setAttemptKey(attemptKey);
@@ -54,15 +56,17 @@ public class PaymentApplicationService {
             throw new RuntimeException("결제 정합성 체크 과정에서 오류가 발생하였습니다.");
         }
 
-        PaymentProcessor paymentProcessor   = new PaymentProcessor(this.payFactory.getPay(requestPayment.getPayType()));
-        RequestPaymentResponse response     = paymentProcessor.request(requestPayment);
+        if (!requestPayment.getPayType().equals(PayType.TOSS.getValue())) {
+            PaymentProcessor paymentProcessor   = new PaymentProcessor(this.payFactory.getPay(requestPayment.getPayType()));
+            response     = paymentProcessor.request(requestPayment);
+        }
 
         this.paymentService.insertPaymentAttempt(PaymentAttempt.builder()
                 .orderId(order.getOrderId())
                 .memberId(memberId)
                 .payType(requestPayment.getPayType())
                 .attemptKey(attemptKey)
-                .transactionId(response.getTransactionId())
+                .transactionId(Objects.requireNonNull(response).getTransactionId())
                 .expectedAmount(order.getTotalAmount())
                 .expectedTaxFreeAmount(order.getTotalAmount().divide(BigDecimal.valueOf(1.1), RoundingMode.HALF_EVEN))
                 .status(PaymentStatus.REQUEST.getValue())
@@ -75,15 +79,15 @@ public class PaymentApplicationService {
     public void approveKakaoResult(String pgToken, String attemptKey) {
         this.approvePayment(attemptKey, PayType.KAKAO, (attempt, order) -> {
             PaymentProcessor paymentProcessor = new PaymentProcessor(this.payFactory.getPay(PayType.KAKAO.getValue()));
-            return paymentProcessor.approve(
-                    ApproveRequest.builder()
-                            .amount(attempt.getExpectedAmount())
-                            .pgToken(pgToken)
-                            .transactionId(attempt.getTransactionId())
-                            .orderId(order.getOrderId())
-                            .memberName(order.getMemberName())
-                            .build()
-            );
+                return paymentProcessor.approve(
+                        ApproveRequest.builder()
+                                .amount(attempt.getExpectedAmount())
+                                .pgToken(pgToken)
+                                .transactionId(attempt.getTransactionId())
+                                .orderId(order.getOrderId())
+                                .memberName(order.getMemberName())
+                                .build()
+                );
         });
     }
 
@@ -103,6 +107,19 @@ public class PaymentApplicationService {
         }
 
         throw new IllegalStateException("실패 처리할 수 없는 결제 시도입니다.");
+    }
+
+    public void approveTossResult(String paymentKey, String attemptKey) {
+        this.approvePayment(attemptKey, PayType.TOSS, (attempt, order) -> {
+            PaymentProcessor paymentProcessor = new PaymentProcessor(this.payFactory.getPay(PayType.TOSS.getValue()));
+            return paymentProcessor.approve(
+                    ApproveRequest.builder()
+                            .paymentKey(paymentKey)
+                            .amount(attempt.getExpectedAmount())
+                            .orderId(order.getOrderId())
+                            .build()
+            );
+        });
     }
 
     public void handleRequestCancel(RequestCancelCommand command) {

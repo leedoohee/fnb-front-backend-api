@@ -1,4 +1,4 @@
-package com.fnb.front.backend.controller.dto;
+package com.fnb.front.backend.controller.domain.request;
 
 import lombok.Builder;
 import lombok.Data;
@@ -7,7 +7,7 @@ import java.math.BigDecimal;
 
 @Data
 @Builder // Add this annotation
-public class KakaoPayRequestResultDto {
+public class KakaoPayRequest {
     private String cid;
     private String partnerOrderId;
     private String partnerUserId;

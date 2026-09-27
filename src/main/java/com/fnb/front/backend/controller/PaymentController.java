@@ -1,5 +1,6 @@
 package com.fnb.front.backend.controller;
 
+import com.fnb.front.backend.controller.dto.TossApproveDto;
 import com.fnb.front.backend.security.CustomUserDetails;
 import com.fnb.front.backend.service.PaymentApplicationService;
 import com.fnb.front.backend.controller.domain.response.RequestPaymentResponse;
@@ -28,6 +29,11 @@ public class PaymentController {
     public ResponseEntity<Boolean> approveKakao(@RequestParam("pg_token") String pgToken, @PathVariable String attemptKey) {
         this.paymentApplicationService.approveKakaoResult(pgToken, attemptKey);
         return ResponseEntity.ok(true);
+    }
+
+    @PostMapping("/payment/toss/approve")
+    public void approveTossResult(@RequestBody TossApproveDto approveDto) {
+        paymentApplicationService.approveTossResult(approveDto.getPaymentKey(), approveDto.getAttemptKey());
     }
 
     @GetMapping("/payment/kakao/fail/{attemptKey}")

@@ -5,7 +5,6 @@ import com.fnb.front.backend.controller.domain.implement.IPay;
 import com.fnb.front.backend.controller.domain.request.*;
 import com.fnb.front.backend.controller.domain.response.*;
 import com.fnb.front.backend.controller.domain.response.KakaoPayCancelResponse;
-import com.fnb.front.backend.controller.dto.*;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -40,7 +39,7 @@ public class KakaoPay implements IPay {
         headers.set("Authorization", "SECRET_KEY " + SECRET_KEY);
         headers.set("Content-Type", MediaType.APPLICATION_JSON_VALUE);
 
-        KakaoPayRequestResultDto requestBody = KakaoPayRequestResultDto.builder()
+        KakaoPayRequest requestBody = KakaoPayRequest.builder()
                 .cid(this.cid)
                 .partnerOrderId(requestPayment.getOrderId())
                 .partnerUserId(requestPayment.getMemberName())
@@ -54,7 +53,7 @@ public class KakaoPay implements IPay {
                 .cancelUrl(CANCEL_API_URL)
                 .build();
 
-        HttpEntity<KakaoPayRequestResultDto> httpEntity = new HttpEntity<>(requestBody, headers);
+        HttpEntity<KakaoPayRequest> httpEntity = new HttpEntity<>(requestBody, headers);
         RestTemplate restTemplate = new RestTemplate();
 
         try {

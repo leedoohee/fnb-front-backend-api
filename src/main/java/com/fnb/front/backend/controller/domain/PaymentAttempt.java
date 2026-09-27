@@ -45,7 +45,7 @@ public class PaymentAttempt {
     @Column(name = "attempt_key")
     private String attemptKey;
 
-    @Column(name = "transactionId", nullable = false)
+    @Column(name = "transactionId")
     private String transactionId;
 
     @Column(name = "expectedAmount", nullable = false)
