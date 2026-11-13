@@ -69,6 +69,7 @@ public class PaymentApplicationService {
                 .transactionId(Objects.requireNonNull(response).getTransactionId())
                 .expectedAmount(order.getTotalAmount())
                 .expectedTaxFreeAmount(order.getTotalAmount().divide(BigDecimal.valueOf(1.1), RoundingMode.HALF_EVEN))
+                .expectedVatAmount(requestPayment.getVatAmount())
                 .status(PaymentStatus.REQUEST.getValue())
                 .createdAt(LocalDateTime.now())
                 .build());
@@ -109,12 +110,46 @@ public class PaymentApplicationService {
         throw new IllegalStateException("실패 처리할 수 없는 결제 시도입니다.");
     }
 
+    @Transactional
+    public void failNaverResult(String attemptKey) {
+        int count = paymentService.updateAttemptStatus(attemptKey, PaymentStatus.REQUEST.getValue(),
+                PaymentStatus.AUTH_FAILED.getValue());
+
+        if (count == 1) {
+            return;
+        }
+
+        PaymentAttempt attempt = paymentService.findPaymentAttempt(attemptKey);
+        if (attempt != null && PaymentStatus.AUTH_FAILED.getValue().equals(attempt.getStatus())) {
+            return;
+        }
+
+        throw new IllegalStateException("실패 처리할 수 없는 결제 시도입니다.");
+    }
+
     public void approveTossResult(String paymentKey, String attemptKey) {
         this.approvePayment(attemptKey, PayType.TOSS, (attempt, order) -> {
             PaymentProcessor paymentProcessor = new PaymentProcessor(this.payFactory.getPay(PayType.TOSS.getValue()));
             return paymentProcessor.approve(
                     ApproveRequest.builder()
                             .paymentKey(paymentKey)
+                            .amount(attempt.getExpectedAmount())
+                            .orderId(order.getOrderId())
+                            .build()
+            );
+        });
+    }
+
+    public void approveNaverResult(String paymentKey, String attemptKey) {
+        this.approvePayment(attemptKey, PayType.NAVER, (attempt, order) -> {
+            PaymentProcessor paymentProcessor = new PaymentProcessor(this.payFactory.getPay(PayType.NAVER.getValue()));
+            return paymentProcessor.approve(
+                    ApproveRequest.builder()
+                            .transactionId(paymentKey)
+                            .idempotencyKey(attemptKey + "-approve")
+                            .memberName(order.getMemberName())
+                            .vatAmount(attempt.getExpectedVatAmount())
+                            .taxFreeAmount(attempt.getExpectedTaxFreeAmount())
                             .amount(attempt.getExpectedAmount())
                             .orderId(order.getOrderId())
                             .build()
@@ -194,7 +229,7 @@ public class PaymentApplicationService {
             throw new RuntimeException("결제승인 과정에서 오류가 발생하였습니다.");
         }
 
-        if (!this.paymentValidator.isEqualPrice(order, attempt.getExpectedAmount())) {
+        if (this.paymentValidator.isEqualPrice(order, attempt.getExpectedAmount())) {
             this.paymentService.updateAttemptStatus(attemptKey, PaymentStatus.APPROVING.getValue(),
                     PaymentStatus.APPROVE_ERROR.getValue());
 
@@ -214,8 +249,13 @@ public class PaymentApplicationService {
         }
 
         try {
-            if (!this.paymentValidator.isEqualPrice(order, response.getTotalAmount())) {
+            if (this.paymentValidator.isEqualPrice(order, response.getTotalAmount())) {
                 throw new RuntimeException("결제금액이 주문금액과 다릅니다.");
+            }
+
+            if (payType.equals(PayType.NAVER) &&
+                    attempt.getExpectedTaxFreeAmount().compareTo(response.getTaxFree()) != 0) {
+                throw new RuntimeException("승인 응답의 비과세 금액이 요청값과 다릅니다.");
             }
 
             this.paymentCompleteService.handlePaymentApprove(PaymentApproveCommand

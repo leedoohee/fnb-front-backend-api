@@ -25,4 +25,10 @@ public class CancelRequest {
     private String cancelReason;
 
     private BigDecimal cancelVatAmount;
+
+    private String idempotencyKey;
+
+    private String orderId;
+
+    private BigDecimal expectedRestAmount;
 }

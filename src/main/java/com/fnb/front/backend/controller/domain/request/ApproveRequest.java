@@ -15,4 +15,7 @@ public class ApproveRequest {
     private String orderId;
     private String pgToken;
     private BigDecimal amount;
+    private BigDecimal vatAmount;
+    private BigDecimal taxFreeAmount;
+    private String idempotencyKey;
 }

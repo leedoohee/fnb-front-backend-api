@@ -17,6 +17,8 @@ import java.net.URI;
 @RequiredArgsConstructor
 public class PaymentController {
 
+    private static final String NAVER_PAYMENT_SUCCESS = "Success";
+
     private final PaymentApplicationService paymentApplicationService;
 
     //카카오 페이 및 pg 전용
@@ -34,6 +36,23 @@ public class PaymentController {
     @PostMapping("/payment/toss/approve")
     public void approveTossResult(@RequestBody TossApproveDto approveDto) {
         paymentApplicationService.approveTossResult(approveDto.getPaymentKey(), approveDto.getAttemptKey());
+    }
+
+    @GetMapping("/payment/naver/approve/{attemptKey}")
+    public ResponseEntity<Boolean> approveNaver(@RequestParam("resultCode") String resultCode,
+                                                @RequestParam(value = "paymentId", required = false) String paymentId,
+                                                @PathVariable String attemptKey) {
+        if (!NAVER_PAYMENT_SUCCESS.equals(resultCode)) {
+            this.paymentApplicationService.failNaverResult(attemptKey);
+            return ResponseEntity.ok(false);
+        }
+
+        if (paymentId == null || paymentId.isBlank()) {
+            throw new IllegalArgumentException("네이버페이 paymentId가 없습니다.");
+        }
+
+        this.paymentApplicationService.approveNaverResult(paymentId, attemptKey);
+        return ResponseEntity.ok(true);
     }
 
     @GetMapping("/payment/kakao/fail/{attemptKey}")

@@ -24,6 +24,6 @@ public class PaymentValidator {
     }
 
     public boolean isEqualPrice(Order order, BigDecimal expectedPrice) {
-        return order.getTotalAmount().compareTo(expectedPrice) == 0;
+        return order.getTotalAmount().compareTo(expectedPrice) != 0;
     }
 }

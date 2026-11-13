@@ -54,6 +54,9 @@ public class PaymentAttempt {
     @Column(name = "expectedTaxFreeAmount", nullable = false)
     private BigDecimal expectedTaxFreeAmount;
 
+    @Column(name = "expectedVatAmount", nullable = false)
+    private BigDecimal expectedVatAmount;
+
     @Column(name = "status", nullable = false)
     private String status;
 

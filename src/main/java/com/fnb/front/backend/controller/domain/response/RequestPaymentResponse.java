@@ -12,4 +12,8 @@ public class RequestPaymentResponse {
     private String status;
     private String redirectUrl;
     private String transactionId;
+    private String clientId;
+    private String chainId;
+    private String returnUrl;
+    private String mode;
 }
